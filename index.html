@@ -85,9 +85,8 @@
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-gray-700">รายการโครงการทั้งหมด</h3>
                     
-                    <!-- Search & Filter Controls -->
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="🔍 ค้นหาหลักสูตร, สมาคม, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="🔍 ค้นหาหลักสูตร, สมาคม, รายการ, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                         <select id="filterCategory" onchange="filterTable()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="">-- ทุกหน่วยงานหลัก --</option>
                             <option value="กกท.">การกีฬาแห่งประเทศไทย (กกท.)</option>
@@ -103,7 +102,7 @@
                             <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
                                 <th class="p-3">ID</th>
                                 <th class="p-3">หลักสูตร / สมาคม</th>
-                                <th class="p-3">กิจกรรม</th>
+                                <th class="p-3">กิจกรรม / ชื่อรายการ</th>
                                 <th class="p-3">สถานที่จัดอบรม</th>
                                 <th class="p-3 text-center">เป้าหมาย / ผ่าน</th>
                                 <th class="p-3 text-right">งบใช้ / อนุมัติ</th>
@@ -160,7 +159,12 @@
                         </select>
                     </div>
 
-                    <!-- เพิ่มช่องสถานที่จัดอบรม -->
+                    <!-- เพิ่มช่องชื่อรายการ (แสดงเฉพาะสมาคมกีฬาฯ) -->
+                    <div id="projectNameDiv" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อรายการโครงการย่อย</label>
+                        <input type="text" id="projectName" placeholder="เช่น อบรมผู้ฝึกสอนกีฬายกน้ำหนัก เลเวล 1" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">สถานที่จัดอบรม</label>
                         <input type="text" id="location" placeholder="เช่น โรงแรม... หรือ จังหวัด..." class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
@@ -219,7 +223,6 @@
         let payChartInstance = null;
         let budgetChartInstance = null;
 
-        // Tab Switching
         function switchTab(tabName) {
             ['dashboard', 'analytics', 'form'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -233,7 +236,6 @@
             }
         }
 
-        // Dropdown Logic for Form
         const satCourses = [
             "การเพิ่มศักยภาพในการบริหารจัดการกีฬาไปสู่ความเป็นเลิศฯ (ธรรมาภิบาล)",
             "การจัดการกีฬาขั้นสูงตามแนวทาง International Olympic Academy",
@@ -248,6 +250,7 @@
         const subCategory = document.getElementById('subCategory');
         const subCategoryLabel = document.getElementById('subCategoryLabel');
         const projectActivityDiv = document.getElementById('projectActivityDiv');
+        const projectNameDiv = document.getElementById('projectNameDiv');
 
         mainCategory.addEventListener('change', function() {
             const val = this.value;
@@ -255,20 +258,22 @@
             if (val === 'การพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย') {
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.add('hidden');
+                projectNameDiv.classList.add('hidden'); // ซ่อนช่องชื่อรายการสำหรับ กกท.
                 subCategoryLabel.innerText = '2. เลือกหลักสูตร';
                 satCourses.forEach(c => subCategory.innerHTML += `<option value="${c}">${c}</option>`);
             } else if (val === 'การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย') {
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.remove('hidden');
+                projectNameDiv.classList.remove('hidden'); // แสดงช่องชื่อรายการสำหรับสมาคมกีฬาฯ
                 subCategoryLabel.innerText = '2. เลือกสมาคมกีฬา';
                 associations.forEach(a => subCategory.innerHTML += `<option value="${a}">${a}</option>`);
             } else {
                 subCategoryDiv.classList.add('hidden');
                 projectActivityDiv.classList.add('hidden');
+                projectNameDiv.classList.add('hidden');
             }
         });
 
-        // Load Data from Google Sheets API
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
@@ -283,7 +288,6 @@
             }
         }
 
-        // Update Dashboard Cards & Charts
         function updateDashboard(data) {
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
@@ -298,7 +302,6 @@
             renderCharts(data);
         }
 
-        // Filter Table Logic
         function filterTable() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const categoryFilter = document.getElementById('filterCategory').value;
@@ -307,9 +310,10 @@
                 const mainCat = (item.Main_Category || '').toLowerCase();
                 const subCat = (item.Sub_Category || '').toLowerCase();
                 const activity = (item.Project_Activity || '').toLowerCase();
+                const projName = (item.Project_Name || '').toLowerCase();
                 const location = (item.Location || '').toLowerCase();
                 
-                const matchKeyword = subCat.includes(keyword) || activity.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
+                const matchKeyword = subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
                 
                 let matchCategory = true;
                 if (categoryFilter === 'กกท.') {
@@ -324,7 +328,6 @@
             renderTable(filtered);
         }
 
-        // Render Table Rows
         function renderTable(data) {
             const tbody = document.getElementById('dataTableBody');
             if(data.length === 0) {
@@ -338,7 +341,10 @@
                         <div class="font-medium text-gray-800">${item.Sub_Category || ''}</div>
                         <div class="text-xs text-gray-400">${item.Main_Category || ''}</div>
                     </td>
-                    <td class="p-3 text-gray-600">${item.Project_Activity || '-'}</td>
+                    <td class="p-3">
+                        <div class="text-gray-700">${item.Project_Activity || '-'}</div>
+                        <div class="text-xs text-blue-600 font-medium">${item.Project_Name && item.Project_Name !== '-' ? '(' + item.Project_Name + ')' : ''}</div>
+                    </td>
                     <td class="p-3 text-gray-600">${item.Location || '-'}</td>
                     <td class="p-3 text-center">${item.Target_People || 0} / <span class="text-green-600 font-semibold">${item.Passed_People || 0}</span></td>
                     <td class="p-3 text-right">${Number(item.Used_Budget || 0).toLocaleString()} / ${Number(item.Approved_Budget || 0).toLocaleString()}</td>
@@ -348,7 +354,6 @@
             `).join('');
         }
 
-        // Render Charts
         function renderCharts(data) {
             let opDone = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
             let opProg = data.length - opDone;
@@ -393,17 +398,19 @@
             });
         }
 
-        // Form Submit
         document.getElementById('projectForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.innerText = 'กำลังบันทึกข้อมูล...';
             btn.disabled = true;
 
+            const isAssociation = document.getElementById('mainCategory').value.includes('สมาคมกีฬา');
+
             const payload = {
                 mainCategory: document.getElementById('mainCategory').value,
                 subCategory: document.getElementById('subCategory').value,
-                projectActivity: document.getElementById('projectActivityDiv').classList.contains('hidden') ? "-" : document.getElementById('projectActivity').value,
+                projectActivity: isAssociation ? document.getElementById('projectActivity').value : "-",
+                projectName: isAssociation ? (document.getElementById('projectName').value || "-") : "-",
                 location: document.getElementById('location').value || "-",
                 targetPeople: document.getElementById('targetPeople').value,
                 passedPeople: document.getElementById('passedPeople').value,
@@ -425,6 +432,7 @@
                     document.getElementById('projectForm').reset();
                     subCategoryDiv.classList.add('hidden');
                     projectActivityDiv.classList.add('hidden');
+                    projectNameDiv.classList.add('hidden');
                     switchTab('dashboard');
                 } else {
                     alert('เกิดข้อผิดพลาด: ' + result.message);
@@ -437,7 +445,6 @@
             }
         });
 
-        // Initial Load
         loadData();
     </script>
 </body>
