@@ -39,6 +39,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
 
+        <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
@@ -106,13 +107,51 @@
             </div>
         </section>
 
+        <!-- TAB 2: ANALYTICS (อัปเดตใหม่) -->
         <section id="tab-analytics" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">วิเคราะห์เปรียบเทียบงบประมาณและการดำเนินงาน</h3>
-                <div class="relative h-96"><canvas id="budgetCompareChart"></canvas></div>
+            
+            <!-- ส่วน Smart Insights ข้อสังเกตอัตโนมัติ -->
+            <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-xl shadow-sm">
+                <h3 class="text-lg font-bold text-blue-800 mb-3 flex items-center gap-2">
+                    💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)
+                </h3>
+                <p id="smart-insights-text" class="text-gray-700 leading-relaxed">กำลังประมวลผลข้อมูลการวิเคราะห์...</p>
+            </div>
+
+            <!-- ส่วน KPI Cards สำหรับหน้า Analytics -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">อัตราการเบิกจ่ายงบประมาณภาพรวม</p>
+                        <h3 id="analytics-budget-percent" class="text-3xl font-bold text-blue-600 mt-1">0%</h3>
+                    </div>
+                    <div class="text-4xl opacity-80">💰</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">อัตราความสำเร็จผู้ผ่านการอบรมเทียบเป้าหมาย</p>
+                        <h3 id="analytics-people-percent" class="text-3xl font-bold text-green-600 mt-1">0%</h3>
+                    </div>
+                    <div class="text-4xl opacity-80">👥</div>
+                </div>
+            </div>
+
+            <!-- ส่วน Charts เปรียบเทียบ -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- กราฟใหม่: เปรียบเทียบ กกท. กับ สมาคมกีฬา -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-700 mb-4">เปรียบเทียบการใช้งบประมาณ (กกท. vs สมาคมกีฬาฯ)</h3>
+                    <div class="relative h-64 flex justify-center"><canvas id="agencyCompareChart"></canvas></div>
+                </div>
+                <!-- กราฟเดิม: วิเคราะห์รายหลักสูตร -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-700 mb-4">วิเคราะห์งบประมาณจำแนกตามหลักสูตร/สมาคม</h3>
+                    <div class="relative h-64 flex justify-center"><canvas id="budgetCompareChart"></canvas></div>
+                </div>
             </div>
         </section>
 
+        <!-- TAB 3: FORM ENTRY -->
         <section id="tab-form" class="hidden">
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ฟอร์มบันทึกโครงการพัฒนาบุคลากร</h2>
@@ -209,6 +248,7 @@
         let opChartInstance = null;
         let payChartInstance = null;
         let budgetChartInstance = null;
+        let agencyChartInstance = null;
 
         function switchTab(tabName) {
             ['dashboard', 'analytics', 'form'].forEach(t => {
@@ -269,6 +309,7 @@
                     globalData = result.data;
                     updateDashboard(globalData);
                     filterTable();
+                    renderAnalytics(globalData); // เรียกฟังก์ชันวิเคราะห์หน้า Analytics
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -370,16 +411,74 @@
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
+        }
 
+        // ฟังก์ชันใหม่: ประมวลผลและแสดงกราฟในหน้า Analytics
+        function renderAnalytics(data) {
+            if (!data || data.length === 0) return;
+
+            // 1. คำนวณภาพรวม
+            let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+            let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+            let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
+            let totalPassed = data.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
+
+            let budgetPercent = totalAppBudget > 0 ? ((totalUsedBudget / totalAppBudget) * 100).toFixed(2) : 0;
+            let passPercent = totalTarget > 0 ? ((totalPassed / totalTarget) * 100).toFixed(2) : 0;
+
+            document.getElementById('analytics-budget-percent').innerText = budgetPercent + '%';
+            document.getElementById('analytics-people-percent').innerText = passPercent + '%';
+
+            // 2. แยกข้อมูล กกท. กับ สมาคมกีฬา
+            let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
+            let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
+
+            let satUsed = satData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+            let assocUsed = assocData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+            let satApp = satData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+            let assocApp = assocData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+
+            let satBudgetPercent = satApp > 0 ? ((satUsed / satApp) * 100).toFixed(2) : 0;
+            let assocBudgetPercent = assocApp > 0 ? ((assocUsed / assocApp) * 100).toFixed(2) : 0;
+
+            let completedProjects = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
+
+            // 3. สร้างข้อความ Smart Insights
+            let insightsText = `📌 จากข้อมูลทั้งหมด <b>${data.length} โครงการ</b> พบว่าภาพรวมมีการเบิกจ่ายงบประมาณไปแล้ว <b>${budgetPercent}%</b> `;
+            insightsText += `และมีผู้ผ่านการอบรมคิดเป็น <b>${passPercent}%</b> ของเป้าหมายผู้เข้าร่วมทั้งหมด<br><br>`;
+            
+            insightsText += `🏢 เมื่อเทียบสัดส่วนตามหน่วยงาน <b>ฝั่ง กกท.</b> มีการเบิกจ่ายงบประมาณไปแล้ว ${satBudgetPercent}% `;
+            insightsText += `ในขณะที่ <b>ฝั่งสมาคมกีฬาฯ</b> มีการเบิกจ่ายไปแล้ว ${assocBudgetPercent}%<br><br>`;
+            
+            insightsText += `✅ ขณะนี้มีโครงการที่ดำเนินการเสร็จสิ้นแล้วจำนวน <b>${completedProjects} โครงการ</b> จากทั้งหมด ${data.length} โครงการ`;
+
+            document.getElementById('smart-insights-text').innerHTML = insightsText;
+
+            // 4. กราฟเปรียบเทียบหน่วยงาน
+            if(window.agencyChartInstance) window.agencyChartInstance.destroy();
+            const ctxAgency = document.getElementById('agencyCompareChart').getContext('2d');
+            window.agencyChartInstance = new Chart(ctxAgency, {
+                type: 'bar',
+                data: {
+                    labels: ['การกีฬาแห่งประเทศไทย (กกท.)', 'สมาคมกีฬาแห่งประเทศไทย'],
+                    datasets: [
+                        { label: 'งบอนุมัติ', data: [satApp, assocApp], backgroundColor: '#3b82f6' },
+                        { label: 'งบใช้จริง', data: [satUsed, assocUsed], backgroundColor: '#10b981' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 5. กราฟเปรียบเทียบรายหลักสูตร
             if(budgetChartInstance) budgetChartInstance.destroy();
-            const ctx3 = document.getElementById('budgetCompareChart').getContext('2d');
-            budgetChartInstance = new Chart(ctx3, {
+            const ctxBudget = document.getElementById('budgetCompareChart').getContext('2d');
+            budgetChartInstance = new Chart(ctxBudget, {
                 type: 'bar',
                 data: {
                     labels: data.map(i => i.Sub_Category ? i.Sub_Category.substring(0, 20) + '...' : 'N/A'),
                     datasets: [
-                        { label: 'งบอนุมัติ', data: data.map(i => Number(i.Approved_Budget || 0)), backgroundColor: '#3b82f6' },
-                        { label: 'งบใช้จริง', data: data.map(i => Number(i.Used_Budget || 0)), backgroundColor: '#10b981' }
+                        { label: 'งบอนุมัติ', data: data.map(i => Number(i.Approved_Budget || 0)), backgroundColor: '#60a5fa' },
+                        { label: 'งบใช้จริง', data: data.map(i => Number(i.Used_Budget || 0)), backgroundColor: '#34d399' }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
