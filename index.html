@@ -41,8 +41,12 @@
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
+            
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">📊 สรุปภาพรวมโครงการ</h2>
+                <!-- หัวข้อจะเปลี่ยนไปตามตัวกรอง -->
+                <h2 id="dashboard-title" class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569
+                </h2>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <label class="text-sm font-medium text-gray-600 hidden sm:block">ดูข้อมูลเฉพาะ:</label>
                     <select id="globalFilterCategory" onchange="applyGlobalFilter()" class="w-full sm:w-auto border-2 border-blue-200 rounded-lg px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-blue-50 font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 cursor-pointer">
@@ -155,7 +159,6 @@
         <section id="tab-form" class="hidden">
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
                 
-                <!-- Badge แสดงสถานะว่าเป็น บันทึกใหม่ หรือ อัปเดต -->
                 <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">
                     ข้อมูลใหม่
                 </span>
@@ -250,7 +253,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md">
                         บันทึกโครงการใหม่
                     </button>
                 </form>
@@ -321,7 +324,7 @@
             }
         });
 
-        // 💡 SMART DEFAULT LOGIC: ตรวจสอบ ID ตอนพิมพ์เสร็จ
+        // 💡 SMART DEFAULT LOGIC (ดึงข้อมูลเก่ามาแสดง)
         document.getElementById('projectId').addEventListener('blur', function() {
             const idToSearch = this.value.trim();
             if(!idToSearch) return;
@@ -333,11 +336,9 @@
             const badge = document.getElementById('formStatusBadge');
 
             if(existingData) {
-                // เติมข้อมูลลงฟอร์ม
                 document.getElementById('mainCategory').value = existingData.Main_Category || '';
                 document.getElementById('mainCategory').dispatchEvent(new Event('change'));
 
-                // ใช้ Timeout เล็กน้อยรอให้ Dropdown สร้าง Option เสร็จก่อนเลือกค่า
                 setTimeout(() => {
                     document.getElementById('subCategory').value = existingData.Sub_Category || '';
                     if((existingData.Main_Category || '').includes('สมาคมกีฬา')) {
@@ -345,11 +346,8 @@
                         document.getElementById('projectName').value = existingData.Project_Name || '';
                     }
                     document.getElementById('location').value = existingData.Location || '';
-                    
-                    // แปลง Date Format ถ้าจำเป็น (สมมติใน Sheet กรอกมาเป็น YYYY-MM-DD แบบปกติ)
                     document.getElementById('startDate').value = existingData.Start_Date || '';
                     document.getElementById('endDate').value = existingData.End_Date || '';
-
                     document.getElementById('targetPeople').value = existingData.Target_People || 0;
                     document.getElementById('passedPeople').value = existingData.Passed_People || 0;
                     document.getElementById('approvedBudget').value = existingData.Approved_Budget || 0;
@@ -357,7 +355,6 @@
                     document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
                     document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
 
-                    // เปลี่ยนสไตล์ปุ่ม และแจ้งเตือน
                     hint.classList.remove('hidden');
                     badge.classList.remove('hidden', 'bg-blue-100', 'text-blue-700');
                     badge.classList.add('bg-emerald-100', 'text-emerald-700');
@@ -368,18 +365,16 @@
                 }, 100);
 
             } else {
-                // ถ้าไม่เจอ ให้กลับเป็นโหมดปกติ (บันทึกใหม่) โดยไม่ล้างรหัส ID ที่พิมพ์ไป
                 hint.classList.add('hidden');
                 badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-700');
                 badge.classList.add('bg-blue-100', 'text-blue-700');
                 badge.innerText = 'โครงการใหม่';
 
                 submitBtn.innerText = 'บันทึกโครงการใหม่';
-                submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200";
+                submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md";
             }
         });
 
-        // ฟังก์ชันโหลดข้อมูล
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
@@ -396,13 +391,17 @@
 
         function applyGlobalFilter() {
             const categoryFilter = document.getElementById('globalFilterCategory').value;
+            const dashboardTitle = document.getElementById('dashboard-title');
             
             if (categoryFilter === '') {
                 currentFilteredData = [...globalData]; 
+                dashboardTitle.innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569';
             } else if (categoryFilter === 'กกท.') {
                 currentFilteredData = globalData.filter(item => (item.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
+                dashboardTitle.innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย ประจำปีงบประมาณ พ.ศ. 2569';
             } else if (categoryFilter === 'สมาคมกีฬา') {
                 currentFilteredData = globalData.filter(item => (item.Main_Category || '').includes('สมาคมกีฬาแห่งประเทศไทย'));
+                dashboardTitle.innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย ประจำปีงบประมาณ พ.ศ. 2569';
             }
 
             updateDashboardCardsAndCharts(currentFilteredData);
@@ -610,13 +609,12 @@
                     alert(result.message + '\nรหัส ID: ' + result.id);
                     document.getElementById('projectForm').reset();
                     
-                    // รีเซ็ต UI ของฟอร์มกลับเป็นปกติ
                     document.getElementById('subCategoryDiv').classList.add('hidden');
                     document.getElementById('projectActivityDiv').classList.add('hidden');
                     document.getElementById('projectNameDiv').classList.add('hidden');
                     document.getElementById('idSearchHint').classList.add('hidden');
                     document.getElementById('formStatusBadge').classList.add('hidden');
-                    btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200";
+                    btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md";
                     btn.innerText = 'บันทึกโครงการใหม่';
 
                     switchTab('dashboard');
@@ -632,7 +630,6 @@
             }
         });
 
-        // โหลดข้อมูลเมื่อเปิดหน้า
         loadData();
     </script>
 </body>
