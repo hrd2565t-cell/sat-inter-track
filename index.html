@@ -9,23 +9,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+        
+        /* สไตล์สำหรับการพิมพ์รายงาน (Print Layout) */
+        @media print {
+            body { background-color: white; color: black; }
+            nav, button, .no-print { display: none !important; }
+            .shadow-sm, .shadow-md, .rounded-xl { box-shadow: none !important; border: none !important; }
+            main { padding: 0 !important; max-width: 100% !important; }
+            table { font-size: 12px; width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 6px; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <!-- Navigation Header -->
-    <nav class="bg-blue-900 text-white shadow-md">
+    <!-- Navigation Header (ซ่อนเวลาพิมพ์) -->
+    <nav class="bg-blue-900 text-white shadow-md no-print">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-xl font-bold mb-2 md:mb-0">ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</h1>
-            <div class="flex space-x-2 bg-blue-800 p-1 rounded-lg">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-md font-medium text-sm bg-white text-blue-900 shadow transition">Dashboard ภาพรวม</button>
-                <button onclick="switchTab('analytics')" id="btn-analytics" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition">วิเคราะห์โครงการ</button>
-                <button onclick="switchTab('form')" id="btn-form" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition">+ บันทึกข้อมูล</button>
+            <div class="flex items-center space-x-2">
+                <div class="flex space-x-2 bg-blue-800 p-1 rounded-lg">
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-md font-medium text-sm bg-white text-blue-900 shadow transition">Dashboard ภาพรวม</button>
+                    <button onclick="switchTab('analytics')" id="btn-analytics" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition">วิเคราะห์โครงการ</button>
+                    <button onclick="switchTab('form')" id="btn-form" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition">+ บันทึกข้อมูล</button>
+                </div>
+                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1 shadow">
+                    🖨️ พิมพ์รายงาน
+                </button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-6">
+    <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
@@ -50,7 +65,7 @@
             </div>
 
             <!-- Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-700 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
                     <div class="relative h-64 flex justify-center">
@@ -65,12 +80,23 @@
                 </div>
             </div>
 
-            <!-- Data Table -->
+            <!-- Data Table with Search & Filter -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-gray-700">รายการโครงการทั้งหมด</h3>
-                    <button onclick="loadData()" class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600">รีเฟรชข้อมูล</button>
+                    
+                    <!-- Search & Filter Controls -->
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="🔍 ค้นหาหลักสูตร/สมาคม..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <select id="filterCategory" onchange="filterTable()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- ทุกหน่วยงานหลัก --</option>
+                            <option value="กกท.">การกีฬาแห่งประเทศไทย (กกท.)</option>
+                            <option value="สมาคมกีฬา">สมาคมกีฬาแห่งประเทศไทย</option>
+                        </select>
+                        <button onclick="loadData()" class="no-print text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600 transition">รีเฟรช</button>
+                    </div>
                 </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -244,15 +270,15 @@
                 if(result.status === 'success') {
                     globalData = result.data;
                     updateDashboard(globalData);
+                    filterTable(); // แสดงผลตารางผ่านฟังก์ชันกรอง
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
             }
         }
 
-        // Update Dashboard Cards & Charts & Table
-        function updateData(data) {
-            // Cards
+        // Update Dashboard Cards & Charts
+        function updateDashboard(data) {
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
@@ -263,16 +289,47 @@
             document.getElementById('card-target-people').innerText = totalTarget.toLocaleString() + ' คน';
             document.getElementById('card-passed-people').innerText = totalPassed.toLocaleString() + ' คน';
 
-            // Table
+            renderCharts(data);
+        }
+
+        // Filter Table Logic (Search & Category Filter)
+        function filterTable() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const categoryFilter = document.getElementById('filterCategory').value;
+
+            const filtered = globalData.filter(item => {
+                const mainCat = (item.Main_Category || '').toLowerCase();
+                const subCat = (item.Sub_Category || '').toLowerCase();
+                const activity = (item.Project_Activity || '').toLowerCase();
+                
+                // เงื่อนไขค้นหาข้อความ
+                const matchKeyword = subCat.includes(keyword) || activity.includes(keyword) || mainCat.includes(keyword);
+                
+                // เงื่อนไขกรองหมวดหมู่หลัก
+                let matchCategory = true;
+                if (categoryFilter === 'กกท.') {
+                    matchCategory = mainCat.includes('การกีฬาแห่งประเทศไทย');
+                } else if (categoryFilter === 'สมาคมกีฬา') {
+                    matchCategory = mainCat.includes('สมาคมกีฬาแห่งประเทศไทย');
+                }
+
+                return matchKeyword && matchCategory;
+            });
+
+            renderTable(filtered);
+        }
+
+        // Render Table Rows
+        function renderTable(data) {
             const tbody = document.getElementById('dataTableBody');
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลในระบบ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ค้นหา</td></tr>`;
                 return;
             }
             tbody.innerHTML = data.map(item => `
                 <tr class="hover:bg-gray-50">
                     <td class="p-3 font-mono text-xs text-gray-500">${item.ID || ''}</td>
-                    <td class="p-3">${item.Main_Category || ''}</td>
+                    <td class="p-3 text-xs">${item.Main_Category || ''}</td>
                     <td class="p-3 font-medium">${item.Sub_Category || ''}</td>
                     <td class="p-3 text-gray-500">${item.Project_Activity || '-'}</td>
                     <td class="p-3 text-center">${item.Target_People || 0} / <span class="text-green-600 font-semibold">${item.Passed_People || 0}</span></td>
@@ -281,22 +338,16 @@
                     <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${item.Payment_Status === 'เบิกจ่ายเรียบร้อย' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.Payment_Status}</span></td>
                 </tr>
             `).join('');
-
-            // Charts
-            renderCharts(data);
         }
-        window.updateDashboard = updateData;
 
+        // Render Charts
         function renderCharts(data) {
-            // Operation Status Count
             let opDone = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
             let opProg = data.length - opDone;
 
-            // Payment Status Count
             let payDone = data.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length;
             let payProg = data.length - payDone;
 
-            // Op Chart
             if(opChartInstance) opChartInstance.destroy();
             const ctx1 = document.getElementById('opStatusChart').getContext('2d');
             opChartInstance = new Chart(ctx1, {
@@ -308,7 +359,6 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // Pay Chart
             if(payChartInstance) payChartInstance.destroy();
             const ctx2 = document.getElementById('payStatusChart').getContext('2d');
             payChartInstance = new Chart(ctx2, {
@@ -320,7 +370,6 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // Budget Compare Bar Chart
             if(budgetChartInstance) budgetChartInstance.destroy();
             const ctx3 = document.getElementById('budgetCompareChart').getContext('2d');
             budgetChartInstance = new Chart(ctx3, {
@@ -379,7 +428,7 @@
             }
         });
 
-        // Initial Load on startup
+        // Initial Load
         loadData();
     </script>
 </body>
