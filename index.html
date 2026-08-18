@@ -10,7 +10,6 @@
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
         
-        /* สไตล์สำหรับการพิมพ์รายงาน (Print Layout) */
         @media print {
             body { background-color: white; color: black; }
             nav, button, .no-print { display: none !important; }
@@ -44,7 +43,6 @@
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
-            <!-- Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
@@ -64,7 +62,6 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-700 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -80,13 +77,12 @@
                 </div>
             </div>
 
-            <!-- Data Table with Search & Filter -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-gray-700">รายการโครงการทั้งหมด</h3>
                     
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="🔍 ค้นหาหลักสูตร, สมาคม, รายการ, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="🔍 ค้นหา ID, หลักสูตร, สมาคม..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                         <select id="filterCategory" onchange="filterTable()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="">-- ทุกหน่วยงานหลัก --</option>
                             <option value="กกท.">การกีฬาแห่งประเทศไทย (กกท.)</option>
@@ -100,7 +96,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
-                                <th class="p-3">ID</th>
+                                <th class="p-3">รหัส ID โครงการ</th>
                                 <th class="p-3">หลักสูตร / สมาคม</th>
                                 <th class="p-3">กิจกรรม / ชื่อรายการ</th>
                                 <th class="p-3">สถานที่จัดอบรม</th>
@@ -135,6 +131,12 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ฟอร์มบันทึกโครงการพัฒนาบุคลากร</h2>
 
                 <form id="projectForm" class="space-y-6">
+                    <!-- เพิ่มช่องกรอกรหัส ID โครงการเอง -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ (เลขที่อ้างอิง)</label>
+                        <input type="text" id="projectId" required placeholder="เช่น PRJ-69-001 หรือเลขที่โครงการ" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-mono">
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">1. หน่วยงานที่ดำเนินการ (หมวดหมู่หลัก)</label>
                         <select id="mainCategory" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
@@ -159,7 +161,6 @@
                         </select>
                     </div>
 
-                    <!-- เพิ่มช่องชื่อรายการ (แสดงเฉพาะสมาคมกีฬาฯ) -->
                     <div id="projectNameDiv" class="hidden">
                         <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อรายการโครงการย่อย</label>
                         <input type="text" id="projectName" placeholder="เช่น อบรมผู้ฝึกสอนกีฬายกน้ำหนัก เลเวล 1" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
@@ -258,13 +259,13 @@
             if (val === 'การพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย') {
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.add('hidden');
-                projectNameDiv.classList.add('hidden'); // ซ่อนช่องชื่อรายการสำหรับ กกท.
+                projectNameDiv.classList.add('hidden');
                 subCategoryLabel.innerText = '2. เลือกหลักสูตร';
                 satCourses.forEach(c => subCategory.innerHTML += `<option value="${c}">${c}</option>`);
             } else if (val === 'การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย') {
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.remove('hidden');
-                projectNameDiv.classList.remove('hidden'); // แสดงช่องชื่อรายการสำหรับสมาคมกีฬาฯ
+                projectNameDiv.classList.remove('hidden');
                 subCategoryLabel.innerText = '2. เลือกสมาคมกีฬา';
                 associations.forEach(a => subCategory.innerHTML += `<option value="${a}">${a}</option>`);
             } else {
@@ -307,13 +308,14 @@
             const categoryFilter = document.getElementById('filterCategory').value;
 
             const filtered = globalData.filter(item => {
+                const id = (item.ID || '').toLowerCase();
                 const mainCat = (item.Main_Category || '').toLowerCase();
                 const subCat = (item.Sub_Category || '').toLowerCase();
                 const activity = (item.Project_Activity || '').toLowerCase();
                 const projName = (item.Project_Name || '').toLowerCase();
                 const location = (item.Location || '').toLowerCase();
                 
-                const matchKeyword = subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
+                const matchKeyword = id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
                 
                 let matchCategory = true;
                 if (categoryFilter === 'กกท.') {
@@ -336,7 +338,7 @@
             }
             tbody.innerHTML = data.map(item => `
                 <tr class="hover:bg-gray-50">
-                    <td class="p-3 font-mono text-xs text-gray-500">${item.ID || ''}</td>
+                    <td class="p-3 font-mono text-xs font-semibold text-blue-700">${item.ID || ''}</td>
                     <td class="p-3">
                         <div class="font-medium text-gray-800">${item.Sub_Category || ''}</div>
                         <div class="text-xs text-gray-400">${item.Main_Category || ''}</div>
@@ -407,6 +409,7 @@
             const isAssociation = document.getElementById('mainCategory').value.includes('สมาคมกีฬา');
 
             const payload = {
+                projectId: document.getElementById('projectId').value,
                 mainCategory: document.getElementById('mainCategory').value,
                 subCategory: document.getElementById('subCategory').value,
                 projectActivity: isAssociation ? document.getElementById('projectActivity').value : "-",
@@ -428,7 +431,7 @@
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
-                    alert('บันทึกข้อมูลสำเร็จ! ID: ' + result.id);
+                    alert('บันทึกข้อมูลสำเร็จ! รหัส ID: ' + result.id);
                     document.getElementById('projectForm').reset();
                     subCategoryDiv.classList.add('hidden');
                     projectActivityDiv.classList.add('hidden');
