@@ -21,7 +21,6 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <!-- นาวิเกชันบาร์ -->
     <nav class="bg-blue-900 text-white shadow-md no-print">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-xl font-bold mb-2 md:mb-0">ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</h1>
@@ -42,12 +41,8 @@
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
-            
-            <!-- Global Filter -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
-                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    📊 สรุปภาพรวมโครงการ
-                </h2>
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">📊 สรุปภาพรวมโครงการ</h2>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <label class="text-sm font-medium text-gray-600 hidden sm:block">ดูข้อมูลเฉพาะ:</label>
                     <select id="globalFilterCategory" onchange="applyGlobalFilter()" class="w-full sm:w-auto border-2 border-blue-200 rounded-lg px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-blue-50 font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 cursor-pointer">
@@ -58,7 +53,6 @@
                 </div>
             </div>
 
-            <!-- Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
@@ -78,7 +72,6 @@
                 </div>
             </div>
 
-            <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-700 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -90,7 +83,6 @@
                 </div>
             </div>
 
-            <!-- Data Table -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-gray-700">รายการโครงการ</h3>
@@ -126,9 +118,7 @@
         <!-- TAB 2: ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
             <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-xl shadow-sm">
-                <h3 class="text-lg font-bold text-blue-800 mb-3 flex items-center gap-2">
-                    💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)
-                </h3>
+                <h3 class="text-lg font-bold text-blue-800 mb-3 flex items-center gap-2">💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)</h3>
                 <p id="smart-insights-text" class="text-gray-700 leading-relaxed">กำลังประมวลผลข้อมูลการวิเคราะห์...</p>
             </div>
 
@@ -163,13 +153,20 @@
 
         <!-- TAB 3: FORM ENTRY -->
         <section id="tab-form" class="hidden">
-            <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ฟอร์มบันทึกโครงการพัฒนาบุคลากร</h2>
+            <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
+                
+                <!-- Badge แสดงสถานะว่าเป็น บันทึกใหม่ หรือ อัปเดต -->
+                <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">
+                    ข้อมูลใหม่
+                </span>
+
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ฟอร์มบันทึก / อัปเดตโครงการ</h2>
 
                 <form id="projectForm" class="space-y-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ (เลขที่อ้างอิง)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-xs text-gray-500 font-normal">(กรอกรหัสเดิมเพื่อดึงข้อมูลเก่า)</span></label>
                         <input type="text" id="projectId" required placeholder="เช่น NSDF-69-01/02142" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-mono">
+                        <p id="idSearchHint" class="text-xs text-emerald-600 mt-1 hidden">✓ พบข้อมูลโครงการเดิมในระบบ (ดึงข้อมูลให้แล้ว)</p>
                     </div>
 
                     <div>
@@ -254,7 +251,7 @@
                     </div>
 
                     <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
-                        บันทึกข้อมูล
+                        บันทึกโครงการใหม่
                     </button>
                 </form>
             </div>
@@ -324,6 +321,65 @@
             }
         });
 
+        // 💡 SMART DEFAULT LOGIC: ตรวจสอบ ID ตอนพิมพ์เสร็จ
+        document.getElementById('projectId').addEventListener('blur', function() {
+            const idToSearch = this.value.trim();
+            if(!idToSearch) return;
+
+            const existingData = globalData.find(item => item.ID === idToSearch);
+
+            const submitBtn = document.getElementById('submitBtn');
+            const hint = document.getElementById('idSearchHint');
+            const badge = document.getElementById('formStatusBadge');
+
+            if(existingData) {
+                // เติมข้อมูลลงฟอร์ม
+                document.getElementById('mainCategory').value = existingData.Main_Category || '';
+                document.getElementById('mainCategory').dispatchEvent(new Event('change'));
+
+                // ใช้ Timeout เล็กน้อยรอให้ Dropdown สร้าง Option เสร็จก่อนเลือกค่า
+                setTimeout(() => {
+                    document.getElementById('subCategory').value = existingData.Sub_Category || '';
+                    if((existingData.Main_Category || '').includes('สมาคมกีฬา')) {
+                        document.getElementById('projectActivity').value = existingData.Project_Activity || '';
+                        document.getElementById('projectName').value = existingData.Project_Name || '';
+                    }
+                    document.getElementById('location').value = existingData.Location || '';
+                    
+                    // แปลง Date Format ถ้าจำเป็น (สมมติใน Sheet กรอกมาเป็น YYYY-MM-DD แบบปกติ)
+                    document.getElementById('startDate').value = existingData.Start_Date || '';
+                    document.getElementById('endDate').value = existingData.End_Date || '';
+
+                    document.getElementById('targetPeople').value = existingData.Target_People || 0;
+                    document.getElementById('passedPeople').value = existingData.Passed_People || 0;
+                    document.getElementById('approvedBudget').value = existingData.Approved_Budget || 0;
+                    document.getElementById('usedBudget').value = existingData.Used_Budget || 0;
+                    document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
+                    document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
+
+                    // เปลี่ยนสไตล์ปุ่ม และแจ้งเตือน
+                    hint.classList.remove('hidden');
+                    badge.classList.remove('hidden', 'bg-blue-100', 'text-blue-700');
+                    badge.classList.add('bg-emerald-100', 'text-emerald-700');
+                    badge.innerText = 'โหมดแก้ไขข้อมูล';
+                    
+                    submitBtn.innerText = 'อัปเดตข้อมูลทับของเดิม';
+                    submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md";
+                }, 100);
+
+            } else {
+                // ถ้าไม่เจอ ให้กลับเป็นโหมดปกติ (บันทึกใหม่) โดยไม่ล้างรหัส ID ที่พิมพ์ไป
+                hint.classList.add('hidden');
+                badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-700');
+                badge.classList.add('bg-blue-100', 'text-blue-700');
+                badge.innerText = 'โครงการใหม่';
+
+                submitBtn.innerText = 'บันทึกโครงการใหม่';
+                submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200";
+            }
+        });
+
+        // ฟังก์ชันโหลดข้อมูล
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
@@ -520,7 +576,8 @@
         document.getElementById('projectForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            btn.innerText = 'กำลังบันทึกข้อมูล...';
+            const originalText = btn.innerText;
+            btn.innerText = 'กำลังประมวลผล...';
             btn.disabled = true;
 
             const isAssociation = document.getElementById('mainCategory').value.includes('สมาคมกีฬา');
@@ -550,23 +607,32 @@
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
-                    alert('บันทึกข้อมูลสำเร็จ! รหัส ID: ' + result.id);
+                    alert(result.message + '\nรหัส ID: ' + result.id);
                     document.getElementById('projectForm').reset();
-                    subCategoryDiv.classList.add('hidden');
-                    projectActivityDiv.classList.add('hidden');
-                    projectNameDiv.classList.add('hidden');
+                    
+                    // รีเซ็ต UI ของฟอร์มกลับเป็นปกติ
+                    document.getElementById('subCategoryDiv').classList.add('hidden');
+                    document.getElementById('projectActivityDiv').classList.add('hidden');
+                    document.getElementById('projectNameDiv').classList.add('hidden');
+                    document.getElementById('idSearchHint').classList.add('hidden');
+                    document.getElementById('formStatusBadge').classList.add('hidden');
+                    btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200";
+                    btn.innerText = 'บันทึกโครงการใหม่';
+
                     switchTab('dashboard');
                 } else {
                     alert('เกิดข้อผิดพลาด: ' + result.message);
+                    btn.innerText = originalText;
                 }
             } catch (error) {
                 alert('ส่งข้อมูลไม่สำเร็จ: ' + error.message);
+                btn.innerText = originalText;
             } finally {
-                btn.innerText = 'บันทึกข้อมูล';
                 btn.disabled = false;
             }
         });
 
+        // โหลดข้อมูลเมื่อเปิดหน้า
         loadData();
     </script>
 </body>
