@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกข้อมูลโครงการ กกท.</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ฟอร์มบันทึกโครงการพัฒนาบุคลากร</h2>
+
+        <form id="projectForm" class="space-y-6">
+            
+            <!-- หมวดหมู่หลัก -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">1. หน่วยงานที่ดำเนินการ (หมวดหมู่หลัก)</label>
+                <select id="mainCategory" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- กรุณาเลือก --</option>
+                    <option value="การพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย">การพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย (งบกองทุนฯ)</option>
+                    <option value="การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย">การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย (งบกองทุนฯ)</option>
+                </select>
+            </div>
+
+            <!-- หมวดหมู่ย่อย (หลักสูตร หรือ สมาคม) -->
+            <div id="subCategoryDiv" class="hidden">
+                <label id="subCategoryLabel" class="block text-sm font-medium text-gray-700 mb-1">2. หลักสูตร / สมาคม (หมวดหมู่ย่อย)</label>
+                <select id="subCategory" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    <!-- ตัวเลือกจะถูกเติมด้วย JavaScript -->
+                </select>
+            </div>
+
+            <!-- กิจกรรมย่อย (แสดงเฉพาะสมาคม) -->
+            <div id="projectActivityDiv" class="hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-1">3. กิจกรรม</label>
+                <select id="projectActivity" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- กรุณาเลือกกิจกรรม --</option>
+                    <option value="อบรมผู้ฝึกสอน">อบรมผู้ฝึกสอน</option>
+                    <option value="อบรมผู้ตัดสิน">อบรมผู้ตัดสิน</option>
+                    <option value="ส่งไปต่างประเทศ">ส่งไปต่างประเทศ</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- ข้อมูลคน -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ค่าเป้าหมาย (จำนวนคน)</label>
+                    <input type="number" id="targetPeople" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนคนผ่านการอบรม</label>
+                    <input type="number" id="passedPeople" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5">
+                </div>
+
+                <!-- ข้อมูลเงิน -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">งบประมาณที่อนุมัติ (บาท)</label>
+                    <input type="number" id="approvedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">งบประมาณที่ใช้จริง (บาท)</label>
+                    <input type="number" id="usedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5">
+                </div>
+            </div>
+
+            <!-- สถานะ (Smart Defaults) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการดำเนินงาน</label>
+                    <select id="operationStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-orange-600 font-medium">
+                        <option value="อยู่ระหว่างการดำเนินงาน" selected>อยู่ระหว่างการดำเนินงาน</option>
+                        <option value="ดำเนินการเสร็จสิ้นแล้ว" class="text-green-600">ดำเนินการเสร็จสิ้นแล้ว</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการเบิกจ่าย</label>
+                    <select id="paymentStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-orange-600 font-medium">
+                        <option value="อยู่ระหว่างการเบิกจ่าย" selected>อยู่ระหว่างการเบิกจ่าย</option>
+                        <option value="เบิกจ่ายเรียบร้อย" class="text-green-600">เบิกจ่ายเรียบร้อย</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ปุ่ม Submit -->
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                บันทึกข้อมูล
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // ข้อมูลหลักสูตรของ กกท.
+        const satCourses = [
+            "การเพิ่มศักยภาพในการบริหารจัดการกีฬาไปสู่ความเป็นเลิศฯ (ธรรมาภิบาล)",
+            "การจัดการกีฬาขั้นสูงตามแนวทาง International Olympic Academy",
+            "การพัฒนานักจัดระดับความพิการ (National Classifier)",
+            "การพัฒนาบุคลากรกีฬาสู่นักบริหารจัดการองค์กรกีฬาเพื่อความยั่งยืน",
+            "การสร้างมาตรฐานบุคลากรกีฬาสู่ผู้นำกีฬา"
+        ];
+
+        // ข้อมูลสมาคมกีฬา
+        const associations = ["สมาคม A", "สมาคม B", "สมาคม C"];
+
+        const mainCategory = document.getElementById('mainCategory');
+        const subCategoryDiv = document.getElementById('subCategoryDiv');
+        const subCategory = document.getElementById('subCategory');
+        const subCategoryLabel = document.getElementById('subCategoryLabel');
+        const projectActivityDiv = document.getElementById('projectActivityDiv');
+
+        // Logic จัดการ Dropdown
+        mainCategory.addEventListener('change', function() {
+            const val = this.value;
+            subCategory.innerHTML = '<option value="">-- กรุณาเลือก --</option>'; // เคลียร์ค่าเดิม
+            
+            if (val === 'การพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย') {
+                subCategoryDiv.classList.remove('hidden');
+                projectActivityDiv.classList.add('hidden'); // ซ่อนกิจกรรมย่อย
+                subCategoryLabel.innerText = '2. เลือกหลักสูตร';
+                satCourses.forEach(course => {
+                    subCategory.innerHTML += `<option value="${course}">${course}</option>`;
+                });
+            } else if (val === 'การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย') {
+                subCategoryDiv.classList.remove('hidden');
+                projectActivityDiv.classList.remove('hidden'); // แสดงกิจกรรมย่อย
+                subCategoryLabel.innerText = '2. เลือกสมาคมกีฬา';
+                associations.forEach(assoc => {
+                    subCategory.innerHTML += `<option value="${assoc}">${assoc}</option>`;
+                });
+            } else {
+                subCategoryDiv.classList.add('hidden');
+                projectActivityDiv.classList.add('hidden');
+            }
+        });
+
+        // จัดการฟอร์ม Submit
+        document.getElementById('projectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = 'กำลังบันทึกข้อมูล...';
+            btn.disabled = true;
+
+            const payload = {
+                mainCategory: document.getElementById('mainCategory').value,
+                subCategory: document.getElementById('subCategory').value,
+                projectActivity: document.getElementById('projectActivityDiv').classList.contains('hidden') ? "-" : document.getElementById('projectActivity').value,
+                targetPeople: document.getElementById('targetPeople').value,
+                passedPeople: document.getElementById('passedPeople').value,
+                approvedBudget: document.getElementById('approvedBudget').value,
+                usedBudget: document.getElementById('usedBudget').value,
+                operationStatus: document.getElementById('operationStatus').value,
+                paymentStatus: document.getElementById('paymentStatus').value
+            };
+
+            // !--- เปลี่ยน URL ตรงนี้ให้เป็นของคุณ ---!
+            const SCRIPT_URL = 'YOUR_WEB_APP_URL_HERE';
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // ต้องใช้ text/plain เพื่อเลี่ยง CORS preflight ใน GAS
+                });
+                
+                const result = await response.json();
+                if (result.status === 'success') {
+                    alert('บันทึกข้อมูลสำเร็จ! ID: ' + result.id);
+                    document.getElementById('projectForm').reset();
+                    subCategoryDiv.classList.add('hidden');
+                    projectActivityDiv.classList.add('hidden');
+                } else {
+                    alert('เกิดข้อผิดพลาด: ' + result.message);
+                }
+            } catch (error) {
+                alert('ส่งข้อมูลไม่สำเร็จ: ' + error.message);
+            } finally {
+                btn.innerText = 'บันทึกข้อมูล';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
