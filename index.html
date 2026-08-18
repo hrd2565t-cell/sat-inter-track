@@ -41,6 +41,23 @@
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
+            
+            <!-- Global Filter ครอบจักรวาล -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    📊 สรุปภาพรวมโครงการ
+                </h2>
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <label class="text-sm font-medium text-gray-600 hidden sm:block">ดูข้อมูลเฉพาะ:</label>
+                    <select id="globalFilterCategory" onchange="applyGlobalFilter()" class="w-full sm:w-auto border-2 border-blue-200 rounded-lg px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-blue-50 font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 cursor-pointer">
+                        <option value="">🌍 ทั้งหมด (กกท. และ สมาคมกีฬาฯ)</option>
+                        <option value="กกท.">🏢 เฉพาะ การกีฬาแห่งประเทศไทย</option>
+                        <option value="สมาคมกีฬา">🏅 เฉพาะ สมาคมกีฬาแห่งประเทศไทย</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
@@ -60,6 +77,7 @@
                 </div>
             </div>
 
+            <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-700 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -71,17 +89,13 @@
                 </div>
             </div>
 
+            <!-- Data Table -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h3 class="font-bold text-gray-700">รายการโครงการทั้งหมด</h3>
+                    <h3 class="font-bold text-gray-700">รายการโครงการ</h3>
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <input type="text" id="searchInput" oninput="filterTable()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
-                        <select id="filterCategory" onchange="filterTable()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">-- ทุกหน่วยงานหลัก --</option>
-                            <option value="กกท.">การกีฬาแห่งประเทศไทย (กกท.)</option>
-                            <option value="สมาคมกีฬา">สมาคมกีฬาแห่งประเทศไทย</option>
-                        </select>
-                        <button onclick="loadData()" class="no-print text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600 transition">รีเฟรช</button>
+                        <input type="text" id="searchInput" oninput="applyTableSearch()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64">
+                        <button onclick="loadData()" class="no-print text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600 transition">รีเฟรชตาราง</button>
                     </div>
                 </div>
 
@@ -107,10 +121,8 @@
             </div>
         </section>
 
-        <!-- TAB 2: ANALYTICS (อัปเดตใหม่) -->
+        <!-- TAB 2: ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
-            
-            <!-- ส่วน Smart Insights ข้อสังเกตอัตโนมัติ -->
             <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-xl shadow-sm">
                 <h3 class="text-lg font-bold text-blue-800 mb-3 flex items-center gap-2">
                     💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)
@@ -118,7 +130,6 @@
                 <p id="smart-insights-text" class="text-gray-700 leading-relaxed">กำลังประมวลผลข้อมูลการวิเคราะห์...</p>
             </div>
 
-            <!-- ส่วน KPI Cards สำหรับหน้า Analytics -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
                     <div>
@@ -136,14 +147,11 @@
                 </div>
             </div>
 
-            <!-- ส่วน Charts เปรียบเทียบ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- กราฟใหม่: เปรียบเทียบ กกท. กับ สมาคมกีฬา -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-700 mb-4">เปรียบเทียบการใช้งบประมาณ (กกท. vs สมาคมกีฬาฯ)</h3>
                     <div class="relative h-64 flex justify-center"><canvas id="agencyCompareChart"></canvas></div>
                 </div>
-                <!-- กราฟเดิม: วิเคราะห์รายหลักสูตร -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-700 mb-4">วิเคราะห์งบประมาณจำแนกตามหลักสูตร/สมาคม</h3>
                     <div class="relative h-64 flex justify-center"><canvas id="budgetCompareChart"></canvas></div>
@@ -244,12 +252,15 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSRqOD8z-ulipSSZUJb6DDl01W8lduHA0ugvhr3yiE8_lVQEFylIzaR8uHl6r7-VkzUA/exec';
 
-        let globalData = [];
+        let globalData = [];         // ข้อมูลดิบทั้งหมดจาก Google Sheets
+        let currentFilteredData = []; // ข้อมูลที่ผ่านการกรองจาก Global Filter
+
         let opChartInstance = null;
         let payChartInstance = null;
         let budgetChartInstance = null;
         let agencyChartInstance = null;
 
+        // ฟังก์ชันสลับหน้า Tab
         function switchTab(tabName) {
             ['dashboard', 'analytics', 'form'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -263,6 +274,7 @@
             }
         }
 
+        // โลจิกสำหรับฟอร์มบันทึก
         const satCourses = [
             "การเพิ่มศักยภาพในการบริหารจัดการกีฬาไปสู่ความเป็นเลิศฯ (ธรรมาภิบาล)",
             "การจัดการกีฬาขั้นสูงตามแนวทาง International Olympic Academy",
@@ -301,22 +313,39 @@
             }
         });
 
+        // ดึงข้อมูลจาก API
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
                 if(result.status === 'success') {
                     globalData = result.data;
-                    updateDashboard(globalData);
-                    filterTable();
-                    renderAnalytics(globalData); // เรียกฟังก์ชันวิเคราะห์หน้า Analytics
+                    applyGlobalFilter(); // ดึงข้อมูลเสร็จให้ทำงานผ่านตัวกรองทันที
+                    renderAnalytics(globalData); // หน้า Analytics ใช้ข้อมูลรวมทั้งหมด
                 }
             } catch (error) {
                 console.error('Error loading data:', error);
             }
         }
 
-        function updateDashboard(data) {
+        // ฟังก์ชันตัวกรองครอบจักรวาล (Global Filter)
+        function applyGlobalFilter() {
+            const categoryFilter = document.getElementById('globalFilterCategory').value;
+            
+            if (categoryFilter === '') {
+                currentFilteredData = [...globalData]; // เอาทั้งหมด
+            } else if (categoryFilter === 'กกท.') {
+                currentFilteredData = globalData.filter(item => (item.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
+            } else if (categoryFilter === 'สมาคมกีฬา') {
+                currentFilteredData = globalData.filter(item => (item.Main_Category || '').includes('สมาคมกีฬาแห่งประเทศไทย'));
+            }
+
+            updateDashboardCardsAndCharts(currentFilteredData);
+            applyTableSearch(); // สั่งให้ตารางอัปเดตตามคำค้นหาที่อาจจะค้างอยู่
+        }
+
+        // อัปเดต Card สรุปตัวเลข และ กราฟโดนัท
+        function updateDashboardCardsAndCharts(data) {
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
@@ -330,11 +359,12 @@
             renderCharts(data);
         }
 
-        function filterTable() {
+        // ค้นหาเฉพาะในตาราง
+        function applyTableSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const categoryFilter = document.getElementById('filterCategory').value;
-
-            const filtered = globalData.filter(item => {
+            
+            // กรองทับซ้อนบน currentFilteredData (ที่ผ่านการกรองจาก Global แล้ว)
+            const tableData = currentFilteredData.filter(item => {
                 const id = (item.ID || '').toLowerCase();
                 const mainCat = (item.Main_Category || '').toLowerCase();
                 const subCat = (item.Sub_Category || '').toLowerCase();
@@ -342,25 +372,17 @@
                 const projName = (item.Project_Name || '').toLowerCase();
                 const location = (item.Location || '').toLowerCase();
                 
-                const matchKeyword = id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
-                
-                let matchCategory = true;
-                if (categoryFilter === 'กกท.') {
-                    matchCategory = mainCat.includes('การกีฬาแห่งประเทศไทย');
-                } else if (categoryFilter === 'สมาคมกีฬา') {
-                    matchCategory = mainCat.includes('สมาคมกีฬาแห่งประเทศไทย');
-                }
-
-                return matchKeyword && matchCategory;
+                return id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
             });
 
-            renderTable(filtered);
+            renderTable(tableData);
         }
 
+        // แสดงผลตาราง
         function renderTable(data) {
             const tbody = document.getElementById('dataTableBody');
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ค้นหา</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
                 return;
             }
             tbody.innerHTML = data.map(item => `
@@ -383,6 +405,7 @@
             `).join('');
         }
 
+        // แสดงผลกราฟโดนัท
         function renderCharts(data) {
             let opDone = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
             let opProg = data.length - opDone;
@@ -413,11 +436,10 @@
             });
         }
 
-        // ฟังก์ชันใหม่: ประมวลผลและแสดงกราฟในหน้า Analytics
+        // แสดงผลหน้า Analytics
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
 
-            // 1. คำนวณภาพรวม
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
@@ -429,7 +451,6 @@
             document.getElementById('analytics-budget-percent').innerText = budgetPercent + '%';
             document.getElementById('analytics-people-percent').innerText = passPercent + '%';
 
-            // 2. แยกข้อมูล กกท. กับ สมาคมกีฬา
             let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
             let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
 
@@ -443,7 +464,6 @@
 
             let completedProjects = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
 
-            // 3. สร้างข้อความ Smart Insights
             let insightsText = `📌 จากข้อมูลทั้งหมด <b>${data.length} โครงการ</b> พบว่าภาพรวมมีการเบิกจ่ายงบประมาณไปแล้ว <b>${budgetPercent}%</b> `;
             insightsText += `และมีผู้ผ่านการอบรมคิดเป็น <b>${passPercent}%</b> ของเป้าหมายผู้เข้าร่วมทั้งหมด<br><br>`;
             
@@ -454,7 +474,6 @@
 
             document.getElementById('smart-insights-text').innerHTML = insightsText;
 
-            // 4. กราฟเปรียบเทียบหน่วยงาน
             if(window.agencyChartInstance) window.agencyChartInstance.destroy();
             const ctxAgency = document.getElementById('agencyCompareChart').getContext('2d');
             window.agencyChartInstance = new Chart(ctxAgency, {
@@ -469,7 +488,6 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // 5. กราฟเปรียบเทียบรายหลักสูตร
             if(budgetChartInstance) budgetChartInstance.destroy();
             const ctxBudget = document.getElementById('budgetCompareChart').getContext('2d');
             budgetChartInstance = new Chart(ctxBudget, {
@@ -485,6 +503,7 @@
             });
         }
 
+        // ฟอร์มบันทึกข้อมูล
         document.getElementById('projectForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -533,6 +552,7 @@
             }
         });
 
+        // เริ่มโหลดข้อมูลเมื่อเปิดหน้าเว็บ
         loadData();
     </script>
 </body>
