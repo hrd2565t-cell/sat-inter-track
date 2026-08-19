@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Plugin สำหรับแสดงตัวเลขบนกราฟ -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
@@ -273,6 +278,41 @@
         let budgetChartInstance = null;
         let agencyChartInstance = null;
 
+        // ลงทะเบียน Plugin สำหรับแสดงตัวเลขบนกราฟ
+        Chart.register(ChartDataLabels);
+
+        // สร้าง Plugin สำหรับแสดงข้อความยอดรวมตรงกลางรูโดนัท
+        const centerTextPlugin = {
+            id: 'centerText',
+            beforeDraw(chart) {
+                if (chart.config.type !== 'doughnut') return;
+                const { ctx, chartArea: { top, bottom, left, right, width, height } } = chart;
+                ctx.save();
+                
+                // คำนวณยอดรวมจากข้อมูลในกราฟ
+                const data = chart.data.datasets[0].data;
+                const total = data.reduce((a, b) => a + b, 0);
+                
+                if (total > 0) {
+                    ctx.font = 'bold 2rem Prompt';
+                    ctx.fillStyle = '#374151'; // สีเทาเข้ม
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const centerX = left + width / 2;
+                    const centerY = top + height / 2;
+                    
+                    // วาดตัวเลข
+                    ctx.fillText(total, centerX, centerY - 10);
+                    
+                    // วาดคำว่า โครงการ
+                    ctx.font = '0.875rem Prompt';
+                    ctx.fillStyle = '#6b7280'; // สีเทากลาง
+                    ctx.fillText('โครงการ', centerX, centerY + 15);
+                }
+                ctx.restore();
+            }
+        };
+
         function switchTab(tabName) {
             ['dashboard', 'analytics', 'form'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -509,6 +549,7 @@
             }).join('');
         }
 
+        // อัปเดตฟังก์ชันวาดกราฟให้แสดง % และขยายรูโดนัท
         function renderCharts(data) {
             let opDone = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
             let opProg = data.length - opDone;
@@ -516,15 +557,36 @@
             let payDone = data.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length;
             let payProg = data.length - payDone;
 
+            // ตัวเลือกสำหรับกราฟ Doughnut + Plugin DataLabels
+            const doughnutOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%', // ขยายรูตรงกลางให้กว้างขึ้น
+                plugins: {
+                    legend: { position: 'top' },
+                    datalabels: {
+                        color: '#ffffff',
+                        font: { weight: 'bold', family: 'Prompt', size: 14 },
+                        formatter: (value, context) => {
+                            if (value === 0) return null; // ซ่อนเลขถ้าเป็น 0%
+                            let total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            let percentage = Math.round((value / total) * 100) + '%';
+                            return percentage;
+                        }
+                    }
+                }
+            };
+
             if(opChartInstance) opChartInstance.destroy();
             const ctx1 = document.getElementById('opStatusChart').getContext('2d');
             opChartInstance = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
                     labels: ['อยู่ระหว่างดำเนินการ', 'เสร็จสิ้นแล้ว'],
-                    datasets: [{ data: [opProg, opDone], backgroundColor: ['#f59e0b', '#10b981'] }]
+                    datasets: [{ data: [opProg, opDone], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 2 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: doughnutOptions,
+                plugins: [centerTextPlugin] // เรียกใช้ Plugin กลางรูโดนัท
             });
 
             if(payChartInstance) payChartInstance.destroy();
@@ -533,9 +595,10 @@
                 type: 'doughnut',
                 data: {
                     labels: ['อยู่ระหว่างเบิกจ่าย', 'เบิกจ่ายเรียบร้อย'],
-                    datasets: [{ data: [payProg, payDone], backgroundColor: ['#f59e0b', '#10b981'] }]
+                    datasets: [{ data: [payProg, payDone], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 2 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: doughnutOptions,
+                plugins: [centerTextPlugin] // เรียกใช้ Plugin กลางรูโดนัท
             });
         }
 
@@ -632,6 +695,15 @@
             
             document.getElementById('smart-insights-text').innerHTML = insightsText + adviceHTML;
 
+            // สั่งปิด datalabels (ตัวเลขบนกราฟ) สำหรับกราฟแท่ง เพื่อไม่ให้ดูรกเกินไป
+            const barOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    datalabels: { display: false } // ปิดปลั๊กอินสำหรับกราฟแท่ง
+                }
+            };
+
             if(window.agencyChartInstance) window.agencyChartInstance.destroy();
             const ctxAgency = document.getElementById('agencyCompareChart').getContext('2d');
             window.agencyChartInstance = new Chart(ctxAgency, {
@@ -643,7 +715,7 @@
                         { label: 'งบใช้จริง', data: [satUsed, assocUsed], backgroundColor: '#10b981' }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: barOptions
             });
 
             if(budgetChartInstance) budgetChartInstance.destroy();
@@ -657,7 +729,7 @@
                         { label: 'งบใช้จริง', data: data.map(i => Number(i.Used_Budget || 0)), backgroundColor: '#34d399' }
                     ]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: barOptions
             });
         }
 
