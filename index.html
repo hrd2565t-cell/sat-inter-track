@@ -43,7 +43,6 @@
         <section id="tab-dashboard" class="space-y-6">
             
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
-                <!-- หัวข้อจะเปลี่ยนไปตามตัวกรอง -->
                 <h2 id="dashboard-title" class="text-lg font-bold text-gray-800 flex items-center gap-2">
                     📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569
                 </h2>
@@ -57,6 +56,7 @@
                 </div>
             </div>
 
+            <!-- การ์ด 4 ใบที่ปรับปรุงใหม่ -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
                     <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
@@ -66,13 +66,15 @@
                     <p class="text-sm text-gray-500 font-medium">งบประมาณที่ใช้ไป</p>
                     <h3 id="card-used-budget" class="text-2xl font-bold text-orange-500 mt-1">0 บาท</h3>
                 </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">เป้าหมายผู้เข้าร่วม</p>
-                    <h3 id="card-target-people" class="text-2xl font-bold text-gray-800 mt-1">0 คน</h3>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+                    <!-- การ์ดงบคงเหลือ -->
+                    <p class="text-sm text-gray-500 font-medium">งบประมาณคงเหลือ</p>
+                    <h3 id="card-remaining-budget" class="text-2xl font-bold text-blue-600 mt-1">0 บาท</h3>
                 </div>
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">ผ่านการอบรมแล้ว</p>
-                    <h3 id="card-passed-people" class="text-2xl font-bold text-green-600 mt-1">0 คน</h3>
+                    <!-- การ์ดยุบรวม (ผู้ผ่านการอบรม / เป้าหมาย) -->
+                    <p class="text-sm text-gray-500 font-medium">ผู้ผ่านการอบรม / เป้าหมาย</p>
+                    <h3 id="card-participants" class="text-2xl font-bold text-green-600 mt-1">0 <span class="text-lg text-gray-400 font-medium">/ 0 คน</span></h3>
                 </div>
             </div>
 
@@ -324,7 +326,7 @@
             }
         });
 
-        // ดึงข้อมูลเก่ามาแสดงเมื่อกรอก ID
+        // ดึงข้อมูลเก่าเมื่อพิมพ์ ID
         document.getElementById('projectId').addEventListener('blur', function() {
             const idToSearch = this.value.trim();
             if(!idToSearch) return;
@@ -389,7 +391,6 @@
             }
         }
 
-        // ระบบเปลี่ยนคำหัวข้อตามตัวกรอง
         function applyGlobalFilter() {
             const categoryFilter = document.getElementById('globalFilterCategory').value;
             const dashboardTitle = document.getElementById('dashboard-title');
@@ -412,13 +413,24 @@
         function updateDashboardCardsAndCharts(data) {
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+            let totalRemainingBudget = totalAppBudget - totalUsedBudget; // คำนวณงบคงเหลือรวม
+            
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
             let totalPassed = data.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
 
+            // อัปเดตตัวเลขการ์ด
             document.getElementById('card-approved-budget').innerText = totalAppBudget.toLocaleString() + ' บาท';
             document.getElementById('card-used-budget').innerText = totalUsedBudget.toLocaleString() + ' บาท';
-            document.getElementById('card-target-people').innerText = totalTarget.toLocaleString() + ' คน';
-            document.getElementById('card-passed-people').innerText = totalPassed.toLocaleString() + ' คน';
+            
+            let remainingEl = document.getElementById('card-remaining-budget');
+            remainingEl.innerText = totalRemainingBudget.toLocaleString() + ' บาท';
+            if (totalRemainingBudget < 0) {
+                remainingEl.className = "text-2xl font-bold text-red-600 mt-1"; // ถ้างบติดลบจะกลายเป็นสีแดง
+            } else {
+                remainingEl.className = "text-2xl font-bold text-blue-600 mt-1";
+            }
+
+            document.getElementById('card-participants').innerHTML = `${totalPassed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${totalTarget.toLocaleString()} คน</span>`;
 
             renderCharts(data);
         }
@@ -440,14 +452,20 @@
             renderTable(tableData);
         }
 
-        // แสดงผลตารางแบบจัดเรียงงบอนุมัติอยู่ด้านบน
+        // แสดงผลตาราง พร้อมเพิ่มบรรทัด "คงเหลือ" สีน้ำเงิน/แดง
         function renderTable(data) {
             const tbody = document.getElementById('dataTableBody');
             if(data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
                 return;
             }
-            tbody.innerHTML = data.map(item => `
+            tbody.innerHTML = data.map(item => {
+                let approved = Number(item.Approved_Budget || 0);
+                let used = Number(item.Used_Budget || 0);
+                let remaining = approved - used;
+                let remainingColor = remaining < 0 ? 'text-red-600' : 'text-blue-600';
+
+                return `
                 <tr class="hover:bg-gray-50 border-b border-gray-100">
                     <td class="p-3 font-mono text-xs font-semibold text-blue-700">${item.ID || ''}</td>
                     <td class="p-3">
@@ -469,13 +487,15 @@
                         <div class="text-green-600 font-bold text-sm mt-0.5">ผ่าน: ${item.Passed_People || 0}</div>
                     </td>
                     <td class="p-3 text-right">
-                        <div class="text-green-600 font-bold text-sm mb-1">อนุมัติ: ${Number(item.Approved_Budget || 0).toLocaleString()}</div>
-                        <div class="text-orange-500 font-semibold text-sm border-t border-gray-200 pt-1">ใช้ไป: ${Number(item.Used_Budget || 0).toLocaleString()}</div>
+                        <div class="text-green-600 font-bold text-sm mb-1">อนุมัติ: ${approved.toLocaleString()}</div>
+                        <div class="text-orange-500 font-semibold text-sm border-t border-gray-200 pt-1">ใช้ไป: ${used.toLocaleString()}</div>
+                        <div class="${remainingColor} font-bold text-sm border-t border-gray-200 pt-1 mt-1">คงเหลือ: ${remaining.toLocaleString()}</div>
                     </td>
                     <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.Operation_Status}</span></td>
                     <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${item.Payment_Status === 'เบิกจ่ายเรียบร้อย' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.Payment_Status}</span></td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function renderCharts(data) {
