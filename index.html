@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Plugin สำหรับตัวเลขบนกราฟ -->
+    <!-- Chart.js Plugin สำหรับแสดงตัวเลขบนกราฟ -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
@@ -241,16 +244,14 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการดำเนินงาน</label>
-                            <select id="operationStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-orange-600 font-medium">
-                                <option value="อยู่ระหว่างการดำเนินงาน" selected>อยู่ระหว่างการดำเนินงาน</option>
-                                <option value="ดำเนินการเสร็จสิ้นแล้ว" class="text-green-600">ดำเนินการเสร็จสิ้นแล้ว</option>
+                            <select id="operationStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 font-medium focus:ring-blue-500 focus:border-blue-500">
+                                <!-- ตัวเลือกจะถูกจัดการผ่าน JavaScript -->
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการเบิกจ่าย</label>
-                            <select id="paymentStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-orange-600 font-medium">
-                                <option value="อยู่ระหว่างการเบิกจ่าย" selected>อยู่ระหว่างการเบิกจ่าย</option>
-                                <option value="เบิกจ่ายเรียบร้อย" class="text-green-600">เบิกจ่ายเรียบร้อย</option>
+                            <select id="paymentStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 font-medium focus:ring-blue-500 focus:border-blue-500">
+                                <!-- ตัวเลือกจะถูกจัดการผ่าน JavaScript -->
                             </select>
                         </div>
                     </div>
@@ -275,7 +276,6 @@
         let budgetChartInstance = null;
         let agencyChartInstance = null;
 
-        // ลงทะเบียน Plugin กราฟ
         Chart.register(ChartDataLabels);
 
         const centerTextPlugin = {
@@ -328,6 +328,30 @@
         ];
         const associations = ["สมาคม A", "สมาคม B", "สมาคม C"];
 
+        // ส่วนของการจัดการ Dropdown สถานะให้ยืดหยุ่นตามหน่วยงาน
+        const opStatusSelect = document.getElementById('operationStatus');
+        const payStatusSelect = document.getElementById('paymentStatus');
+
+        const defaultOpOptions = `
+            <option value="อยู่ระหว่างการดำเนินงาน" selected class="text-orange-600">อยู่ระหว่างการดำเนินงาน</option>
+            <option value="ดำเนินการเสร็จสิ้นแล้ว" class="text-green-600">ดำเนินการเสร็จสิ้นแล้ว</option>
+        `;
+        const assocOpOptions = defaultOpOptions + `
+            <option value="ยกเลิกรายการ" class="text-red-600 font-bold">ยกเลิกรายการ</option>
+        `;
+
+        const defaultPayOptions = `
+            <option value="อยู่ระหว่างการเบิกจ่าย" selected class="text-orange-600">อยู่ระหว่างการเบิกจ่าย</option>
+            <option value="เบิกจ่ายเรียบร้อย" class="text-green-600">เบิกจ่ายเรียบร้อย</option>
+        `;
+        const assocPayOptions = defaultPayOptions + `
+            <option value="ส่งเงินคืนกองทุนฯ" class="text-purple-600 font-bold">ส่งเงินคืนกองทุนฯ</option>
+        `;
+
+        // กำหนดค่าตั้งต้น
+        opStatusSelect.innerHTML = defaultOpOptions;
+        payStatusSelect.innerHTML = defaultPayOptions;
+
         const mainCategory = document.getElementById('mainCategory');
         const subCategoryDiv = document.getElementById('subCategoryDiv');
         const subCategory = document.getElementById('subCategory');
@@ -338,22 +362,63 @@
         mainCategory.addEventListener('change', function() {
             const val = this.value;
             subCategory.innerHTML = '<option value="">-- กรุณาเลือก --</option>';
+            
+            let currentOp = opStatusSelect.value;
+            let currentPay = payStatusSelect.value;
+
             if (val === 'การพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย') {
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.add('hidden');
                 projectNameDiv.classList.add('hidden');
                 subCategoryLabel.innerText = '2. เลือกหลักสูตร';
                 satCourses.forEach(c => subCategory.innerHTML += `<option value="${c}">${c}</option>`);
+
+                // อัปเดต Dropdown ตัดตัวเลือกการยกเลิกออก
+                opStatusSelect.innerHTML = defaultOpOptions;
+                payStatusSelect.innerHTML = defaultPayOptions;
+                if(currentOp === 'ยกเลิกรายการ') opStatusSelect.value = 'อยู่ระหว่างการดำเนินงาน';
+                else if(currentOp) opStatusSelect.value = currentOp;
+                if(currentPay === 'ส่งเงินคืนกองทุนฯ') payStatusSelect.value = 'อยู่ระหว่างการเบิกจ่าย';
+                else if(currentPay) payStatusSelect.value = currentPay;
+
             } else if (val === 'การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย') {
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.remove('hidden');
                 projectNameDiv.classList.remove('hidden');
                 subCategoryLabel.innerText = '2. เลือกสมาคมกีฬา';
                 associations.forEach(a => subCategory.innerHTML += `<option value="${a}">${a}</option>`);
+
+                // อัปเดต Dropdown เพิ่มตัวเลือกการยกเลิกให้สมาคมกีฬา
+                opStatusSelect.innerHTML = assocOpOptions;
+                payStatusSelect.innerHTML = assocPayOptions;
+                if(currentOp) opStatusSelect.value = currentOp;
+                if(currentPay) payStatusSelect.value = currentPay;
+
             } else {
                 subCategoryDiv.classList.add('hidden');
                 projectActivityDiv.classList.add('hidden');
                 projectNameDiv.classList.add('hidden');
+                opStatusSelect.innerHTML = defaultOpOptions;
+                payStatusSelect.innerHTML = defaultPayOptions;
+            }
+        });
+
+        // 💡 Smart Default: การจัดการเงื่อนไขเวลาเลือก "ยกเลิกรายการ"
+        opStatusSelect.addEventListener('change', function() {
+            if (this.value === 'ยกเลิกรายการ') {
+                // เปลี่ยนสถานะเบิกจ่ายและล้างค่าตัวเลข
+                payStatusSelect.value = 'ส่งเงินคืนกองทุนฯ';
+                document.getElementById('passedPeople').value = 0;
+                document.getElementById('usedBudget').value = 0;
+                
+                // แจ้งเตือนเล็กน้อยให้ผู้ใช้ทราบว่าระบบปรับค่าให้อัตโนมัติ
+                payStatusSelect.classList.add('bg-purple-50', 'border-purple-300');
+                setTimeout(() => payStatusSelect.classList.remove('bg-purple-50', 'border-purple-300'), 1500);
+            } else {
+                // 💡 Revert Logic: ถ้าไม่ได้เลือกยกเลิก แต่เบิกจ่ายยังค้างว่าส่งคืนเงิน ให้ดึงกลับ
+                if (payStatusSelect.value === 'ส่งเงินคืนกองทุนฯ') {
+                    payStatusSelect.value = 'อยู่ระหว่างการเบิกจ่าย';
+                }
             }
         });
 
@@ -384,6 +449,8 @@
                     document.getElementById('passedPeople').value = existingData.Passed_People || 0;
                     document.getElementById('approvedBudget').value = existingData.Approved_Budget || 0;
                     document.getElementById('usedBudget').value = existingData.Used_Budget || 0;
+                    
+                    // เซ็ตค่าสถานะ (ซึ่ง Dropdown ถูกเปลี่ยน Option รอไว้แล้วจาก setTimeout)
                     document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
                     document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
 
@@ -503,6 +570,17 @@
                 let remaining = approved - used;
                 let remainingColor = remaining < 0 ? 'text-red-600' : 'text-blue-600';
 
+                // จัดการสีป้ายกำกับสถานะ
+                let opStatusClass = '';
+                if (item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว') opStatusClass = 'bg-green-100 text-green-700';
+                else if (item.Operation_Status === 'ยกเลิกรายการ') opStatusClass = 'bg-red-100 text-red-700 font-bold';
+                else opStatusClass = 'bg-yellow-100 text-yellow-700';
+
+                let payStatusClass = '';
+                if (item.Payment_Status === 'เบิกจ่ายเรียบร้อย') payStatusClass = 'bg-green-100 text-green-700';
+                else if (item.Payment_Status === 'ส่งเงินคืนกองทุนฯ') payStatusClass = 'bg-purple-100 text-purple-700 font-bold';
+                else payStatusClass = 'bg-yellow-100 text-yellow-700';
+
                 let activityCellHTML = '';
                 if(showActivityCol) {
                     activityCellHTML = `
@@ -535,8 +613,8 @@
                         <div class="text-orange-500 font-semibold text-sm border-t border-gray-200 pt-1">ใช้ไป: ${used.toLocaleString()}</div>
                         <div class="${remainingColor} font-bold text-sm border-t border-gray-200 pt-1 mt-1">คงเหลือ: ${remaining.toLocaleString()}</div>
                     </td>
-                    <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.Operation_Status}</span></td>
-                    <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${item.Payment_Status === 'เบิกจ่ายเรียบร้อย' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${item.Payment_Status}</span></td>
+                    <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${opStatusClass}">${item.Operation_Status}</span></td>
+                    <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${payStatusClass}">${item.Payment_Status}</span></td>
                 </tr>
                 `;
             }).join('');
@@ -544,10 +622,12 @@
 
         function renderCharts(data) {
             let opDone = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
-            let opProg = data.length - opDone;
+            let opCancel = data.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
+            let opProg = data.length - opDone - opCancel; // คงเหลือคืออยู่ระหว่างดำเนินการ
 
             let payDone = data.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length;
-            let payProg = data.length - payDone;
+            let payReturn = data.filter(i => i.Payment_Status === 'ส่งเงินคืนกองทุนฯ').length;
+            let payProg = data.length - payDone - payReturn;
 
             const doughnutOptions = {
                 responsive: true,
@@ -573,8 +653,9 @@
             opChartInstance = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
-                    labels: ['อยู่ระหว่างดำเนินการ', 'เสร็จสิ้นแล้ว'],
-                    datasets: [{ data: [opProg, opDone], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 2 }]
+                    // เพิ่มสถานะยกเลิกเข้าไปในกราฟ (สีแดง)
+                    labels: ['อยู่ระหว่างดำเนินการ', 'เสร็จสิ้นแล้ว', 'ยกเลิกรายการ'],
+                    datasets: [{ data: [opProg, opDone, opCancel], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'], borderWidth: 2 }]
                 },
                 options: doughnutOptions,
                 plugins: [centerTextPlugin] 
@@ -585,8 +666,9 @@
             payChartInstance = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
-                    labels: ['อยู่ระหว่างเบิกจ่าย', 'เบิกจ่ายเรียบร้อย'],
-                    datasets: [{ data: [payProg, payDone], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 2 }]
+                    // เพิ่มสถานะส่งเงินคืนเข้าไปในกราฟ (สีม่วง)
+                    labels: ['อยู่ระหว่างเบิกจ่าย', 'เบิกจ่ายเรียบร้อย', 'ส่งเงินคืนกองทุนฯ'],
+                    datasets: [{ data: [payProg, payDone, payReturn], backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'], borderWidth: 2 }]
                 },
                 options: doughnutOptions,
                 plugins: [centerTextPlugin] 
@@ -619,6 +701,7 @@
             let assocBudgetPercent = assocApp > 0 ? ((assocUsed / assocApp) * 100).toFixed(2) : 0;
 
             let completedProjects = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
+            let cancelledProjects = data.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
 
             let insightsText = `📌 จากข้อมูลทั้งหมด <b>${data.length} โครงการ</b> พบว่าภาพรวมมีการเบิกจ่ายงบประมาณไปแล้ว <b>${budgetPercent}%</b> `;
             insightsText += `และมีผู้ผ่านการอบรมคิดเป็น <b>${passPercent}%</b> ของเป้าหมายผู้เข้าร่วมทั้งหมด<br><br>`;
@@ -626,12 +709,15 @@
             insightsText += `🏢 เมื่อเทียบสัดส่วนตามหน่วยงาน <b>ฝั่ง กกท.</b> มีการเบิกจ่ายงบประมาณไปแล้ว ${satBudgetPercent}% `;
             insightsText += `ในขณะที่ <b>ฝั่งสมาคมกีฬาฯ</b> มีการเบิกจ่ายไปแล้ว ${assocBudgetPercent}%<br><br>`;
             
-            insightsText += `✅ ขณะนี้มีโครงการที่ดำเนินการเสร็จสิ้นแล้วจำนวน <b>${completedProjects} โครงการ</b> จากทั้งหมด ${data.length} โครงการ`;
+            insightsText += `✅ ขณะนี้มีโครงการที่ดำเนินการเสร็จสิ้นแล้วจำนวน <b>${completedProjects} โครงการ</b> `;
+            if(cancelledProjects > 0) insightsText += `และมีการยกเลิกโครงการจำนวน <b>${cancelledProjects} โครงการ</b> `;
+            insightsText += `จากทั้งหมด ${data.length} โครงการ`;
 
             let overBudget = [];
             let highBurn = [];
             let lowBurn = [];
             let surplusTotal = 0;
+            let returnTotal = 0; // ยอดรวมเงินที่ต้องส่งคืนจากโครงการที่ยกเลิก
 
             data.forEach(item => {
                 let approved = Number(item.Approved_Budget || 0);
@@ -641,18 +727,22 @@
                 let status = item.Operation_Status;
                 let idName = `<b>${item.ID}</b>`;
 
-                if (used > approved) {
-                    overBudget.push(`${idName} (เกินไป ${Math.abs(remaining).toLocaleString()} บาท)`);
-                }
-                else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') {
-                    highBurn.push(`${idName} (ใช้ไป ${percentUsed.toFixed(1)}%)`);
-                }
-                else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') {
-                    lowBurn.push(idName);
-                }
-                
-                if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) {
-                    surplusTotal += remaining;
+                if (status === 'ยกเลิกรายการ') {
+                    // ถ้ายกเลิก ให้นับเงินอนุมัติทั้งหมดเป็นเงินส่งคืน
+                    returnTotal += approved;
+                } else {
+                    if (used > approved) {
+                        overBudget.push(`${idName} (เกินไป ${Math.abs(remaining).toLocaleString()} บาท)`);
+                    }
+                    else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') {
+                        highBurn.push(`${idName} (ใช้ไป ${percentUsed.toFixed(1)}%)`);
+                    }
+                    else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') {
+                        lowBurn.push(idName);
+                    }
+                    if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) {
+                        surplusTotal += remaining;
+                    }
                 }
             });
 
@@ -675,6 +765,10 @@
             }
             if (surplusTotal > 0) {
                 adviceHTML += `<li class="flex items-start gap-2"><span class="text-green-600">💸</span> <span><b>งบประมาณเหลือจ่ายส่งคืน:</b> มีโครงการที่ดำเนินการเสร็จสิ้นและมีเงินเหลือจ่ายรวม <b>${surplusTotal.toLocaleString()} บาท</b> แนะนำให้รวบรวมเอกสารเพื่อส่งคืนเงินเข้ากองทุนฯ ต่อไป</span></li>`;
+                hasAdvice = true;
+            }
+            if (returnTotal > 0) {
+                adviceHTML += `<li class="flex items-start gap-2"><span class="text-purple-600">🔙</span> <span><b>เงินส่งคืนจากการยกเลิกโครงการ:</b> พบโครงการที่ถูกยกเลิก ซึ่งมีงบประมาณที่ต้องดำเนินการส่งคืนกองทุนฯ รวมทั้งสิ้น <b>${returnTotal.toLocaleString()} บาท</b></span></li>`;
                 hasAdvice = true;
             }
             
