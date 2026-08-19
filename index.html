@@ -54,9 +54,9 @@
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <label class="text-sm font-medium text-gray-600 hidden sm:block">ดูข้อมูลเฉพาะ:</label>
                     <select id="globalFilterCategory" onchange="applyGlobalFilter()" class="w-full sm:w-auto border-2 border-blue-200 rounded-lg px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-blue-50 font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 cursor-pointer">
-                        <option value="">🌍 ทั้งหมด (กกท. และ สมาคมกีฬาฯ)</option>
-                        <option value="กกท.">🏢 เฉพาะ การกีฬาแห่งประเทศไทย</option>
-                        <option value="สมาคมกีฬา">🏅 เฉพาะ สมาคมกีฬาแห่งประเทศไทย</option>
+                        <option value="">🌍 ภาพรวม (กกท. และ สมาคมกีฬาฯ)</option>
+                        <option value="กกท.">🏢 โดย การกีฬาแห่งประเทศไทย</option>
+                        <option value="สมาคมกีฬา">🏅 โดย สมาคมกีฬาแห่งประเทศไทย</option>
                     </select>
                 </div>
             </div>
@@ -278,10 +278,8 @@
         let budgetChartInstance = null;
         let agencyChartInstance = null;
 
-        // ลงทะเบียน Plugin สำหรับแสดงตัวเลขบนกราฟ
         Chart.register(ChartDataLabels);
 
-        // สร้าง Plugin สำหรับแสดงข้อความยอดรวมตรงกลางรูโดนัท
         const centerTextPlugin = {
             id: 'centerText',
             beforeDraw(chart) {
@@ -289,24 +287,21 @@
                 const { ctx, chartArea: { top, bottom, left, right, width, height } } = chart;
                 ctx.save();
                 
-                // คำนวณยอดรวมจากข้อมูลในกราฟ
                 const data = chart.data.datasets[0].data;
                 const total = data.reduce((a, b) => a + b, 0);
                 
                 if (total > 0) {
                     ctx.font = 'bold 2rem Prompt';
-                    ctx.fillStyle = '#374151'; // สีเทาเข้ม
+                    ctx.fillStyle = '#374151'; 
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     const centerX = left + width / 2;
                     const centerY = top + height / 2;
                     
-                    // วาดตัวเลข
                     ctx.fillText(total, centerX, centerY - 10);
                     
-                    // วาดคำว่า โครงการ
                     ctx.font = '0.875rem Prompt';
-                    ctx.fillStyle = '#6b7280'; // สีเทากลาง
+                    ctx.fillStyle = '#6b7280'; 
                     ctx.fillText('โครงการ', centerX, centerY + 15);
                 }
                 ctx.restore();
@@ -549,7 +544,6 @@
             }).join('');
         }
 
-        // อัปเดตฟังก์ชันวาดกราฟให้แสดง % และขยายรูโดนัท
         function renderCharts(data) {
             let opDone = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
             let opProg = data.length - opDone;
@@ -557,18 +551,17 @@
             let payDone = data.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length;
             let payProg = data.length - payDone;
 
-            // ตัวเลือกสำหรับกราฟ Doughnut + Plugin DataLabels
             const doughnutOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%', // ขยายรูตรงกลางให้กว้างขึ้น
+                cutout: '65%', 
                 plugins: {
                     legend: { position: 'top' },
                     datalabels: {
                         color: '#ffffff',
                         font: { weight: 'bold', family: 'Prompt', size: 14 },
                         formatter: (value, context) => {
-                            if (value === 0) return null; // ซ่อนเลขถ้าเป็น 0%
+                            if (value === 0) return null; 
                             let total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                             let percentage = Math.round((value / total) * 100) + '%';
                             return percentage;
@@ -586,7 +579,7 @@
                     datasets: [{ data: [opProg, opDone], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 2 }]
                 },
                 options: doughnutOptions,
-                plugins: [centerTextPlugin] // เรียกใช้ Plugin กลางรูโดนัท
+                plugins: [centerTextPlugin] 
             });
 
             if(payChartInstance) payChartInstance.destroy();
@@ -598,7 +591,7 @@
                     datasets: [{ data: [payProg, payDone], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 2 }]
                 },
                 options: doughnutOptions,
-                plugins: [centerTextPlugin] // เรียกใช้ Plugin กลางรูโดนัท
+                plugins: [centerTextPlugin] 
             });
         }
 
@@ -695,12 +688,11 @@
             
             document.getElementById('smart-insights-text').innerHTML = insightsText + adviceHTML;
 
-            // สั่งปิด datalabels (ตัวเลขบนกราฟ) สำหรับกราฟแท่ง เพื่อไม่ให้ดูรกเกินไป
             const barOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    datalabels: { display: false } // ปิดปลั๊กอินสำหรับกราฟแท่ง
+                    datalabels: { display: false } 
                 }
             };
 
