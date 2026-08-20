@@ -8,9 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chart.js Plugin -->
+    <!-- Chart.js Plugin สำหรับแสดงตัวเลขบนกราฟ -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <!-- 🌟 เพิ่ม SheetJS สำหรับอ่านไฟล์ Excel -->
+    <!-- SheetJS สำหรับอ่านไฟล์ Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -31,7 +31,6 @@
         .gantt-bar.end { border-top-right-radius: 99px; border-bottom-right-radius: 99px; }
         .gantt-bar.cancel { background-color: #ef4444; }
         .gantt-bar.done { background-color: #10b981; }
-        /* 🌟 Style กล่องอัปโหลด */
         .drag-area { border: 2px dashed #93c5fd; background-color: #eff6ff; transition: all 0.3s; }
         .drag-area.active { border-color: #2563eb; background-color: #dbeafe; }
     </style>
@@ -153,7 +152,6 @@
                                 <th id="th-activity" class="p-3 border-b">กิจกรรม / ชื่อรายการ</th>
                                 <th class="p-3 border-b">สถานที่</th>
                                 <th class="p-3 border-b text-center">ระยะเวลา</th>
-                                <!-- 🌟 อัปเดตใช้คำตามที่แก้ไข -->
                                 <th class="p-3 border-b text-center">เป้าหมาย(คน)</th>
                                 <th class="p-3 border-b text-right">งบประมาณ</th>
                                 <th class="p-3 border-b text-center">สถานะงาน</th>
@@ -213,7 +211,7 @@
         <section id="tab-form" class="hidden">
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
                 
-                <!-- 🌟 สลับโหมดการบันทึกข้อมูล -->
+                <!-- สลับโหมดการบันทึกข้อมูล -->
                 <div class="flex space-x-4 mb-6 border-b border-gray-200">
                     <button id="btn-mode-single" class="pb-2 border-b-2 border-blue-600 font-bold text-blue-900" onclick="switchFormMode('single')">📝 บันทึกทีละรายการ</button>
                     <button id="btn-mode-batch" class="pb-2 border-b-2 border-transparent text-gray-500 hover:text-blue-600" onclick="switchFormMode('batch')">📁 นำเข้าข้อมูล (Excel)</button>
@@ -241,9 +239,13 @@
                             </select>
                         </div>
 
+                        <!-- 🌟 เปลี่ยน Select เป็น Input + Datalist ให้รองรับการค้นหาและพิมพ์เองได้ -->
                         <div id="subCategoryDiv" class="hidden">
                             <label id="subCategoryLabel" class="block text-sm font-medium text-gray-700 mb-1">2. หลักสูตร / สมาคม (หมวดหมู่ย่อย)</label>
-                            <select id="subCategory" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"></select>
+                            <div class="relative">
+                                <input type="text" id="subCategory" list="subCategoryOptions" required autocomplete="off" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="คลิกเพื่อเลือก หรือพิมพ์ค้นหารายชื่อ...">
+                                <datalist id="subCategoryOptions"></datalist>
+                            </div>
                         </div>
 
                         <div id="projectActivityDiv" class="hidden">
@@ -313,9 +315,9 @@
                     </form>
                 </div>
 
-                <!-- 🌟 Section: นำเข้าข้อมูล (Batch Upload) -->
+                <!-- Section: นำเข้าข้อมูล (Batch Upload) -->
                 <div id="section-batch" class="hidden space-y-6">
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex justify-between items-center">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row justify-between items-center gap-3">
                         <div class="text-sm text-blue-800">
                             <p class="font-bold">คำแนะนำก่อนนำเข้าข้อมูล:</p>
                             <p>กรุณาดาวน์โหลดไฟล์ Template ต้นแบบ เพื่อนำไปกรอกข้อมูลให้ครบถ้วนก่อนทำการอัปโหลดเข้าระบบ</p>
@@ -335,7 +337,6 @@
                         </button>
                     </div>
 
-                    <!-- พื้นที่แสดงตัวอย่างข้อมูลตาราง -->
                     <div id="preview-area" class="hidden space-y-4">
                         <div class="flex justify-between items-center border-b pb-2">
                             <h3 class="font-bold text-gray-800">ตัวอย่างข้อมูลที่จะนำเข้า (<span id="preview-count" class="text-blue-600">0</span> รายการ)</h3>
@@ -343,7 +344,7 @@
                         </div>
                         <div class="overflow-x-auto max-h-64 border rounded-lg">
                             <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-gray-50 text-gray-600 sticky top-0">
+                                <thead class="bg-gray-50 text-gray-600 sticky top-0 shadow-sm">
                                     <tr>
                                         <th class="p-2 border-b">รหัส ID</th>
                                         <th class="p-2 border-b">หมวดหมู่หลัก</th>
@@ -371,7 +372,7 @@
 
         let globalData = [];         
         let currentFilteredData = []; 
-        let parsedBatchPayloads = []; // 🌟 เก็บข้อมูลจาก Excel
+        let parsedBatchPayloads = []; 
 
         let opChartInstance = null;
         let payChartInstance = null;
@@ -422,7 +423,6 @@
             }
         }
 
-        // 🌟 ฟังก์ชันสลับโหมดฟอร์ม (เดี่ยว vs หลายรายการ)
         function switchFormMode(mode) {
             const btnSingle = document.getElementById('btn-mode-single');
             const btnBatch = document.getElementById('btn-mode-batch');
@@ -449,7 +449,94 @@
             "การพัฒนาบุคลากรกีฬาสู่นักบริหารจัดการองค์กรกีฬาเพื่อความยั่งยืน",
             "การสร้างมาตรฐานบุคลากรกีฬาสู่ผู้นำกีฬา"
         ];
-        const associations = ["สมาคม A", "สมาคม B", "สมาคม C"];
+
+        // 🌟 ดึงชื่อ 84 สมาคมมาจากไฟล์ Excel ทำการคลีนคำและเรียงลำดับ ก-ฮ เรียบร้อยแล้ว
+        const associations = [
+            "ราชยานยนต์สมาคมแห่งประเทศไทย ในพระบรมราชูปถัมภ์ สมาคมกีฬา",
+            "สมาคมกีฬากระดานโต้คลื่นแห่งประเทศไทย",
+            "สมาคมกีฬากรีฑาแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬากอล์ฟแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬากาบัดดี้แห่งประเทศไทย",
+            "สมาคมกีฬากีฬาไทยแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาขี่ม้าแห่งประเทศไทย",
+            "สมาคมกีฬาคนพิการทางสมองแห่งประเทศไทย",
+            "สมาคมกีฬาคนพิการแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาคนหูหนวกแห่งประเทศไทย",
+            "สมาคมกีฬาคริกเก็ตแห่งประเทศไทย",
+            "สมาคมกีฬาคอร์ฟบอลแห่งประเทศไทย",
+            "สมาคมกีฬาคาราเต้แห่งประเทศไทย",
+            "สมาคมกีฬาคิกบ็อกซิ่งแห่งประเทศไทย",
+            "สมาคมกีฬาคูราชแห่งประเทศไทย",
+            "สมาคมกีฬางัดข้อแห่งประเทศไทย",
+            "สมาคมกีฬาจักรยานแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาจานร่อนแห่งประเทศไทย",
+            "สมาคมกีฬาชักกะเย่อแห่งประเทศไทย",
+            "สมาคมกีฬาซอฟท์บอลแห่งประเทศไทย",
+            "สมาคมกีฬาซอฟท์เทนนิสแห่งประเทศไทย",
+            "สมาคมกีฬาซูโม่แห่งประเทศไทย",
+            "สมาคมกีฬาดำน้ำแห่งประเทศไทย",
+            "สมาคมกีฬาตะกร้อแห่งประเทศไทย",
+            "สมาคมกีฬาทางน้ำแห่งประเทศไทย",
+            "สมาคมกีฬาทางอากาศและการบินแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาบริดจ์แห่งประเทศไทย",
+            "สมาคมกีฬาบาสเกตบอลแห่งประเทศไทย",
+            "สมาคมกีฬาบิลเลียดแห่งประเทศไทย",
+            "สมาคมกีฬาปัญจกีฬาแห่งประเทศไทย",
+            "สมาคมกีฬาปันจักสีลัตแห่งประเทศไทย",
+            "สมาคมกีฬาปีนหน้าผาแห่งประเทศไทย",
+            "สมาคมกีฬาผู้เปลี่ยนอวัยวะแห่งประเทศไทย",
+            "สมาคมกีฬาพาวเวอร์ลิฟติ้งแห่งประเทศไทย",
+            "สมาคมกีฬาฟันดาบแห่งประเทศไทย ในพระราชูปถัมภ์ ของสมเด็จพระบรมโอรสาธิราชฯ สยามมกุฏราชกุมาร",
+            "สมาคมกีฬาฟิกเกอร์และสปีดสเก็ตติ้งแห่งประเทศไทย",
+            "สมาคมกีฬาฟุตวอลเลย์แห่งประเทศไทย",
+            "สมาคมกีฬามวยปล้ำแห่งประเทศไทย",
+            "สมาคมกีฬามวยสากลแห่งประเทศไทย",
+            "สมาคมกีฬามวยไทยสมัครเล่นแห่งประเทศไทย ในพระราชูปถัมภ์ สมเด็จพระบรมโอรสาธิราชฯ สยามมกุฎราชกุมาร",
+            "สมาคมกีฬามิกซ์มาเชียลอาร์ตแห่งประเทศไทย",
+            "สมาคมกีฬายกน้ำหนักสมัครเล่นแห่งประเทศไทย",
+            "สมาคมกีฬายิงธนูแห่งประเทศไทย",
+            "สมาคมกีฬายิงปืนรณยุทธแห่งประเทศไทย",
+            "สมาคมกีฬายิงปืนแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬายิงเป้าบินแห่งประเทศไทย",
+            "สมาคมกีฬายิมนาสติกแห่งประเทศไทย",
+            "สมาคมกีฬายูยิตสูแห่งประเทศไทย",
+            "สมาคมกีฬายูโดแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬารักบี้ฟุตบอลแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาลอนเทนนิสแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาลอนโบวล์สแห่งประเทศไทย",
+            "สมาคมกีฬาลีลาศแห่งประเทศไทย",
+            "สมาคมกีฬาวินด์เซิร์ฟแห่งประเทศไทย",
+            "สมาคมกีฬาวูซูแห่งประเทศไทย",
+            "สมาคมกีฬาวู้ดบอลแห่งประเทศไทย",
+            "สมาคมกีฬาสกีและสโนว์บอร์ดแห่งประเทศไทย",
+            "สมาคมกีฬาสควอชแห่งประเทศไทย ในพระบรมราชุปถัมภ์",
+            "สมาคมกีฬาสเปเชียลโอลิมปิคไทยแห่งประเทศไทย",
+            "สมาคมกีฬาหมากรุกสากลแห่งประเทศไทย",
+            "สมาคมกีฬาหมากรุกเซี่ยงฉีแห่งประเทศไทย",
+            "สมาคมกีฬาหมากล้อมแห่งประเทศไทย",
+            "สมาคมกีฬาอีสปอร์ตแห่งประเทศไทย",
+            "สมาคมกีฬาฮอกกี้น้ำแข็งแห่งประเทศไทย",
+            "สมาคมกีฬาฮอกกี้แห่งประเทศไทย",
+            "สมาคมกีฬาเจ็ตสกีแห่งประเทศไทย ในพระอุปถัมภ์ของทูลกระหม่อมหญิงอุบลรัตนราชกัญญาสิริวัฒนาพรรณวดี",
+            "สมาคมกีฬาเชียร์แห่งประเทศไทย",
+            "สมาคมกีฬาเทคบอลแห่งประเทศไทย",
+            "สมาคมกีฬาเทควันโดแห่งประเทศไทย",
+            "สมาคมกีฬาเทเบิลเทนนิสแห่งประเทศไทย",
+            "สมาคมกีฬาเนตบอลแห่งประเทศไทย",
+            "สมาคมกีฬาเบสบอลแห่งประเทศไทย",
+            "สมาคมกีฬาเปตองแห่งประเทศไทย ในพระราชูปถัมภ์สมเด็จพระศรีนครินทราบรมราชชนนี",
+            "สมาคมกีฬาเพาะกายและฟิตเนสแห่งประเทศไทย",
+            "สมาคมกีฬาเรือพายแห่งประเทศไทย",
+            "สมาคมกีฬาเรือเร็วแห่งประเทศไทย",
+            "สมาคมกีฬาเอ็กซ์ตรีมแห่งประเทศไทย",
+            "สมาคมกีฬาแข่งรถจักรยานยนต์แห่งประเทศไทย",
+            "สมาคมกีฬาแข่งเรือใบแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาแบดมินตันแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
+            "สมาคมกีฬาแฮนด์บอลแห่งประเทศไทย",
+            "สมาคมกีฬาโบว์ลิ่งแห่งประเทศไทย",
+            "สมาคมกีฬาโววีนัมแห่งประเทศไทย",
+            "สมาคมคนพิการทางปัญญาแห่งประเทศไทย"
+        ];
 
         const opStatusSelect = document.getElementById('operationStatus');
         const payStatusSelect = document.getElementById('paymentStatus');
@@ -475,14 +562,16 @@
 
         const mainCategory = document.getElementById('mainCategory');
         const subCategoryDiv = document.getElementById('subCategoryDiv');
-        const subCategory = document.getElementById('subCategory');
+        const subCategoryInput = document.getElementById('subCategory');
+        const subCategoryOptions = document.getElementById('subCategoryOptions');
         const subCategoryLabel = document.getElementById('subCategoryLabel');
         const projectActivityDiv = document.getElementById('projectActivityDiv');
         const projectNameDiv = document.getElementById('projectNameDiv');
 
         mainCategory.addEventListener('change', function() {
             const val = this.value;
-            subCategory.innerHTML = '<option value="">-- กรุณาเลือก --</option>';
+            subCategoryInput.value = ''; // ล้างค่าเก่า
+            subCategoryOptions.innerHTML = '';
             
             let currentOp = opStatusSelect.value;
             let currentPay = payStatusSelect.value;
@@ -491,8 +580,10 @@
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.add('hidden');
                 projectNameDiv.classList.add('hidden');
-                subCategoryLabel.innerText = '2. เลือกหลักสูตร';
-                satCourses.forEach(c => subCategory.innerHTML += `<option value="${c}">${c}</option>`);
+                subCategoryLabel.innerText = '2. หลักสูตร';
+                
+                satCourses.forEach(c => subCategoryOptions.innerHTML += `<option value="${c}">`);
+                // ไม่มีตัวเลือกอื่นๆ สำหรับ กกท. เพราะหลักสูตรถูกฟิกซ์ตายตัว
 
                 opStatusSelect.innerHTML = defaultOpOptions;
                 payStatusSelect.innerHTML = defaultPayOptions;
@@ -505,8 +596,12 @@
                 subCategoryDiv.classList.remove('hidden');
                 projectActivityDiv.classList.remove('hidden');
                 projectNameDiv.classList.remove('hidden');
-                subCategoryLabel.innerText = '2. เลือกสมาคมกีฬา';
-                associations.forEach(a => subCategory.innerHTML += `<option value="${a}">${a}</option>`);
+                subCategoryLabel.innerText = '2. สมาคมกีฬา';
+                
+                // นำ 84 สมาคมใส่เข้าไปใน DataList
+                associations.forEach(a => subCategoryOptions.innerHTML += `<option value="${a}">`);
+                // ตัวเลือกเผื่อไว้
+                subCategoryOptions.innerHTML += `<option value="อื่นๆ (โปรดพิมพ์ระบุเอง)">`;
 
                 opStatusSelect.innerHTML = assocOpOptions;
                 payStatusSelect.innerHTML = assocPayOptions;
@@ -551,7 +646,7 @@
                 document.getElementById('mainCategory').dispatchEvent(new Event('change'));
 
                 setTimeout(() => {
-                    document.getElementById('subCategory').value = existingData.Sub_Category || '';
+                    document.getElementById('subCategory').value = existingData.Sub_Category || ''; // เซ็ตค่าลง Input
                     if((existingData.Main_Category || '').includes('สมาคมกีฬา')) {
                         document.getElementById('projectActivity').value = existingData.Project_Activity || '';
                         document.getElementById('projectName').value = existingData.Project_Name || '';
@@ -1007,7 +1102,7 @@
             });
         }
 
-        // 🌟 บันทึกข้อมูลทีละ 1 รายการ
+        // 🌟 บันทึกทีละรายการ
         document.getElementById('projectForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -1020,7 +1115,7 @@
             const payload = {
                 projectId: document.getElementById('projectId').value,
                 mainCategory: document.getElementById('mainCategory').value,
-                subCategory: document.getElementById('subCategory').value,
+                subCategory: document.getElementById('subCategory').value, // 🌟 ดึงค่าจาก Input โดยตรง
                 projectActivity: isAssociation ? document.getElementById('projectActivity').value : "-",
                 projectName: isAssociation ? (document.getElementById('projectName').value || "-") : "-",
                 location: document.getElementById('location').value || "-",
@@ -1067,20 +1162,16 @@
         });
 
         // 🌟 ---------------- ส่วนจัดการไฟล์ Excel (Batch Upload) ---------------- 🌟
-        
-        // 1. สร้างและดาวน์โหลดไฟล์ Template
         function downloadTemplate() {
-            // สร้าง Header ของไฟล์ Excel ตามรูปแบบที่กำหนด
             const headers = [
                 "รหัส ID โครงการ", "หมวดหมู่หลัก", "หลักสูตร/สมาคม", "กิจกรรม", "ชื่อรายการย่อย", 
                 "สถานที่", "วันที่เริ่มต้น (YYYY-MM-DD)", "วันที่สิ้นสุด (YYYY-MM-DD)", 
-                "ค่าเป้าหมาย(คน)", "ผ่านการอบรม(คน)", "งบอนุมัติ(บาท)", "งบใช้จริง(บาท)", 
+                "เป้าหมาย(คน)", "ผ่านการอบรม(คน)", "งบอนุมัติ(บาท)", "งบใช้จริง(บาท)", 
                 "สถานะการดำเนินงาน", "สถานะการเบิกจ่าย"
             ];
             
-            // เพิ่มตัวอย่างข้อมูล 1 บรรทัดให้เข้าใจง่าย
             const exampleData = [
-                "NSDF-EX-001", "การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย", "สมาคม A", "อบรมผู้ฝึกสอน", "อบรมโค้ชระดับ 1",
+                "NSDF-EX-001", "การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย", "สมาคมกีฬาเทควันโดแห่งประเทศไทย", "อบรมผู้ฝึกสอน", "อบรมโค้ชระดับ 1",
                 "กรุงเทพมหานคร", "2026-05-01", "2026-05-05", 
                 50, 45, 150000, 145000, 
                 "ดำเนินการเสร็จสิ้นแล้ว", "เบิกจ่ายเรียบร้อย"
@@ -1088,15 +1179,12 @@
 
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet([headers, exampleData]);
-            
-            // ปรับความกว้างคอลัมน์อัตโนมัติ
             ws['!cols'] = headers.map(h => ({wch: Math.max(h.length, 15)}));
             
             XLSX.utils.book_append_sheet(wb, ws, "Template");
             XLSX.writeFile(wb, "Template_บันทึกข้อมูลโครงการ.xlsx");
         }
 
-        // 2. จัดการเมื่อเลือกไฟล์ (Drag & Drop หรือคลิกเลือก)
         const dropArea = document.getElementById('drop-area');
         const fileInput = document.getElementById('excelFileInput');
 
@@ -1117,7 +1205,6 @@
             if (this.files.length) processExcelFile(this.files[0]);
         });
 
-        // 3. อ่านไฟล์ Excel และแปลงเป็นข้อมูล Preview
         function processExcelFile(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -1126,7 +1213,6 @@
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
                 
-                // แปลง Sheet เป็น Array ของ Object
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, {raw: false, dateNF: 'yyyy-mm-dd'});
                 
                 if(jsonData.length === 0) {
@@ -1134,7 +1220,6 @@
                     return;
                 }
 
-                // Map ข้อมูลหัว Excel เข้ากับ Payload ของระบบ
                 parsedBatchPayloads = jsonData.map(row => ({
                     projectId: row["รหัส ID โครงการ"],
                     mainCategory: row["หมวดหมู่หลัก"],
@@ -1144,20 +1229,19 @@
                     location: row["สถานที่"] || "-",
                     startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-",
                     endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-",
-                    targetPeople: Number(row["ค่าเป้าหมาย(คน)"]) || 0,
+                    targetPeople: Number(row["เป้าหมาย(คน)"]) || 0,
                     passedPeople: Number(row["ผ่านการอบรม(คน)"]) || 0,
                     approvedBudget: Number(row["งบอนุมัติ(บาท)"]) || 0,
                     usedBudget: Number(row["งบใช้จริง(บาท)"]) || 0,
                     operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน",
                     paymentStatus: row["สถานะการเบิกจ่าย"] || "อยู่ระหว่างการเบิกจ่าย"
-                })).filter(item => item.projectId); // กรองเอาเฉพาะบรรทัดที่มี ID
+                })).filter(item => item.projectId);
 
                 if (parsedBatchPayloads.length === 0) {
                     alert("รูปแบบไฟล์ไม่ถูกต้อง หรือไม่พบข้อมูลในคอลัมน์ 'รหัส ID โครงการ'");
                     return;
                 }
 
-                // แสดง Preview Table
                 document.getElementById('drop-area').classList.add('hidden');
                 document.getElementById('preview-area').classList.remove('hidden');
                 document.getElementById('preview-count').innerText = parsedBatchPayloads.length;
@@ -1176,7 +1260,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // 4. ยกเลิกไฟล์ / กลับไปหน้าลากวาง
         function resetBatchUpload() {
             fileInput.value = "";
             parsedBatchPayloads = [];
@@ -1184,7 +1267,6 @@
             document.getElementById('preview-area').classList.add('hidden');
         }
 
-        // 5. กดปุ่มยืนยัน นำเข้าข้อมูลแบบ Array
         async function submitBatchData() {
             const btn = document.getElementById('submitBatchBtn');
             btn.innerText = 'กำลังอัปโหลดข้อมูลเข้าสู่ระบบ กรุณารอสักครู่...';
@@ -1193,14 +1275,14 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    body: JSON.stringify(parsedBatchPayloads), // 🌟 ส่งไปทั้ง Array
+                    body: JSON.stringify(parsedBatchPayloads),
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
                     alert(result.message);
                     resetBatchUpload();
-                    switchTab('dashboard'); // กลับไปหน้า Dashboard โหลดข้อมูลใหม่
+                    switchTab('dashboard');
                 } else {
                     alert('เกิดข้อผิดพลาด: ' + result.message);
                     btn.innerText = 'ยืนยันนำเข้าข้อมูลทั้งหมด';
