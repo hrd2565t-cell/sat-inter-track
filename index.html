@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Plugin สำหรับแสดงตัวเลขบนกราฟ -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
@@ -17,9 +21,8 @@
             main { padding: 0 !important; max-width: 100% !important; }
             table { font-size: 11px; width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #ddd; padding: 5px; }
-            #timeline-section { display: none; } /* ซ่อน Timeline ตอนปริ้นท์เพื่อประหยัดพื้นที่ */
+            #timeline-section { display: none; }
         }
-        /* Style สำหรับ Gantt Chart */
         .gantt-cell { min-width: 30px; position: relative; }
         .gantt-bar { position: absolute; top: 20%; bottom: 20%; left: 0; right: 0; background-color: #3b82f6; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .gantt-bar.start { border-top-left-radius: 99px; border-bottom-left-radius: 99px; }
@@ -30,14 +33,16 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <nav class="bg-blue-900 text-white shadow-md no-print">
+    <!-- 🎨 แถบ Navbar น้ำเงินกรมท่า ตัดด้วยเส้นขอบสีทองด้านล่าง -->
+    <nav class="bg-blue-900 text-white shadow-md no-print border-b-4 border-yellow-500">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-xl font-bold mb-2 md:mb-0">ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</h1>
+            <h1 class="text-xl font-bold mb-2 md:mb-0 tracking-wide">ระบบติดตามโครงการพัฒนาบุคลากรโดย กกท.</h1>
             <div class="flex items-center space-x-2">
-                <div class="flex space-x-2 bg-blue-800 p-1 rounded-lg">
-                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-md font-medium text-sm bg-white text-blue-900 shadow transition">Dashboard ภาพรวม</button>
-                    <button onclick="switchTab('analytics')" id="btn-analytics" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition">วิเคราะห์โครงการ</button>
-                    <button onclick="switchTab('form')" id="btn-form" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition">+ บันทึกข้อมูล</button>
+                <div class="flex space-x-2 bg-blue-800 p-1 rounded-lg border border-blue-700">
+                    <!-- 🎨 ปุ่ม Active สีทองตัวหนา / Inactive Hover สีทอง -->
+                    <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-4 py-2 rounded-md font-bold text-sm bg-yellow-500 text-blue-900 shadow transition">Dashboard ภาพรวม</button>
+                    <button onclick="switchTab('analytics')" id="btn-analytics" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:text-yellow-400 transition">วิเคราะห์โครงการ</button>
+                    <button onclick="switchTab('form')" id="btn-form" class="px-4 py-2 rounded-md font-medium text-sm text-white hover:text-yellow-400 transition">+ บันทึกข้อมูล</button>
                 </div>
                 <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1 shadow">
                     🖨️ พิมพ์รายงาน
@@ -52,12 +57,12 @@
         <section id="tab-dashboard" class="space-y-6">
             
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
-                <h2 id="dashboard-title" class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <h2 id="dashboard-title" class="text-lg font-bold text-blue-900 flex items-center gap-2">
                     📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569
                 </h2>
                 <div class="flex items-center gap-3 w-full sm:w-auto">
                     <label class="text-sm font-medium text-gray-600 hidden sm:block">ดูข้อมูลเฉพาะ:</label>
-                    <select id="globalFilterCategory" onchange="applyGlobalFilter()" class="w-full sm:w-auto border-2 border-blue-200 rounded-lg px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-blue-50 font-bold text-blue-800 shadow-sm transition hover:bg-blue-100 cursor-pointer">
+                    <select id="globalFilterCategory" onchange="applyGlobalFilter()" class="w-full sm:w-auto border-2 border-blue-200 rounded-lg px-4 py-2 text-sm focus:ring-yellow-500 focus:border-yellow-500 bg-blue-50 font-bold text-blue-900 shadow-sm transition hover:bg-blue-100 cursor-pointer">
                         <option value="">🌍 ภาพรวม (กกท. และ สมาคมกีฬาฯ)</option>
                         <option value="กกท.">🏢 โดย การกีฬาแห่งประเทศไทย</option>
                         <option value="สมาคมกีฬา">🏅 โดย สมาคมกีฬาแห่งประเทศไทย</option>
@@ -75,7 +80,8 @@
                     <p class="text-sm text-gray-500 font-medium">งบประมาณที่ใช้ไป</p>
                     <h3 id="card-used-budget" class="text-2xl font-bold text-orange-500 mt-1">0 บาท</h3>
                 </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden">
+                <!-- 🎨 การ์ดงบคงเหลือ ไฮไลต์เส้นขอบล่างสีทอง -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500 relative overflow-hidden">
                     <p class="text-sm text-gray-500 font-medium">งบประมาณคงเหลือ</p>
                     <h3 id="card-remaining-budget" class="text-2xl font-bold text-blue-600 mt-1">0 บาท</h3>
                 </div>
@@ -85,9 +91,8 @@
                 </div>
             </div>
 
-            <!-- 💡 ระบบใหม่: แผนผังเส้นเวลา (Timeline / Gantt Chart) -->
             <div id="timeline-section" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 no-print">
-                <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
+                <h3 class="font-bold text-blue-900 mb-3 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
@@ -122,20 +127,20 @@
             <!-- กราฟสถานะ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-700 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
+                    <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
                     <div class="relative h-64 flex justify-center"><canvas id="opStatusChart"></canvas></div>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-700 mb-4">สัดส่วนสถานะการเบิกจ่าย</h3>
+                    <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการเบิกจ่าย</h3>
                     <div class="relative h-64 flex justify-center"><canvas id="payStatusChart"></canvas></div>
                 </div>
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h3 class="font-bold text-gray-700">รายการโครงการ</h3>
+                    <h3 class="font-bold text-blue-900">รายการโครงการ</h3>
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <input type="text" id="searchInput" oninput="applyTableSearch()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64">
+                        <input type="text" id="searchInput" oninput="applyTableSearch()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-yellow-500 focus:border-yellow-500 w-full sm:w-64">
                         <button onclick="loadData()" class="no-print text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600 transition">รีเฟรชตาราง</button>
                     </div>
                 </div>
@@ -149,7 +154,7 @@
                                 <th id="th-activity" class="p-3 border-b">กิจกรรม / ชื่อรายการ</th>
                                 <th class="p-3 border-b">สถานที่</th>
                                 <th class="p-3 border-b text-center">ระยะเวลา</th>
-                                <th class="p-3 border-b text-center">เป้าหมาย(คน)</th>
+                                <th class="p-3 border-b text-center">คนเข้าร่วม</th>
                                 <th class="p-3 border-b text-right">งบประมาณ</th>
                                 <th class="p-3 border-b text-center">สถานะงาน</th>
                                 <th class="p-3 border-b text-center">สถานะเบิกจ่าย</th>
@@ -165,8 +170,9 @@
 
         <!-- TAB 2: ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
-            <div class="bg-blue-50 border-l-4 border-blue-600 p-5 rounded-r-xl shadow-sm">
-                <h3 class="text-lg font-bold text-blue-800 mb-3 flex items-center gap-2">💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)</h3>
+            <!-- 🎨 เปลี่ยนขอบซ้ายเป็นสีทอง และลดความเข้มของกล่องลง -->
+            <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-yellow-500 p-5 rounded-r-xl shadow-sm">
+                <h3 class="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)</h3>
                 <p id="smart-insights-text" class="text-gray-700 leading-relaxed">กำลังประมวลผลข้อมูลการวิเคราะห์...</p>
             </div>
 
@@ -187,19 +193,18 @@
                 </div>
             </div>
 
-            <!-- 💡 ระบบใหม่: กราฟแท่งความหนาแน่นรายเดือน -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 w-full">
-                <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2">📈 ความหนาแน่นของการจัดโครงการรายเดือน (Peak Season)</h3>
+                <h3 class="font-bold text-blue-900 mb-4 flex items-center gap-2">📈 ความหนาแน่นของการจัดโครงการรายเดือน (Peak Season)</h3>
                 <div class="relative h-64 flex justify-center"><canvas id="monthlyDensityChart"></canvas></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-700 mb-4">เปรียบเทียบการใช้งบประมาณ (กกท. vs สมาคมกีฬาฯ)</h3>
+                    <h3 class="font-bold text-blue-900 mb-4">เปรียบเทียบการใช้งบประมาณ (กกท. vs สมาคมกีฬาฯ)</h3>
                     <div class="relative h-64 flex justify-center"><canvas id="agencyCompareChart"></canvas></div>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-gray-700 mb-4">วิเคราะห์งบประมาณจำแนกตามหลักสูตร/สมาคม</h3>
+                    <h3 class="font-bold text-blue-900 mb-4">วิเคราะห์งบประมาณจำแนกตามหลักสูตร/สมาคม</h3>
                     <div class="relative h-64 flex justify-center"><canvas id="budgetCompareChart"></canvas></div>
                 </div>
             </div>
@@ -213,9 +218,9 @@
                     ข้อมูลใหม่
                 </span>
 
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ฟอร์มบันทึก / อัปเดตโครงการ</h2>
+                <h2 class="text-2xl font-bold text-blue-900 mb-6 border-b-2 border-yellow-500 pb-4 inline-block">ฟอร์มบันทึก / อัปเดตโครงการ</h2>
 
-                <form id="projectForm" class="space-y-6">
+                <form id="projectForm" class="space-y-6 mt-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-xs text-gray-500 font-normal">(กรอกรหัสเดิมเพื่อดึงข้อมูลเก่า)</span></label>
                         <input type="text" id="projectId" required placeholder="เช่น NSDF-69-01/02142" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-mono">
@@ -297,7 +302,8 @@
                         </div>
                     </div>
 
-                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md">
+                    <!-- 🎨 ปุ่มบันทึกข้อมูลหลัก -->
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md">
                         บันทึกโครงการใหม่
                     </button>
                 </form>
@@ -316,7 +322,7 @@
         let payChartInstance = null;
         let budgetChartInstance = null;
         let agencyChartInstance = null;
-        let monthlyDensityChartInstance = null; // กราฟใหม่
+        let monthlyDensityChartInstance = null;
 
         Chart.register(ChartDataLabels);
 
@@ -332,7 +338,7 @@
                 
                 if (total > 0) {
                     ctx.font = 'bold 2rem Prompt';
-                    ctx.fillStyle = '#374151'; 
+                    ctx.fillStyle = '#1e3a8a'; // สีน้ำเงินกรมท่า
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     const centerX = left + width / 2;
@@ -348,13 +354,14 @@
             }
         };
 
+        // 🎨 ฟังก์ชันอัปเดตปุ่มเมนูให้สลับสีทองเมื่อ Active
         function switchTab(tabName) {
             ['dashboard', 'analytics', 'form'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
-                document.getElementById(`btn-${t}`).className = "px-4 py-2 rounded-md font-medium text-sm text-white hover:bg-blue-700 transition";
+                document.getElementById(`btn-${t}`).className = "px-4 py-2 rounded-md font-medium text-sm text-white hover:text-yellow-400 transition";
             });
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            document.getElementById(`btn-${tabName}`).className = "px-4 py-2 rounded-md font-medium text-sm bg-white text-blue-900 shadow transition";
+            document.getElementById(`btn-${tabName}`).className = "px-4 py-2 rounded-md font-bold text-sm bg-yellow-500 text-blue-900 shadow transition";
             
             if(tabName === 'dashboard' || tabName === 'analytics') {
                 loadData();
@@ -491,7 +498,7 @@
                     badge.innerText = 'โหมดแก้ไขข้อมูล';
                     
                     submitBtn.innerText = 'อัปเดตข้อมูลทับของเดิม';
-                    submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md";
+                    submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
                 }, 100);
 
             } else {
@@ -501,7 +508,7 @@
                 badge.innerText = 'โครงการใหม่';
 
                 submitBtn.innerText = 'บันทึกโครงการใหม่';
-                submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md";
+                submitBtn.className = "w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
             }
         });
 
@@ -560,7 +567,7 @@
             document.getElementById('card-participants').innerHTML = `${totalPassed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${totalTarget.toLocaleString()} คน</span>`;
 
             renderCharts(data);
-            renderTimeline(data); // 💡 เรียกใช้วาดแผนผังเวลา
+            renderTimeline(data);
         }
 
         function applyTableSearch() {
@@ -580,12 +587,10 @@
             renderTable(tableData);
         }
 
-        // 💡 ฟังก์ชันสร้างแผนผังเส้นเวลา (Gantt Timeline)
         function renderTimeline(data) {
             const tbody = document.getElementById('timelineBody');
             let html = '';
 
-            // คัดกรองเอาเฉพาะโครงการที่มีระบุวันที่ชัดเจน
             const validData = data.filter(item => item.Start_Date && item.End_Date && item.Start_Date !== '-' && item.End_Date !== '-');
 
             if(validData.length === 0) {
@@ -596,14 +601,12 @@
             validData.forEach(item => {
                 let start = new Date(item.Start_Date);
                 let end = new Date(item.End_Date);
-                let startMonth = start.getMonth(); // 0 (Jan) ถึง 11 (Dec)
+                let startMonth = start.getMonth(); 
                 let endMonth = end.getMonth();
 
-                // ตั้งชื่อที่จะแสดง
                 let name = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : item.Sub_Category;
                 if(item.Project_Name && item.Project_Name !== '-') name += ` (${item.Project_Name})`;
 
-                // เลืออกสีตามสถานะ
                 let barClass = 'gantt-bar';
                 if(item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว') barClass += ' done';
                 else if(item.Operation_Status === 'ยกเลิกรายการ') barClass += ' cancel';
@@ -796,8 +799,6 @@
             let lowBurn = [];
             let surplusTotal = 0;
             let returnTotal = 0; 
-            
-            // 💡 สร้าง Array เก็บจำนวนโครงการแต่ละเดือนสำหรับกราฟความหนาแน่น
             let monthlyCounts = Array(12).fill(0);
 
             data.forEach(item => {
@@ -823,8 +824,6 @@
                     if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) {
                         surplusTotal += remaining;
                     }
-                    
-                    // นับเดือนสำหรับกราฟความหนาแน่น
                     if(item.Start_Date && item.Start_Date !== '-') {
                         let sMonth = new Date(item.Start_Date).getMonth();
                         if(sMonth >= 0 && sMonth <= 11) monthlyCounts[sMonth]++;
@@ -833,7 +832,7 @@
             });
 
             let adviceHTML = `<div class="mt-4 p-4 bg-white rounded-lg border border-blue-100 shadow-sm">`;
-            adviceHTML += `<h4 class="font-bold text-gray-800 mb-2 border-b pb-1">📑 ข้อเสนอแนะเชิงบริหารงบประมาณ:</h4><ul class="space-y-2 text-sm text-gray-700">`;
+            adviceHTML += `<h4 class="font-bold text-blue-900 mb-2 border-b pb-1">📑 ข้อเสนอแนะเชิงบริหารงบประมาณ:</h4><ul class="space-y-2 text-sm text-gray-700">`;
 
             let hasAdvice = false;
 
@@ -872,7 +871,6 @@
                 plugins: { datalabels: { display: false } } 
             };
 
-            // 💡 วาดกราฟความหนาแน่นรายเดือน
             if(monthlyDensityChartInstance) monthlyDensityChartInstance.destroy();
             const ctxDensity = document.getElementById('monthlyDensityChart').getContext('2d');
             monthlyDensityChartInstance = new Chart(ctxDensity, {
@@ -882,7 +880,7 @@
                     datasets: [{ 
                         label: 'จำนวนโครงการเริ่มต้นในเดือน', 
                         data: monthlyCounts, 
-                        backgroundColor: '#8b5cf6', // สีม่วงให้ดูต่างจากงบประมาณ
+                        backgroundColor: '#eab308', // 🎨 ใช้กราฟแท่งความหนาแน่นเป็นสีทอง
                         borderRadius: 4
                     }]
                 },
@@ -893,7 +891,8 @@
                         legend: { display: false },
                         datalabels: {
                             display: true,
-                            color: '#4b5563',
+                            color: '#1e3a8a',
+                            font: { weight: 'bold' },
                             anchor: 'end',
                             align: 'top',
                             formatter: (val) => val > 0 ? val : ''
@@ -976,7 +975,7 @@
                     document.getElementById('projectNameDiv').classList.add('hidden');
                     document.getElementById('idSearchHint').classList.add('hidden');
                     document.getElementById('formStatusBadge').classList.add('hidden');
-                    btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-md";
+                    btn.className = "w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
                     btn.innerText = 'บันทึกโครงการใหม่';
 
                     switchTab('dashboard');
