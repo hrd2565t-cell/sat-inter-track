@@ -119,6 +119,7 @@
                 </div>
             </div>
 
+            <!-- แผนผังระยะเวลา (Timeline) -->
             <div id="timeline-section" class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col no-print">
                 <div class="p-4 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="font-bold text-blue-900 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
@@ -162,6 +163,7 @@
                 </div>
             </div>
 
+            <!-- กราฟสถานะ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -173,6 +175,7 @@
                 </div>
             </div>
 
+            <!-- ตารางรายการโครงการ -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-blue-900">รายการโครงการ</h3>
@@ -216,7 +219,6 @@
         <!-- TAB 2: ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
             
-            <!-- 🌟 อัปเดตกล่อง Smart Insights แยกส่วนบน-ล่าง -->
             <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-yellow-500 p-6 rounded-xl shadow-sm">
                 <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">💡 สรุปวิเคราะห์การบริหารงบประมาณ</h3>
                 <div id="smart-insights-text" class="space-y-6">
@@ -941,11 +943,9 @@
             });
         }
 
-        // 🌟 อัปเดตฟังก์ชันวิเคราะห์ (แยก กกท. / สมาคมฯ บน-ล่าง)
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
 
-            // -- ส่วนตัวเลขภาพรวม 2 บล็อกใหญ่ยังรวมกันอยู่เพื่อให้เห็นภาพทั้งประเทศ
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
@@ -957,11 +957,9 @@
             document.getElementById('analytics-budget-percent').innerText = budgetPercent + '%';
             document.getElementById('analytics-people-percent').innerText = passPercent + '%';
 
-            // -- คัดแยกกระเป๋าเงิน --
             let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
             let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
 
-            // 🌟 ฟังก์ชันย่อยสำหรับสร้าง HTML แต่ละกล่อง (บน-ล่าง)
             function generateInsightBlock(title, dataset, isAssoc) {
                 if (!dataset || dataset.length === 0) {
                     return `<div class="mb-4"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-gray-200 pb-2 mb-3">${title}</h4><p class="text-gray-500">ยังไม่มีข้อมูลโครงการ</p></div>`;
@@ -1050,14 +1048,11 @@
                 return html;
             }
 
-            // นำ HTML ทั้ง 2 ชุดมารวมกัน
             let finalInsightsHTML = generateInsightBlock('🏢 การกีฬาแห่งประเทศไทย (กกท.)', satData, false);
             finalInsightsHTML += generateInsightBlock('🏅 สมาคมกีฬาแห่งประเทศไทย', assocData, true);
 
             document.getElementById('smart-insights-text').innerHTML = finalInsightsHTML;
 
-            // -------------------------------------------------------------
-            // 🌟 สร้างตารางข้อมูลสมาคมที่ยกเลิกโครงการ (ใช้ Logic คล้ายเดิมแต่ตรวจสอบเฉพาะ Assoc)
             let cancelledItemsList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
             let returnTotalAssoc = cancelledItemsList.reduce((sum, i) => sum + Number(i.Approved_Budget || 0), 0);
 
@@ -1105,8 +1100,6 @@
             }
             document.getElementById('cancellation-summary-content').innerHTML = cancelBoxContent;
 
-            // -------------------------------------------------------------
-            // สร้างกราฟและแผนภูมิส่วนอื่น ๆ
             let monthlyCounts = Array(12).fill(0);
             data.forEach(item => {
                 if(item.Operation_Status !== 'ยกเลิกรายการ' && item.Start_Date && item.Start_Date !== '-') {
@@ -1154,29 +1147,48 @@
                 }
             });
 
-            if(window.agencyChartInstance) window.agencyChartInstance.destroy();
+            // 🌟 1. แก้ไข Bug กราฟ Agency
+            if(agencyChartInstance) agencyChartInstance.destroy();
             const ctxAgency = document.getElementById('agencyCompareChart').getContext('2d');
-            window.agencyChartInstance = new Chart(ctxAgency, {
+            agencyChartInstance = new Chart(ctxAgency, {
                 type: 'bar',
                 data: {
                     labels: ['การกีฬาแห่งประเทศไทย (กกท.)', 'สมาคมกีฬาแห่งประเทศไทย'],
                     datasets: [
-                        { label: 'งบอนุมัติ', data: [satApp, assocApp], backgroundColor: '#3b82f6' },
-                        { label: 'งบใช้จริง', data: [satUsed, assocUsed], backgroundColor: '#10b981' }
+                        { label: 'งบอนุมัติ', data: [satApp, assocApp], backgroundColor: '#3b82f6', borderRadius: 4 },
+                        { label: 'งบใช้จริง', data: [satUsed, assocUsed], backgroundColor: '#10b981', borderRadius: 4 }
                     ]
                 },
                 options: barOptions
             });
+
+            // 🌟 2. จัดกลุ่มและแก้ไข Bug กราฟเปรียบเทียบสมาคม/หลักสูตร (Aggregated Top 15)
+            let aggregatedBudget = {};
+            data.forEach(item => {
+                let name = item.Sub_Category || 'ไม่ระบุ';
+                if(!aggregatedBudget[name]) {
+                    aggregatedBudget[name] = { app: 0, used: 0 };
+                }
+                aggregatedBudget[name].app += Number(item.Approved_Budget || 0);
+                aggregatedBudget[name].used += Number(item.Used_Budget || 0);
+            });
+
+            // คัดเลือกเฉพาะสมาคมที่ได้รับงบประมาณสูงที่สุด 15 อันดับแรก
+            let sortedBudgets = Object.keys(aggregatedBudget).map(key => ({
+                name: String(key).length > 20 ? String(key).substring(0, 20) + '...' : String(key),
+                app: aggregatedBudget[key].app,
+                used: aggregatedBudget[key].used
+            })).sort((a, b) => b.app - a.app).slice(0, 15);
 
             if(budgetChartInstance) budgetChartInstance.destroy();
             const ctxBudget = document.getElementById('budgetCompareChart').getContext('2d');
             budgetChartInstance = new Chart(ctxBudget, {
                 type: 'bar',
                 data: {
-                    labels: data.map(i => i.Sub_Category ? i.Sub_Category.substring(0, 20) + '...' : 'N/A'),
+                    labels: sortedBudgets.map(i => i.name),
                     datasets: [
-                        { label: 'งบอนุมัติ', data: data.map(i => Number(i.Approved_Budget || 0)), backgroundColor: '#60a5fa' },
-                        { label: 'งบใช้จริง', data: data.map(i => Number(i.Used_Budget || 0)), backgroundColor: '#34d399' }
+                        { label: 'งบอนุมัติ', data: sortedBudgets.map(i => i.app), backgroundColor: '#60a5fa', borderRadius: 4 },
+                        { label: 'งบใช้จริง', data: sortedBudgets.map(i => i.used), backgroundColor: '#34d399', borderRadius: 4 }
                     ]
                 },
                 options: barOptions
