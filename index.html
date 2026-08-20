@@ -1147,22 +1147,27 @@
                 }
             });
 
-            // 🌟 1. แก้ไข Bug กราฟ Agency
-            if(agencyChartInstance) agencyChartInstance.destroy();
+            // 🌟 นำโค้ดสร้างกราฟเปรียบเทียบกลับมาแล้วครับ
+            let satAppTotal = satData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+            let satUsedTotal = satData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+            let assocAppTotal = assocData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+            let assocUsedTotal = assocData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+
+            if(window.agencyChartInstance) window.agencyChartInstance.destroy();
             const ctxAgency = document.getElementById('agencyCompareChart').getContext('2d');
-            agencyChartInstance = new Chart(ctxAgency, {
+            window.agencyChartInstance = new Chart(ctxAgency, {
                 type: 'bar',
                 data: {
                     labels: ['การกีฬาแห่งประเทศไทย (กกท.)', 'สมาคมกีฬาแห่งประเทศไทย'],
                     datasets: [
-                        { label: 'งบอนุมัติ', data: [satApp, assocApp], backgroundColor: '#3b82f6', borderRadius: 4 },
-                        { label: 'งบใช้จริง', data: [satUsed, assocUsed], backgroundColor: '#10b981', borderRadius: 4 }
+                        { label: 'งบอนุมัติ', data: [satAppTotal, assocAppTotal], backgroundColor: '#3b82f6', borderRadius: 4 },
+                        { label: 'งบใช้จริง', data: [satUsedTotal, assocUsedTotal], backgroundColor: '#10b981', borderRadius: 4 }
                     ]
                 },
                 options: barOptions
             });
 
-            // 🌟 2. จัดกลุ่มและแก้ไข Bug กราฟเปรียบเทียบสมาคม/หลักสูตร (Aggregated Top 15)
+            // 🌟 นำโค้ดกราฟจำแนกสมาคม/หลักสูตร (จัดกลุ่ม Top 15) กลับมาแล้วครับ
             let aggregatedBudget = {};
             data.forEach(item => {
                 let name = item.Sub_Category || 'ไม่ระบุ';
@@ -1173,7 +1178,6 @@
                 aggregatedBudget[name].used += Number(item.Used_Budget || 0);
             });
 
-            // คัดเลือกเฉพาะสมาคมที่ได้รับงบประมาณสูงที่สุด 15 อันดับแรก
             let sortedBudgets = Object.keys(aggregatedBudget).map(key => ({
                 name: String(key).length > 20 ? String(key).substring(0, 20) + '...' : String(key),
                 app: aggregatedBudget[key].app,
