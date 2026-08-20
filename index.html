@@ -8,9 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chart.js Plugin สำหรับแสดงตัวเลขบนกราฟ -->
+    <!-- Chart.js Plugin -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    <!-- SheetJS สำหรับอ่านไฟล์ Excel -->
+    <!-- SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -71,7 +71,6 @@
                 </div>
             </div>
 
-            <!-- 🌟 ระบบใหม่: การ์ดแยกตามหน่วยงาน (กระเป๋างบประมาณ) -->
             <div id="dashboard-cards-container" class="space-y-6">
                 <!-- ชุดที่ 1: กกท. -->
                 <div id="cards-sat-section" class="space-y-3">
@@ -120,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- แผนผังระยะเวลา (Timeline) -->
             <div id="timeline-section" class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col no-print">
                 <div class="p-4 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="font-bold text-blue-900 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
@@ -164,7 +162,6 @@
                 </div>
             </div>
 
-            <!-- กราฟสถานะ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -176,7 +173,6 @@
                 </div>
             </div>
 
-            <!-- ตารางรายการโครงการ -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-blue-900">รายการโครงการ</h3>
@@ -219,22 +215,35 @@
 
         <!-- TAB 2: ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
-            <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-yellow-500 p-5 rounded-r-xl shadow-sm">
-                <h3 class="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">💡 สรุปวิเคราะห์ภาพรวม (Smart Insights)</h3>
-                <p id="smart-insights-text" class="text-gray-700 leading-relaxed">กำลังประมวลผลข้อมูลการวิเคราะห์...</p>
+            
+            <!-- 🌟 อัปเดตกล่อง Smart Insights แยกส่วนบน-ล่าง -->
+            <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-yellow-500 p-6 rounded-xl shadow-sm">
+                <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">💡 สรุปวิเคราะห์การบริหารงบประมาณ</h3>
+                <div id="smart-insights-text" class="space-y-6">
+                    <p class="text-gray-500">กำลังประมวลผลข้อมูล...</p>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div id="cancellation-summary-box" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full">
+                <div class="p-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="font-bold text-blue-900 flex items-center gap-2">🛑 สรุปรายงานการยกเลิกโครงการและการส่งคืนเงินกองทุนฯ</h3>
+                </div>
+                <div id="cancellation-summary-content" class="p-0">
+                    <div class="p-6 text-center text-gray-400">กำลังตรวจสอบข้อมูลการยกเลิก...</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
                     <div>
-                        <p class="text-sm text-gray-500 font-medium">อัตราการเบิกจ่ายงบประมาณภาพรวม</p>
+                        <p class="text-sm text-gray-500 font-medium">อัตราการเบิกจ่ายงบประมาณรวมทั้งระบบ</p>
                         <h3 id="analytics-budget-percent" class="text-3xl font-bold text-blue-600 mt-1">0%</h3>
                     </div>
                     <div class="text-4xl opacity-80">💰</div>
                 </div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
                     <div>
-                        <p class="text-sm text-gray-500 font-medium">อัตราความสำเร็จผู้ผ่านการอบรมเทียบเป้าหมาย</p>
+                        <p class="text-sm text-gray-500 font-medium">อัตราความสำเร็จผู้ผ่านการอบรมรวมทั้งระบบ</p>
                         <h3 id="analytics-people-percent" class="text-3xl font-bold text-green-600 mt-1">0%</h3>
                     </div>
                     <div class="text-4xl opacity-80">👥</div>
@@ -261,25 +270,18 @@
         <!-- TAB 3: FORM ENTRY -->
         <section id="tab-form" class="hidden">
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
-                
                 <div class="flex space-x-4 mb-6 border-b border-gray-200">
                     <button id="btn-mode-single" class="pb-2 border-b-2 border-blue-600 font-bold text-blue-900" onclick="switchFormMode('single')">📝 บันทึกทีละรายการ</button>
                     <button id="btn-mode-batch" class="pb-2 border-b-2 border-transparent text-gray-500 hover:text-blue-600" onclick="switchFormMode('batch')">📁 นำเข้าข้อมูล (Excel)</button>
                 </div>
-
-                <!-- Section: บันทึกข้อมูลทีละรายการ (Single) -->
                 <div id="section-single">
-                    <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">
-                        ข้อมูลใหม่
-                    </span>
-
+                    <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">ข้อมูลใหม่</span>
                     <form id="projectForm" class="space-y-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-xs text-gray-500 font-normal">(กรอกรหัสเดิมเพื่อดึงข้อมูลเก่า)</span></label>
                             <input type="text" id="projectId" required placeholder="เช่น NSDF-69-01/02142" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-mono">
                             <p id="idSearchHint" class="text-xs text-emerald-600 mt-1 hidden">✓ พบข้อมูลโครงการเดิมในระบบ (ดึงข้อมูลให้แล้ว)</p>
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">1. หน่วยงานที่ดำเนินการ (หมวดหมู่หลัก)</label>
                             <select id="mainCategory" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
@@ -288,7 +290,6 @@
                                 <option value="การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย">การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย (งบกองทุนฯ)</option>
                             </select>
                         </div>
-
                         <div id="subCategoryDiv" class="hidden">
                             <label id="subCategoryLabel" class="block text-sm font-medium text-gray-700 mb-1">2. หลักสูตร / สมาคม (หมวดหมู่ย่อย)</label>
                             <div class="relative">
@@ -296,7 +297,6 @@
                                 <datalist id="subCategoryOptions"></datalist>
                             </div>
                         </div>
-
                         <div id="projectActivityDiv" class="hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-1">3. กิจกรรม</label>
                             <select id="projectActivity" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
@@ -306,17 +306,14 @@
                                 <option value="ส่งไปต่างประเทศ">ส่งไปต่างประเทศ</option>
                             </select>
                         </div>
-
                         <div id="projectNameDiv" class="hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อรายการโครงการย่อย</label>
                             <input type="text" id="projectName" placeholder="เช่น อบรมผู้ฝึกสอน..." class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
                         </div>
-
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">สถานที่จัดอบรม</label>
                             <input type="text" id="location" placeholder="เช่น โรงแรม... หรือ จังหวัด..." class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
                         </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
@@ -327,7 +324,6 @@
                                 <input type="date" id="endDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500">
                             </div>
                         </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">ค่าเป้าหมาย (จำนวนคน)</label>
@@ -346,7 +342,6 @@
                                 <input type="number" id="usedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5">
                             </div>
                         </div>
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการดำเนินงาน</label>
@@ -357,14 +352,11 @@
                                 <select id="paymentStatus" class="w-full border border-gray-300 rounded-lg p-2.5 text-gray-800 font-medium focus:ring-blue-500 focus:border-blue-500"></select>
                             </div>
                         </div>
-
                         <button type="submit" id="submitBtn" class="w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md">
                             บันทึกโครงการใหม่
                         </button>
                     </form>
                 </div>
-
-                <!-- Section: นำเข้าข้อมูล (Batch Upload) -->
                 <div id="section-batch" class="hidden space-y-6">
                     <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row justify-between items-center gap-3">
                         <div class="text-sm text-blue-800">
@@ -375,7 +367,6 @@
                             📥 โหลดไฟล์ Template
                         </button>
                     </div>
-
                     <div id="drop-area" class="drag-area p-8 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer">
                         <div class="text-4xl mb-3 opacity-60">📊</div>
                         <h3 class="font-bold text-gray-700 mb-1">คลิกที่นี่เพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวาง</h3>
@@ -385,7 +376,6 @@
                             เลือกไฟล์
                         </button>
                     </div>
-
                     <div id="preview-area" class="hidden space-y-4">
                         <div class="flex justify-between items-center border-b pb-2">
                             <h3 class="font-bold text-gray-800">ตัวอย่างข้อมูลที่จะนำเข้า (<span id="preview-count" class="text-blue-600">0</span> รายการ)</h3>
@@ -410,7 +400,6 @@
                         </button>
                     </div>
                 </div>
-
             </div>
         </section>
 
@@ -668,7 +657,6 @@
             applyTableSearch(); 
         }
 
-        // 🌟 อัปเดตฟังก์ชันคำนวณการ์ดให้แยก 2 กระเป๋า
         function updateDashboardCardsAndCharts(data) {
             const categoryFilter = document.getElementById('globalFilterCategory').value;
             const satSection = document.getElementById('cards-sat-section');
@@ -677,7 +665,6 @@
             let satData = [];
             let assocData = [];
 
-            // จัดการการแสดงผลของ Block การ์ด ตามตัวกรอง
             if (categoryFilter === '') {
                 satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
                 assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
@@ -695,7 +682,6 @@
                 assocSection.classList.remove('hidden');
             }
 
-            // ฟังก์ชันย่อยสำหรับคำนวณและป้อนค่าให้การ์ดแต่ละชุด
             function updateCardSet(prefix, dataset) {
                 let totalAppBudget = dataset.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
                 let totalUsedBudget = dataset.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
@@ -717,12 +703,10 @@
                 document.getElementById(`card-${prefix}-participants`).innerHTML = `${totalPassed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${totalTarget.toLocaleString()} คน</span>`;
             }
 
-            // เรียกใช้อัปเดตทั้ง 2 ชุด
             updateCardSet('sat', satData);
             updateCardSet('assoc', assocData);
 
             renderCharts(data);
-            // ไม่ต้องเรียก renderTimeline ตรงนี้ เพราะจะถูกเรียกตอน renderPaginatedView() 
         }
 
         function applyTableSearch() {
@@ -957,9 +941,11 @@
             });
         }
 
+        // 🌟 อัปเดตฟังก์ชันวิเคราะห์ (แยก กกท. / สมาคมฯ บน-ล่าง)
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
 
+            // -- ส่วนตัวเลขภาพรวม 2 บล็อกใหญ่ยังรวมกันอยู่เพื่อให้เห็นภาพทั้งประเทศ
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
@@ -971,100 +957,163 @@
             document.getElementById('analytics-budget-percent').innerText = budgetPercent + '%';
             document.getElementById('analytics-people-percent').innerText = passPercent + '%';
 
+            // -- คัดแยกกระเป๋าเงิน --
             let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
             let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
 
-            let satUsed = satData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
-            let assocUsed = assocData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
-            let satApp = satData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
-            let assocApp = assocData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+            // 🌟 ฟังก์ชันย่อยสำหรับสร้าง HTML แต่ละกล่อง (บน-ล่าง)
+            function generateInsightBlock(title, dataset, isAssoc) {
+                if (!dataset || dataset.length === 0) {
+                    return `<div class="mb-4"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-gray-200 pb-2 mb-3">${title}</h4><p class="text-gray-500">ยังไม่มีข้อมูลโครงการ</p></div>`;
+                }
 
-            let satBudgetPercent = satApp > 0 ? ((satUsed / satApp) * 100).toFixed(2) : 0;
-            let assocBudgetPercent = assocApp > 0 ? ((assocUsed / assocApp) * 100).toFixed(2) : 0;
+                let appBudget = dataset.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+                let useBudget = dataset.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+                let targPeople = dataset.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
+                let passPeople = dataset.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
 
-            let completedProjects = data.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
-            let cancelledProjects = data.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
+                let bgPercent = appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0;
+                let ppPercent = targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0;
 
-            let insightsText = `📌 จากข้อมูลทั้งหมด <b>${data.length} โครงการ</b> พบว่าภาพรวมมีการเบิกจ่ายงบประมาณไปแล้ว <b>${budgetPercent}%</b> `;
-            insightsText += `และมีผู้ผ่านการอบรมคิดเป็น <b>${passPercent}%</b> ของเป้าหมายผู้เข้าร่วมทั้งหมด<br><br>`;
-            
-            insightsText += `🏢 เมื่อเทียบสัดส่วนตามหน่วยงาน <b>ฝั่ง กกท.</b> มีการเบิกจ่ายงบประมาณไปแล้ว ${satBudgetPercent}% `;
-            insightsText += `ในขณะที่ <b>ฝั่งสมาคมกีฬาฯ</b> มีการเบิกจ่ายไปแล้ว ${assocBudgetPercent}%<br><br>`;
-            
-            insightsText += `✅ ขณะนี้มีโครงการที่ดำเนินการเสร็จสิ้นแล้วจำนวน <b>${completedProjects} โครงการ</b> `;
-            if(cancelledProjects > 0) insightsText += `และมีการยกเลิกโครงการจำนวน <b>${cancelledProjects} โครงการ</b> `;
-            insightsText += `จากทั้งหมด ${data.length} โครงการ`;
+                let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
+                let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
 
-            let overBudget = [];
-            let highBurn = [];
-            let lowBurn = [];
-            let surplusTotal = 0;
-            let returnTotal = 0; 
+                let overB = [];
+                let highB = [];
+                let lowB = [];
+                let surpTotal = 0;
+                let retTotal = 0;
+
+                dataset.forEach(item => {
+                    let approved = Number(item.Approved_Budget || 0);
+                    let used = Number(item.Used_Budget || 0);
+                    let remaining = approved - used;
+                    let percentUsed = approved > 0 ? (used / approved) * 100 : 0;
+                    let status = item.Operation_Status;
+                    let idName = `<b>${item.ID}</b>`;
+
+                    if (status === 'ยกเลิกรายการ') {
+                        retTotal += approved;
+                    } else {
+                        if (used > approved) {
+                            overB.push(`${idName} (เกินไป ${Math.abs(remaining).toLocaleString()} บาท)`);
+                        }
+                        else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') {
+                            highB.push(`${idName} (ใช้ไป ${percentUsed.toFixed(1)}%)`);
+                        }
+                        else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') {
+                            lowB.push(idName);
+                        }
+                        if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) {
+                            surpTotal += remaining;
+                        }
+                    }
+                });
+
+                let html = `<div>`;
+                html += `<h4 class="font-bold text-blue-900 text-lg border-b-2 border-yellow-400 pb-2 mb-3">${title}</h4>`;
+                
+                let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b> (เสร็จสิ้น ${completedCount} โครงการ`;
+                if(isAssoc && cancelledCount > 0) projectText += `, ยกเลิก ${cancelledCount} โครงการ`;
+                projectText += `)`;
+
+                html += `<p class="text-gray-700 mb-3">${projectText}<br>มีการเบิกจ่ายงบประมาณไปแล้ว <b>${bgPercent}%</b> และมีผู้ผ่านการอบรมคิดเป็น <b>${ppPercent}%</b> ของเป้าหมาย</p>`;
+                
+                html += `<ul class="space-y-2 text-sm text-gray-700 bg-white p-4 rounded-lg border border-blue-50 shadow-sm">`;
+                let hasAdvice = false;
+
+                if (overB.length > 0) {
+                    html += `<li class="flex items-start gap-2"><span class="text-red-500">🚨</span> <span><b>พบการใช้งบเกิน:</b> ${overB.join(', ')} แนะนำให้ตรวจสอบสาเหตุด่วน</span></li>`;
+                    hasAdvice = true;
+                }
+                if (highB.length > 0) {
+                    html += `<li class="flex items-start gap-2"><span class="text-orange-500">⚠️</span> <span><b>เฝ้าระวังงบใกล้หมด (ใช้ไป >90%):</b> ${highB.join(', ')} ควบคุมค่าใช้จ่ายส่วนที่เหลืออย่างรัดกุม</span></li>`;
+                    hasAdvice = true;
+                }
+                if (lowB.length > 0) {
+                    html += `<li class="flex items-start gap-2"><span class="text-yellow-500">⏱️</span> <span><b>การเบิกจ่ายล่าช้า (ใช้ไป <30%):</b> ${lowB.join(', ')} ติดตามเร่งรัดการดำเนินงานให้เป็นตามแผน</span></li>`;
+                    hasAdvice = true;
+                }
+                if (surpTotal > 0) {
+                    html += `<li class="flex items-start gap-2"><span class="text-green-600">💸</span> <span><b>งบเหลือจ่ายส่งคืน (โครงการเสร็จแล้ว):</b> <b>${surpTotal.toLocaleString()} บาท</b> รวบรวมเอกสารส่งคืนเงินกองทุนฯ</span></li>`;
+                    hasAdvice = true;
+                }
+                if (isAssoc && retTotal > 0) {
+                    html += `<li class="flex items-start gap-2"><span class="text-purple-600">🔙</span> <span><b>ส่งคืนเงินจากโครงการยกเลิก:</b> <b>${retTotal.toLocaleString()} บาท</b> (ดูรายละเอียดสมาคมที่ตารางด้านล่าง)</span></li>`;
+                    hasAdvice = true;
+                }
+                if (!hasAdvice) {
+                    html += `<li class="text-green-600 flex items-start gap-2"><span>✨</span> <span>ภาพรวมการบริหารงบประมาณอยู่ในเกณฑ์ปกติ เป็นไปตามแผน</span></li>`;
+                }
+
+                html += `</ul></div>`;
+                return html;
+            }
+
+            // นำ HTML ทั้ง 2 ชุดมารวมกัน
+            let finalInsightsHTML = generateInsightBlock('🏢 การกีฬาแห่งประเทศไทย (กกท.)', satData, false);
+            finalInsightsHTML += generateInsightBlock('🏅 สมาคมกีฬาแห่งประเทศไทย', assocData, true);
+
+            document.getElementById('smart-insights-text').innerHTML = finalInsightsHTML;
+
+            // -------------------------------------------------------------
+            // 🌟 สร้างตารางข้อมูลสมาคมที่ยกเลิกโครงการ (ใช้ Logic คล้ายเดิมแต่ตรวจสอบเฉพาะ Assoc)
+            let cancelledItemsList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
+            let returnTotalAssoc = cancelledItemsList.reduce((sum, i) => sum + Number(i.Approved_Budget || 0), 0);
+
+            let cancelBoxContent = '';
+            if (cancelledItemsList.length === 0) {
+                cancelBoxContent = `<div class="p-6 bg-green-50 text-green-700 text-center flex items-center justify-center gap-2"><span class="text-2xl">🎉</span> <span class="font-medium"><b>ยอดเยี่ยม!</b> ยังไม่มีการยกเลิกโครงการและการส่งคืนเงินในระบบขณะนี้</span></div>`;
+            } else {
+                let listHtml = `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-red-50 text-red-800 border-b border-red-100">
+                            <tr>
+                                <th class="p-3">รหัส ID</th>
+                                <th class="p-3">สมาคมกีฬา</th>
+                                <th class="p-3">กิจกรรม / หลักสูตร</th>
+                                <th class="p-3 text-right">ยอดเงินต้องส่งคืน (บาท)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">`;
+                
+                cancelledItemsList.forEach(item => {
+                    let amt = Number(item.Approved_Budget || 0);
+                    let assocName = item.Sub_Category || '-';
+                    let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+                    listHtml += `
+                        <tr class="hover:bg-red-50/50">
+                            <td class="p-3 font-mono text-xs text-red-600">${item.ID}</td>
+                            <td class="p-3 font-medium">${assocName}</td>
+                            <td class="p-3 text-gray-600">${activityName}</td>
+                            <td class="p-3 text-right font-bold text-purple-600">${amt.toLocaleString()}</td>
+                        </tr>`;
+                });
+                
+                listHtml += `
+                        </tbody>
+                        <tfoot class="bg-gray-50 border-t-2 border-gray-200">
+                            <tr>
+                                <td colspan="3" class="p-4 text-right font-bold text-gray-700">รวมยกเลิก ${cancelledItemsList.length} รายการ | ยอดส่งคืนทั้งสิ้น:</td>
+                                <td class="p-4 text-right font-bold text-purple-700 text-lg">${returnTotalAssoc.toLocaleString()} บาท</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>`;
+                cancelBoxContent = listHtml;
+            }
+            document.getElementById('cancellation-summary-content').innerHTML = cancelBoxContent;
+
+            // -------------------------------------------------------------
+            // สร้างกราฟและแผนภูมิส่วนอื่น ๆ
             let monthlyCounts = Array(12).fill(0);
-
             data.forEach(item => {
-                let approved = Number(item.Approved_Budget || 0);
-                let used = Number(item.Used_Budget || 0);
-                let remaining = approved - used;
-                let percentUsed = approved > 0 ? (used / approved) * 100 : 0;
-                let status = item.Operation_Status;
-                let idName = `<b>${item.ID}</b>`;
-
-                if (status === 'ยกเลิกรายการ') {
-                    returnTotal += approved;
-                } else {
-                    if (used > approved) {
-                        overBudget.push(`${idName} (เกินไป ${Math.abs(remaining).toLocaleString()} บาท)`);
-                    }
-                    else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') {
-                        highBurn.push(`${idName} (ใช้ไป ${percentUsed.toFixed(1)}%)`);
-                    }
-                    else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') {
-                        lowBurn.push(idName);
-                    }
-                    if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) {
-                        surplusTotal += remaining;
-                    }
-                    if(item.Start_Date && item.Start_Date !== '-') {
-                        let sMonth = new Date(item.Start_Date).getMonth();
-                        if(sMonth >= 0 && sMonth <= 11) monthlyCounts[sMonth]++;
-                    }
+                if(item.Operation_Status !== 'ยกเลิกรายการ' && item.Start_Date && item.Start_Date !== '-') {
+                    let sMonth = new Date(item.Start_Date).getMonth();
+                    if(sMonth >= 0 && sMonth <= 11) monthlyCounts[sMonth]++;
                 }
             });
-
-            let adviceHTML = `<div class="mt-4 p-4 bg-white rounded-lg border border-blue-100 shadow-sm">`;
-            adviceHTML += `<h4 class="font-bold text-blue-900 mb-2 border-b pb-1">📑 ข้อเสนอแนะเชิงบริหารงบประมาณ:</h4><ul class="space-y-2 text-sm text-gray-700">`;
-
-            let hasAdvice = false;
-
-            if (overBudget.length > 0) {
-                adviceHTML += `<li class="flex items-start gap-2"><span class="text-red-500">🚨</span> <span><b>พบโครงการที่เบิกจ่ายเกินงบอนุมัติ:</b> ได้แก่ ${overBudget.join(', ')} แนะนำให้ตรวจสอบสาเหตุการใช้งบเกินและดำเนินการปรับปรุงตัวเลขบัญชี</span></li>`;
-                hasAdvice = true;
-            }
-            if (highBurn.length > 0) {
-                adviceHTML += `<li class="flex items-start gap-2"><span class="text-orange-500">⚠️</span> <span><b>เฝ้าระวังงบประมาณหมดก่อนปิดโครงการ:</b> พบโครงการ ${highBurn.join(', ')} ที่ยังดำเนินการไม่เสร็จ แต่ใช้งบไปแล้วกว่า 90% แนะนำให้ควบคุมค่าใช้จ่ายในกิจกรรมที่เหลืออย่างรัดกุม</span></li>`;
-                hasAdvice = true;
-            }
-            if (lowBurn.length > 0) {
-                adviceHTML += `<li class="flex items-start gap-2"><span class="text-yellow-500">⏱️</span> <span><b>โครงการที่เบิกจ่ายล่าช้า:</b> โครงการ ${lowBurn.join(', ')} มีการเบิกจ่ายต่ำกว่า 30% แนะนำให้ติดตามเร่งรัดการจัดกิจกรรมหรือกระบวนการเบิกจ่ายให้เป็นไปตามแผน</span></li>`;
-                hasAdvice = true;
-            }
-            if (surplusTotal > 0) {
-                adviceHTML += `<li class="flex items-start gap-2"><span class="text-green-600">💸</span> <span><b>งบประมาณเหลือจ่ายส่งคืน:</b> มีโครงการที่ดำเนินการเสร็จสิ้นและมีเงินเหลือจ่ายรวม <b>${surplusTotal.toLocaleString()} บาท</b> แนะนำให้รวบรวมเอกสารเพื่อส่งคืนเงินเข้ากองทุนฯ ต่อไป</span></li>`;
-                hasAdvice = true;
-            }
-            if (returnTotal > 0) {
-                adviceHTML += `<li class="flex items-start gap-2"><span class="text-purple-600">🔙</span> <span><b>เงินส่งคืนจากการยกเลิกโครงการ:</b> พบโครงการที่ถูกยกเลิก ซึ่งมีงบประมาณที่ต้องดำเนินการส่งคืนกองทุนฯ รวมทั้งสิ้น <b>${returnTotal.toLocaleString()} บาท</b></span></li>`;
-                hasAdvice = true;
-            }
-            
-            if (!hasAdvice) {
-                 adviceHTML += `<li class="text-green-600">✨ ภาพรวมการบริหารงบประมาณอยู่ในเกณฑ์ปกติและเป็นไปตามแผนที่กำหนดไว้</li>`;
-            }
-
-            adviceHTML += `</ul></div>`;
-            
-            document.getElementById('smart-insights-text').innerHTML = insightsText + adviceHTML;
 
             const barOptions = {
                 responsive: true,
