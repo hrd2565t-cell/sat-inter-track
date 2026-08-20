@@ -71,28 +71,66 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
-                    <h3 id="card-approved-budget" class="text-2xl font-bold text-gray-800 mt-1">0 บาท</h3>
+            <!-- 🌟 ระบบใหม่: การ์ดแยกตามหน่วยงาน (กระเป๋างบประมาณ) -->
+            <div id="dashboard-cards-container" class="space-y-6">
+                <!-- ชุดที่ 1: กกท. -->
+                <div id="cards-sat-section" class="space-y-3">
+                    <h3 class="font-bold text-blue-800 flex items-center gap-2">🏢 การกีฬาแห่งประเทศไทย (กกท.)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
+                            <h3 id="card-sat-approved" class="text-2xl font-bold text-gray-800 mt-1">0 บาท</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <p class="text-sm text-gray-500 font-medium">งบประมาณที่ใช้ไป</p>
+                            <h3 id="card-sat-used" class="text-2xl font-bold text-orange-500 mt-1">0 บาท</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500 relative overflow-hidden">
+                            <p class="text-sm text-gray-500 font-medium">งบประมาณคงเหลือ</p>
+                            <h3 id="card-sat-remaining" class="text-2xl font-bold text-blue-600 mt-1">0 บาท</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <p class="text-sm text-gray-500 font-medium">ผู้ผ่านการอบรม / เป้าหมาย</p>
+                            <h3 id="card-sat-participants" class="text-2xl font-bold text-green-600 mt-1">0 <span class="text-lg text-gray-400 font-medium">/ 0 คน</span></h3>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">งบประมาณที่ใช้ไป</p>
-                    <h3 id="card-used-budget" class="text-2xl font-bold text-orange-500 mt-1">0 บาท</h3>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500 relative overflow-hidden">
-                    <p class="text-sm text-gray-500 font-medium">งบประมาณคงเหลือ</p>
-                    <h3 id="card-remaining-budget" class="text-2xl font-bold text-blue-600 mt-1">0 บาท</h3>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-sm text-gray-500 font-medium">ผู้ผ่านการอบรม / เป้าหมาย</p>
-                    <h3 id="card-participants" class="text-2xl font-bold text-green-600 mt-1">0 <span class="text-lg text-gray-400 font-medium">/ 0 คน</span></h3>
+
+                <!-- ชุดที่ 2: สมาคมกีฬาฯ -->
+                <div id="cards-assoc-section" class="space-y-3">
+                    <h3 class="font-bold text-blue-800 flex items-center gap-2">🏅 สมาคมกีฬาแห่งประเทศไทย</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <p class="text-sm text-gray-500 font-medium">งบประมาณอนุมัติรวม</p>
+                            <h3 id="card-assoc-approved" class="text-2xl font-bold text-gray-800 mt-1">0 บาท</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <p class="text-sm text-gray-500 font-medium">งบประมาณที่ใช้ไป</p>
+                            <h3 id="card-assoc-used" class="text-2xl font-bold text-orange-500 mt-1">0 บาท</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-yellow-500 relative overflow-hidden">
+                            <p class="text-sm text-gray-500 font-medium">งบประมาณคงเหลือ</p>
+                            <h3 id="card-assoc-remaining" class="text-2xl font-bold text-blue-600 mt-1">0 บาท</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <p class="text-sm text-gray-500 font-medium">ผู้ผ่านการอบรม / เป้าหมาย</p>
+                            <h3 id="card-assoc-participants" class="text-2xl font-bold text-green-600 mt-1">0 <span class="text-lg text-gray-400 font-medium">/ 0 คน</span></h3>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="timeline-section" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 no-print">
-                <h3 class="font-bold text-blue-900 mb-3 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
-                <div class="overflow-x-auto">
+            <!-- แผนผังระยะเวลา (Timeline) -->
+            <div id="timeline-section" class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col no-print">
+                <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-bold text-blue-900 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
+                    <div class="flex gap-4 text-xs text-gray-500">
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-blue-500 rounded-sm"></div> อยู่ระหว่างดำเนินการ</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-green-500 rounded-sm"></div> เสร็จสิ้น</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-500 rounded-sm"></div> ยกเลิก</div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto p-4">
                     <table class="w-full text-left text-xs border-collapse">
                         <thead>
                             <tr class="bg-gray-50 text-gray-600 border-b">
@@ -116,13 +154,17 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-3 flex gap-4 text-xs justify-end text-gray-500">
-                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-blue-500 rounded-sm"></div> อยู่ระหว่างดำเนินการ</div>
-                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-green-500 rounded-sm"></div> เสร็จสิ้นแล้ว</div>
-                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-500 rounded-sm"></div> ยกเลิกรายการ</div>
+                <div class="p-3 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 text-xs text-gray-500 rounded-b-xl">
+                    <div id="timeline-pagination-info">กำลังคำนวณข้อมูล...</div>
+                    <div class="flex space-x-2 mt-2 sm:mt-0">
+                        <button onclick="changePage(-1)" id="btn-prev-timeline" class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">◀ ก่อนหน้า</button>
+                        <span id="timeline-page-num" class="px-2 py-1 font-bold text-blue-800">หน้า 1/1</span>
+                        <button onclick="changePage(1)" id="btn-next-timeline" class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">ถัดไป ▶</button>
+                    </div>
                 </div>
             </div>
 
+            <!-- กราฟสถานะ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -134,7 +176,8 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- ตารางรายการโครงการ -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-blue-900">รายการโครงการ</h3>
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -162,6 +205,14 @@
                             <tr><td colspan="9" class="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 text-sm no-print">
+                    <div id="table-pagination-info" class="text-gray-600">กำลังคำนวณข้อมูล...</div>
+                    <div class="flex space-x-2 mt-3 sm:mt-0">
+                        <button onclick="changePage(-1)" id="btn-prev-table" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">◀ ก่อนหน้า</button>
+                        <span id="table-page-num" class="px-3 py-1 font-bold text-blue-800">หน้า 1/1</span>
+                        <button onclick="changePage(1)" id="btn-next-table" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">ถัดไป ▶</button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -211,7 +262,6 @@
         <section id="tab-form" class="hidden">
             <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 relative">
                 
-                <!-- สลับโหมดการบันทึกข้อมูล -->
                 <div class="flex space-x-4 mb-6 border-b border-gray-200">
                     <button id="btn-mode-single" class="pb-2 border-b-2 border-blue-600 font-bold text-blue-900" onclick="switchFormMode('single')">📝 บันทึกทีละรายการ</button>
                     <button id="btn-mode-batch" class="pb-2 border-b-2 border-transparent text-gray-500 hover:text-blue-600" onclick="switchFormMode('batch')">📁 นำเข้าข้อมูล (Excel)</button>
@@ -239,7 +289,6 @@
                             </select>
                         </div>
 
-                        <!-- 🌟 เปลี่ยน Select เป็น Input + Datalist ให้รองรับการค้นหาและพิมพ์เองได้ -->
                         <div id="subCategoryDiv" class="hidden">
                             <label id="subCategoryLabel" class="block text-sm font-medium text-gray-700 mb-1">2. หลักสูตร / สมาคม (หมวดหมู่ย่อย)</label>
                             <div class="relative">
@@ -372,7 +421,11 @@
 
         let globalData = [];         
         let currentFilteredData = []; 
+        let finalDataForTable = []; 
         let parsedBatchPayloads = []; 
+        
+        let currentPage = 1;
+        const itemsPerPage = 10; 
 
         let opChartInstance = null;
         let payChartInstance = null;
@@ -388,10 +441,8 @@
                 if (chart.config.type !== 'doughnut') return;
                 const { ctx, chartArea: { top, bottom, left, right, width, height } } = chart;
                 ctx.save();
-                
                 const data = chart.data.datasets[0].data;
                 const total = data.reduce((a, b) => a + b, 0);
-                
                 if (total > 0) {
                     ctx.font = 'bold 2rem Prompt';
                     ctx.fillStyle = '#1e3a8a'; 
@@ -399,9 +450,7 @@
                     ctx.textBaseline = 'middle';
                     const centerX = left + width / 2;
                     const centerY = top + height / 2;
-                    
                     ctx.fillText(total, centerX, centerY - 10);
-                    
                     ctx.font = '0.875rem Prompt';
                     ctx.fillStyle = '#6b7280'; 
                     ctx.fillText('โครงการ', centerX, centerY + 15);
@@ -450,112 +499,22 @@
             "การสร้างมาตรฐานบุคลากรกีฬาสู่ผู้นำกีฬา"
         ];
 
-        // 🌟 ดึงชื่อ 84 สมาคมมาจากไฟล์ Excel ทำการคลีนคำและเรียงลำดับ ก-ฮ เรียบร้อยแล้ว
         const associations = [
-            "ราชยานยนต์สมาคมแห่งประเทศไทย ในพระบรมราชูปถัมภ์ สมาคมกีฬา",
-            "สมาคมกีฬากระดานโต้คลื่นแห่งประเทศไทย",
-            "สมาคมกีฬากรีฑาแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬากอล์ฟแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬากาบัดดี้แห่งประเทศไทย",
-            "สมาคมกีฬากีฬาไทยแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาขี่ม้าแห่งประเทศไทย",
-            "สมาคมกีฬาคนพิการทางสมองแห่งประเทศไทย",
-            "สมาคมกีฬาคนพิการแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาคนหูหนวกแห่งประเทศไทย",
-            "สมาคมกีฬาคริกเก็ตแห่งประเทศไทย",
-            "สมาคมกีฬาคอร์ฟบอลแห่งประเทศไทย",
-            "สมาคมกีฬาคาราเต้แห่งประเทศไทย",
-            "สมาคมกีฬาคิกบ็อกซิ่งแห่งประเทศไทย",
-            "สมาคมกีฬาคูราชแห่งประเทศไทย",
-            "สมาคมกีฬางัดข้อแห่งประเทศไทย",
-            "สมาคมกีฬาจักรยานแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาจานร่อนแห่งประเทศไทย",
-            "สมาคมกีฬาชักกะเย่อแห่งประเทศไทย",
-            "สมาคมกีฬาซอฟท์บอลแห่งประเทศไทย",
-            "สมาคมกีฬาซอฟท์เทนนิสแห่งประเทศไทย",
-            "สมาคมกีฬาซูโม่แห่งประเทศไทย",
-            "สมาคมกีฬาดำน้ำแห่งประเทศไทย",
-            "สมาคมกีฬาตะกร้อแห่งประเทศไทย",
-            "สมาคมกีฬาทางน้ำแห่งประเทศไทย",
-            "สมาคมกีฬาทางอากาศและการบินแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาบริดจ์แห่งประเทศไทย",
-            "สมาคมกีฬาบาสเกตบอลแห่งประเทศไทย",
-            "สมาคมกีฬาบิลเลียดแห่งประเทศไทย",
-            "สมาคมกีฬาปัญจกีฬาแห่งประเทศไทย",
-            "สมาคมกีฬาปันจักสีลัตแห่งประเทศไทย",
-            "สมาคมกีฬาปีนหน้าผาแห่งประเทศไทย",
-            "สมาคมกีฬาผู้เปลี่ยนอวัยวะแห่งประเทศไทย",
-            "สมาคมกีฬาพาวเวอร์ลิฟติ้งแห่งประเทศไทย",
-            "สมาคมกีฬาฟันดาบแห่งประเทศไทย ในพระราชูปถัมภ์ ของสมเด็จพระบรมโอรสาธิราชฯ สยามมกุฏราชกุมาร",
-            "สมาคมกีฬาฟิกเกอร์และสปีดสเก็ตติ้งแห่งประเทศไทย",
-            "สมาคมกีฬาฟุตวอลเลย์แห่งประเทศไทย",
-            "สมาคมกีฬามวยปล้ำแห่งประเทศไทย",
-            "สมาคมกีฬามวยสากลแห่งประเทศไทย",
-            "สมาคมกีฬามวยไทยสมัครเล่นแห่งประเทศไทย ในพระราชูปถัมภ์ สมเด็จพระบรมโอรสาธิราชฯ สยามมกุฎราชกุมาร",
-            "สมาคมกีฬามิกซ์มาเชียลอาร์ตแห่งประเทศไทย",
-            "สมาคมกีฬายกน้ำหนักสมัครเล่นแห่งประเทศไทย",
-            "สมาคมกีฬายิงธนูแห่งประเทศไทย",
-            "สมาคมกีฬายิงปืนรณยุทธแห่งประเทศไทย",
-            "สมาคมกีฬายิงปืนแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬายิงเป้าบินแห่งประเทศไทย",
-            "สมาคมกีฬายิมนาสติกแห่งประเทศไทย",
-            "สมาคมกีฬายูยิตสูแห่งประเทศไทย",
-            "สมาคมกีฬายูโดแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬารักบี้ฟุตบอลแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาลอนเทนนิสแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาลอนโบวล์สแห่งประเทศไทย",
-            "สมาคมกีฬาลีลาศแห่งประเทศไทย",
-            "สมาคมกีฬาวินด์เซิร์ฟแห่งประเทศไทย",
-            "สมาคมกีฬาวูซูแห่งประเทศไทย",
-            "สมาคมกีฬาวู้ดบอลแห่งประเทศไทย",
-            "สมาคมกีฬาสกีและสโนว์บอร์ดแห่งประเทศไทย",
-            "สมาคมกีฬาสควอชแห่งประเทศไทย ในพระบรมราชุปถัมภ์",
-            "สมาคมกีฬาสเปเชียลโอลิมปิคไทยแห่งประเทศไทย",
-            "สมาคมกีฬาหมากรุกสากลแห่งประเทศไทย",
-            "สมาคมกีฬาหมากรุกเซี่ยงฉีแห่งประเทศไทย",
-            "สมาคมกีฬาหมากล้อมแห่งประเทศไทย",
-            "สมาคมกีฬาอีสปอร์ตแห่งประเทศไทย",
-            "สมาคมกีฬาฮอกกี้น้ำแข็งแห่งประเทศไทย",
-            "สมาคมกีฬาฮอกกี้แห่งประเทศไทย",
-            "สมาคมกีฬาเจ็ตสกีแห่งประเทศไทย ในพระอุปถัมภ์ของทูลกระหม่อมหญิงอุบลรัตนราชกัญญาสิริวัฒนาพรรณวดี",
-            "สมาคมกีฬาเชียร์แห่งประเทศไทย",
-            "สมาคมกีฬาเทคบอลแห่งประเทศไทย",
-            "สมาคมกีฬาเทควันโดแห่งประเทศไทย",
-            "สมาคมกีฬาเทเบิลเทนนิสแห่งประเทศไทย",
-            "สมาคมกีฬาเนตบอลแห่งประเทศไทย",
-            "สมาคมกีฬาเบสบอลแห่งประเทศไทย",
-            "สมาคมกีฬาเปตองแห่งประเทศไทย ในพระราชูปถัมภ์สมเด็จพระศรีนครินทราบรมราชชนนี",
-            "สมาคมกีฬาเพาะกายและฟิตเนสแห่งประเทศไทย",
-            "สมาคมกีฬาเรือพายแห่งประเทศไทย",
-            "สมาคมกีฬาเรือเร็วแห่งประเทศไทย",
-            "สมาคมกีฬาเอ็กซ์ตรีมแห่งประเทศไทย",
-            "สมาคมกีฬาแข่งรถจักรยานยนต์แห่งประเทศไทย",
-            "สมาคมกีฬาแข่งเรือใบแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาแบดมินตันแห่งประเทศไทย ในพระบรมราชูปถัมภ์",
-            "สมาคมกีฬาแฮนด์บอลแห่งประเทศไทย",
-            "สมาคมกีฬาโบว์ลิ่งแห่งประเทศไทย",
-            "สมาคมกีฬาโววีนัมแห่งประเทศไทย",
-            "สมาคมคนพิการทางปัญญาแห่งประเทศไทย"
+            "ราชยานยนต์สมาคมแห่งประเทศไทย ในพระบรมราชูปถัมภ์ สมาคมกีฬา", "สมาคมกีฬากระดานโต้คลื่นแห่งประเทศไทย", "สมาคมกีฬากรีฑาแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬากอล์ฟแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬากาบัดดี้แห่งประเทศไทย", "สมาคมกีฬากีฬาไทยแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาขี่ม้าแห่งประเทศไทย", "สมาคมกีฬาคนพิการทางสมองแห่งประเทศไทย", "สมาคมกีฬาคนพิการแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาคนหูหนวกแห่งประเทศไทย", "สมาคมกีฬาคริกเก็ตแห่งประเทศไทย", "สมาคมกีฬาคอร์ฟบอลแห่งประเทศไทย", "สมาคมกีฬาคาราเต้แห่งประเทศไทย", "สมาคมกีฬาคิกบ็อกซิ่งแห่งประเทศไทย", "สมาคมกีฬาคูราชแห่งประเทศไทย", "สมาคมกีฬางัดข้อแห่งประเทศไทย", "สมาคมกีฬาจักรยานแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาจานร่อนแห่งประเทศไทย", "สมาคมกีฬาชักกะเย่อแห่งประเทศไทย", "สมาคมกีฬาซอฟท์บอลแห่งประเทศไทย", "สมาคมกีฬาซอฟท์เทนนิสแห่งประเทศไทย", "สมาคมกีฬาซูโม่แห่งประเทศไทย", "สมาคมกีฬาดำน้ำแห่งประเทศไทย", "สมาคมกีฬาตะกร้อแห่งประเทศไทย", "สมาคมกีฬาทางน้ำแห่งประเทศไทย", "สมาคมกีฬาทางอากาศและการบินแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาบริดจ์แห่งประเทศไทย", "สมาคมกีฬาบาสเกตบอลแห่งประเทศไทย", "สมาคมกีฬาบิลเลียดแห่งประเทศไทย", "สมาคมกีฬาปัญจกีฬาแห่งประเทศไทย", "สมาคมกีฬาปันจักสีลัตแห่งประเทศไทย", "สมาคมกีฬาปีนหน้าผาแห่งประเทศไทย", "สมาคมกีฬาผู้เปลี่ยนอวัยวะแห่งประเทศไทย", "สมาคมกีฬาพาวเวอร์ลิฟติ้งแห่งประเทศไทย", "สมาคมกีฬาฟันดาบแห่งประเทศไทย ในพระราชูปถัมภ์ ของสมเด็จพระบรมโอรสาธิราชฯ สยามมกุฏราชกุมาร", "สมาคมกีฬาฟิกเกอร์และสปีดสเก็ตติ้งแห่งประเทศไทย", "สมาคมกีฬาฟุตวอลเลย์แห่งประเทศไทย", "สมาคมกีฬามวยปล้ำแห่งประเทศไทย", "สมาคมกีฬามวยสากลแห่งประเทศไทย", "สมาคมกีฬามวยไทยสมัครเล่นแห่งประเทศไทย ในพระราชูปถัมภ์ สมเด็จพระบรมโอรสาธิราชฯ สยามมกุฎราชกุมาร", "สมาคมกีฬามิกซ์มาเชียลอาร์ตแห่งประเทศไทย", "สมาคมกีฬายกน้ำหนักสมัครเล่นแห่งประเทศไทย", "สมาคมกีฬายิงธนูแห่งประเทศไทย", "สมาคมกีฬายิงปืนรณยุทธแห่งประเทศไทย", "สมาคมกีฬายิงปืนแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬายิงเป้าบินแห่งประเทศไทย", "สมาคมกีฬายิมนาสติกแห่งประเทศไทย", "สมาคมกีฬายูยิตสูแห่งประเทศไทย", "สมาคมกีฬายูโดแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬารักบี้ฟุตบอลแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาลอนเทนนิสแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาลอนโบวล์สแห่งประเทศไทย", "สมาคมกีฬาลีลาศแห่งประเทศไทย", "สมาคมกีฬาวินด์เซิร์ฟแห่งประเทศไทย", "สมาคมกีฬาวูซูแห่งประเทศไทย", "สมาคมกีฬาวู้ดบอลแห่งประเทศไทย", "สมาคมกีฬาสกีและสโนว์บอร์ดแห่งประเทศไทย", "สมาคมกีฬาสควอชแห่งประเทศไทย ในพระบรมราชุปถัมภ์", "สมาคมกีฬาสเปเชียลโอลิมปิคไทยแห่งประเทศไทย", "สมาคมกีฬาหมากรุกสากลแห่งประเทศไทย", "สมาคมกีฬาหมากรุกเซี่ยงฉีแห่งประเทศไทย", "สมาคมกีฬาหมากล้อมแห่งประเทศไทย", "สมาคมกีฬาอีสปอร์ตแห่งประเทศไทย", "สมาคมกีฬาฮอกกี้น้ำแข็งแห่งประเทศไทย", "สมาคมกีฬาฮอกกี้แห่งประเทศไทย", "สมาคมกีฬาเจ็ตสกีแห่งประเทศไทย ในพระอุปถัมภ์ของทูลกระหม่อมหญิงอุบลรัตนราชกัญญาสิริวัฒนาพรรณวดี", "สมาคมกีฬาเชียร์แห่งประเทศไทย", "สมาคมกีฬาเทคบอลแห่งประเทศไทย", "สมาคมกีฬาเทควันโดแห่งประเทศไทย", "สมาคมกีฬาเทเบิลเทนนิสแห่งประเทศไทย", "สมาคมกีฬาเนตบอลแห่งประเทศไทย", "สมาคมกีฬาเบสบอลแห่งประเทศไทย", "สมาคมกีฬาเปตองแห่งประเทศไทย ในพระราชูปถัมภ์สมเด็จพระศรีนครินทราบรมราชชนนี", "สมาคมกีฬาเพาะกายและฟิตเนสแห่งประเทศไทย", "สมาคมกีฬาเรือพายแห่งประเทศไทย", "สมาคมกีฬาเรือเร็วแห่งประเทศไทย", "สมาคมกีฬาเอ็กซ์ตรีมแห่งประเทศไทย", "สมาคมกีฬาแข่งรถจักรยานยนต์แห่งประเทศไทย", "สมาคมกีฬาแข่งเรือใบแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาแบดมินตันแห่งประเทศไทย ในพระบรมราชูปถัมภ์", "สมาคมกีฬาแฮนด์บอลแห่งประเทศไทย", "สมาคมกีฬาโบว์ลิ่งแห่งประเทศไทย", "สมาคมกีฬาโววีนัมแห่งประเทศไทย", "สมาคมคนพิการทางปัญญาแห่งประเทศไทย"
         ];
 
         const opStatusSelect = document.getElementById('operationStatus');
         const payStatusSelect = document.getElementById('paymentStatus');
-
         const defaultOpOptions = `
             <option value="อยู่ระหว่างการดำเนินงาน" selected class="text-orange-600">อยู่ระหว่างการดำเนินงาน</option>
             <option value="ดำเนินการเสร็จสิ้นแล้ว" class="text-green-600">ดำเนินการเสร็จสิ้นแล้ว</option>
         `;
-        const assocOpOptions = defaultOpOptions + `
-            <option value="ยกเลิกรายการ" class="text-red-600 font-bold">ยกเลิกรายการ</option>
-        `;
-
+        const assocOpOptions = defaultOpOptions + `<option value="ยกเลิกรายการ" class="text-red-600 font-bold">ยกเลิกรายการ</option>`;
         const defaultPayOptions = `
             <option value="อยู่ระหว่างการเบิกจ่าย" selected class="text-orange-600">อยู่ระหว่างการเบิกจ่าย</option>
             <option value="เบิกจ่ายเรียบร้อย" class="text-green-600">เบิกจ่ายเรียบร้อย</option>
         `;
-        const assocPayOptions = defaultPayOptions + `
-            <option value="ส่งเงินคืนกองทุนฯ" class="text-purple-600 font-bold">ส่งเงินคืนกองทุนฯ</option>
-        `;
+        const assocPayOptions = defaultPayOptions + `<option value="ส่งเงินคืนกองทุนฯ" class="text-purple-600 font-bold">ส่งเงินคืนกองทุนฯ</option>`;
 
         opStatusSelect.innerHTML = defaultOpOptions;
         payStatusSelect.innerHTML = defaultPayOptions;
@@ -570,7 +529,7 @@
 
         mainCategory.addEventListener('change', function() {
             const val = this.value;
-            subCategoryInput.value = ''; // ล้างค่าเก่า
+            subCategoryInput.value = ''; 
             subCategoryOptions.innerHTML = '';
             
             let currentOp = opStatusSelect.value;
@@ -581,9 +540,7 @@
                 projectActivityDiv.classList.add('hidden');
                 projectNameDiv.classList.add('hidden');
                 subCategoryLabel.innerText = '2. หลักสูตร';
-                
                 satCourses.forEach(c => subCategoryOptions.innerHTML += `<option value="${c}">`);
-                // ไม่มีตัวเลือกอื่นๆ สำหรับ กกท. เพราะหลักสูตรถูกฟิกซ์ตายตัว
 
                 opStatusSelect.innerHTML = defaultOpOptions;
                 payStatusSelect.innerHTML = defaultPayOptions;
@@ -597,10 +554,7 @@
                 projectActivityDiv.classList.remove('hidden');
                 projectNameDiv.classList.remove('hidden');
                 subCategoryLabel.innerText = '2. สมาคมกีฬา';
-                
-                // นำ 84 สมาคมใส่เข้าไปใน DataList
                 associations.forEach(a => subCategoryOptions.innerHTML += `<option value="${a}">`);
-                // ตัวเลือกเผื่อไว้
                 subCategoryOptions.innerHTML += `<option value="อื่นๆ (โปรดพิมพ์ระบุเอง)">`;
 
                 opStatusSelect.innerHTML = assocOpOptions;
@@ -646,7 +600,7 @@
                 document.getElementById('mainCategory').dispatchEvent(new Event('change'));
 
                 setTimeout(() => {
-                    document.getElementById('subCategory').value = existingData.Sub_Category || ''; // เซ็ตค่าลง Input
+                    document.getElementById('subCategory').value = existingData.Sub_Category || '';
                     if((existingData.Main_Category || '').includes('สมาคมกีฬา')) {
                         document.getElementById('projectActivity').value = existingData.Project_Activity || '';
                         document.getElementById('projectName').value = existingData.Project_Name || '';
@@ -714,35 +668,67 @@
             applyTableSearch(); 
         }
 
+        // 🌟 อัปเดตฟังก์ชันคำนวณการ์ดให้แยก 2 กระเป๋า
         function updateDashboardCardsAndCharts(data) {
-            let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
-            let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
-            let totalRemainingBudget = totalAppBudget - totalUsedBudget; 
-            
-            let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
-            let totalPassed = data.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
+            const categoryFilter = document.getElementById('globalFilterCategory').value;
+            const satSection = document.getElementById('cards-sat-section');
+            const assocSection = document.getElementById('cards-assoc-section');
 
-            document.getElementById('card-approved-budget').innerText = totalAppBudget.toLocaleString() + ' บาท';
-            document.getElementById('card-used-budget').innerText = totalUsedBudget.toLocaleString() + ' บาท';
-            
-            let remainingEl = document.getElementById('card-remaining-budget');
-            remainingEl.innerText = totalRemainingBudget.toLocaleString() + ' บาท';
-            if (totalRemainingBudget < 0) {
-                remainingEl.className = "text-2xl font-bold text-red-600 mt-1"; 
-            } else {
-                remainingEl.className = "text-2xl font-bold text-blue-600 mt-1";
+            let satData = [];
+            let assocData = [];
+
+            // จัดการการแสดงผลของ Block การ์ด ตามตัวกรอง
+            if (categoryFilter === '') {
+                satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
+                assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
+                satSection.classList.remove('hidden');
+                assocSection.classList.remove('hidden');
+            } else if (categoryFilter === 'กกท.') {
+                satData = data;
+                assocData = [];
+                satSection.classList.remove('hidden');
+                assocSection.classList.add('hidden');
+            } else if (categoryFilter === 'สมาคมกีฬา') {
+                satData = [];
+                assocData = data;
+                satSection.classList.add('hidden');
+                assocSection.classList.remove('hidden');
             }
 
-            document.getElementById('card-participants').innerHTML = `${totalPassed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${totalTarget.toLocaleString()} คน</span>`;
+            // ฟังก์ชันย่อยสำหรับคำนวณและป้อนค่าให้การ์ดแต่ละชุด
+            function updateCardSet(prefix, dataset) {
+                let totalAppBudget = dataset.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
+                let totalUsedBudget = dataset.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
+                let totalRemainingBudget = totalAppBudget - totalUsedBudget; 
+                let totalTarget = dataset.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
+                let totalPassed = dataset.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
+
+                document.getElementById(`card-${prefix}-approved`).innerText = totalAppBudget.toLocaleString() + ' บาท';
+                document.getElementById(`card-${prefix}-used`).innerText = totalUsedBudget.toLocaleString() + ' บาท';
+                
+                let remainingEl = document.getElementById(`card-${prefix}-remaining`);
+                remainingEl.innerText = totalRemainingBudget.toLocaleString() + ' บาท';
+                if (totalRemainingBudget < 0) {
+                    remainingEl.className = "text-2xl font-bold text-red-600 mt-1"; 
+                } else {
+                    remainingEl.className = "text-2xl font-bold text-blue-600 mt-1";
+                }
+
+                document.getElementById(`card-${prefix}-participants`).innerHTML = `${totalPassed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${totalTarget.toLocaleString()} คน</span>`;
+            }
+
+            // เรียกใช้อัปเดตทั้ง 2 ชุด
+            updateCardSet('sat', satData);
+            updateCardSet('assoc', assocData);
 
             renderCharts(data);
-            renderTimeline(data);
+            // ไม่ต้องเรียก renderTimeline ตรงนี้ เพราะจะถูกเรียกตอน renderPaginatedView() 
         }
 
         function applyTableSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
-            const tableData = currentFilteredData.filter(item => {
+            finalDataForTable = currentFilteredData.filter(item => {
                 const id = (item.ID || '').toLowerCase();
                 const mainCat = (item.Main_Category || '').toLowerCase();
                 const subCat = (item.Sub_Category || '').toLowerCase();
@@ -753,7 +739,50 @@
                 return id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
             });
 
-            renderTable(tableData);
+            currentPage = 1;
+            renderPaginatedView();
+        }
+
+        function renderPaginatedView() {
+            const totalItems = finalDataForTable.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+            
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pagedData = finalDataForTable.slice(startIndex, endIndex);
+
+            renderTimeline(pagedData);
+            renderTable(pagedData);
+
+            renderPaginationControls(totalItems, totalPages, startIndex, pagedData.length);
+        }
+
+        function changePage(direction) {
+            currentPage += direction;
+            renderPaginatedView();
+        }
+
+        function renderPaginationControls(total, totalPages, startIndex, pageItemCount) {
+            const textInfo = total === 0 
+                ? `แสดงรายการที่ 0 - 0 จากทั้งหมด 0 โครงการ` 
+                : `แสดงรายการที่ ${startIndex + 1} - ${startIndex + pageItemCount} จากทั้งหมด ${total} โครงการ`;
+            const textPage = `หน้า ${currentPage}/${totalPages}`;
+            
+            const isPrevDisabled = currentPage === 1;
+            const isNextDisabled = currentPage === totalPages || total === 0;
+
+            document.getElementById('timeline-pagination-info').innerText = textInfo;
+            document.getElementById('timeline-page-num').innerText = textPage;
+            document.getElementById('btn-prev-timeline').disabled = isPrevDisabled;
+            document.getElementById('btn-next-timeline').disabled = isNextDisabled;
+
+            document.getElementById('table-pagination-info').innerText = textInfo;
+            document.getElementById('table-page-num').innerText = textPage;
+            document.getElementById('btn-prev-table').disabled = isPrevDisabled;
+            document.getElementById('btn-next-table').disabled = isNextDisabled;
         }
 
         function renderTimeline(data) {
@@ -762,8 +791,11 @@
 
             const validData = data.filter(item => item.Start_Date && item.End_Date && item.Start_Date !== '-' && item.End_Date !== '-');
 
-            if(validData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลวันที่สำหรับสร้างแผนผังเวลา</td></tr>`;
+            if(data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+                return;
+            } else if (validData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">โครงการในหน้านี้ยังไม่มีการระบุวันที่ดำเนินงาน</td></tr>`;
                 return;
             }
 
@@ -1102,7 +1134,6 @@
             });
         }
 
-        // 🌟 บันทึกทีละรายการ
         document.getElementById('projectForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -1115,7 +1146,7 @@
             const payload = {
                 projectId: document.getElementById('projectId').value,
                 mainCategory: document.getElementById('mainCategory').value,
-                subCategory: document.getElementById('subCategory').value, // 🌟 ดึงค่าจาก Input โดยตรง
+                subCategory: document.getElementById('subCategory').value, 
                 projectActivity: isAssociation ? document.getElementById('projectActivity').value : "-",
                 projectName: isAssociation ? (document.getElementById('projectName').value || "-") : "-",
                 location: document.getElementById('location').value || "-",
@@ -1161,7 +1192,7 @@
             }
         });
 
-        // 🌟 ---------------- ส่วนจัดการไฟล์ Excel (Batch Upload) ---------------- 🌟
+        // Batch Upload Functionality
         function downloadTemplate() {
             const headers = [
                 "รหัส ID โครงการ", "หมวดหมู่หลัก", "หลักสูตร/สมาคม", "กิจกรรม", "ชื่อรายการย่อย", 
