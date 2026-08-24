@@ -281,11 +281,19 @@
                 <div id="section-single">
                     <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">ข้อมูลใหม่</span>
                     <form id="projectForm" class="space-y-6">
+                        
+                        <!-- 🌟 ระบบ Prefix Group สำหรับกรอก ID -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-red-500">*</span> <span class="text-xs text-gray-500 font-normal">(กรอกรหัสเดิมเพื่อดึงข้อมูลเก่า)</span></label>
-                            <input type="text" id="projectId" required placeholder="เช่น NSDF-69-01/02142" class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-mono transition-all">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-red-500">*</span> <span class="text-xs text-gray-500 font-normal">(กรอกตัวเลข 5 หลักหลังเครื่องหมาย /)</span></label>
+                            <div class="flex shadow-sm rounded-lg">
+                                <span class="inline-flex items-center px-3 sm:px-4 rounded-l-lg border border-r-0 border-gray-300 bg-gray-100 text-gray-600 font-mono text-sm sm:text-base font-bold">
+                                    NSDF-69-01/
+                                </span>
+                                <input type="text" id="projectIdInput" maxlength="5" minlength="5" pattern="\d{5}" inputmode="numeric" required placeholder="02142" class="flex-1 border border-gray-300 rounded-none rounded-r-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg tracking-widest transition-all">
+                            </div>
                             <p id="idSearchHint" class="text-xs text-emerald-600 mt-1 hidden">✓ พบข้อมูลโครงการเดิมในระบบ (ดึงข้อมูลให้แล้ว)</p>
                         </div>
+
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">1. หน่วยงานที่ดำเนินการ (หมวดหมู่หลัก) <span class="text-red-500">*</span></label>
                             <select id="mainCategory" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 transition-all">
@@ -329,7 +337,6 @@
                             </div>
                         </div>
 
-                        <!-- 🌟 เปลี่ยน input type="number" เป็น type="text" พร้อม inputmode="numeric" และ class="comma-input" -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">ค่าเป้าหมาย (จำนวนคน) <span class="text-red-500">*</span></label>
@@ -571,7 +578,6 @@
         opStatusSelect.addEventListener('change', function() {
             if (this.value === 'ยกเลิกรายการ') {
                 payStatusSelect.value = 'ส่งเงินคืนกองทุนฯ';
-                // 🌟 เมื่อยกเลิก ให้รีเซ็ตค่ากลับเป็น 0
                 document.getElementById('passedPeople').value = '0';
                 document.getElementById('usedBudget').value = '0';
                 payStatusSelect.classList.add('bg-purple-50', 'border-purple-300');
@@ -583,14 +589,12 @@
             }
         });
 
-        // 🌟 ฟังก์ชันจัดฟอร์แมตตัวเลข + ลูกน้ำ
         function formatNumberInput(value) {
             let pureNumber = String(value).replace(/\D/g, '');
             if (!pureNumber) return '';
             return parseInt(pureNumber, 10).toLocaleString('en-US');
         }
 
-        // 🌟 ดักจับการพิมพ์ในช่องที่มี class="comma-input"
         document.querySelectorAll('.comma-input').forEach(input => {
             input.addEventListener('input', function(e) {
                 let cursorPosition = this.selectionStart;
@@ -611,56 +615,71 @@
             });
         });
 
-        document.getElementById('projectId').addEventListener('blur', function() {
-            const idToSearch = this.value.trim();
-            if(!idToSearch) return;
+        // 🌟 ลอจิกใหม่: ค้นหาอัตโนมัติเมื่อพิมพ์ครบ 5 หลัก และรีเซ็ตถ้าพิมพ์ไม่ครบ
+        const idPrefix = "NSDF-69-01/";
+        const idInputEl = document.getElementById('projectIdInput');
 
-            const existingData = globalData.find(item => item.ID === idToSearch);
-
+        function resetFormToNewMode() {
             const submitBtn = document.getElementById('submitBtn');
             const hint = document.getElementById('idSearchHint');
             const badge = document.getElementById('formStatusBadge');
 
-            if(existingData) {
-                document.getElementById('mainCategory').value = existingData.Main_Category || '';
-                document.getElementById('mainCategory').dispatchEvent(new Event('change'));
+            hint.classList.add('hidden');
+            badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-700');
+            badge.classList.add('bg-blue-100', 'text-blue-700');
+            badge.innerText = 'โครงการใหม่';
 
-                setTimeout(() => {
-                    document.getElementById('subCategory').value = existingData.Sub_Category || '';
-                    if((existingData.Main_Category || '').includes('สมาคมกีฬา')) {
-                        document.getElementById('projectActivity').value = existingData.Project_Activity || '';
-                        document.getElementById('projectName').value = existingData.Project_Name || '';
-                    }
-                    document.getElementById('location').value = existingData.Location || '';
-                    document.getElementById('startDate').value = existingData.Start_Date || '';
-                    document.getElementById('endDate').value = existingData.End_Date || '';
-                    
-                    // 🌟 ดึงข้อมูลเก่ามาใส่ พร้อม Format ลูกน้ำ
-                    document.getElementById('targetPeople').value = formatNumberInput(String(existingData.Target_People || 0));
-                    document.getElementById('passedPeople').value = formatNumberInput(String(existingData.Passed_People || 0));
-                    document.getElementById('approvedBudget').value = formatNumberInput(String(existingData.Approved_Budget || 0));
-                    document.getElementById('usedBudget').value = formatNumberInput(String(existingData.Used_Budget || 0));
-                    
-                    document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
-                    document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
+            submitBtn.innerText = 'บันทึกโครงการใหม่';
+            submitBtn.className = "w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
+        }
 
-                    hint.classList.remove('hidden');
-                    badge.classList.remove('hidden', 'bg-blue-100', 'text-blue-700');
-                    badge.classList.add('bg-emerald-100', 'text-emerald-700');
-                    badge.innerText = 'โหมดแก้ไขข้อมูล';
-                    
-                    submitBtn.innerText = 'อัปเดตข้อมูลทับของเดิม';
-                    submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
-                }, 100);
+        idInputEl.addEventListener('input', function() {
+            // บังคับให้พิมพ์ได้เฉพาะตัวเลข
+            this.value = this.value.replace(/\D/g, '');
+            
+            if (this.value.length === 5) {
+                const fullIdToSearch = idPrefix + this.value;
+                const existingData = globalData.find(item => item.ID === fullIdToSearch);
 
+                const submitBtn = document.getElementById('submitBtn');
+                const hint = document.getElementById('idSearchHint');
+                const badge = document.getElementById('formStatusBadge');
+
+                if(existingData) {
+                    document.getElementById('mainCategory').value = existingData.Main_Category || '';
+                    document.getElementById('mainCategory').dispatchEvent(new Event('change'));
+
+                    setTimeout(() => {
+                        document.getElementById('subCategory').value = existingData.Sub_Category || '';
+                        if((existingData.Main_Category || '').includes('สมาคมกีฬา')) {
+                            document.getElementById('projectActivity').value = existingData.Project_Activity || '';
+                            document.getElementById('projectName').value = existingData.Project_Name || '';
+                        }
+                        document.getElementById('location').value = existingData.Location || '';
+                        document.getElementById('startDate').value = existingData.Start_Date || '';
+                        document.getElementById('endDate').value = existingData.End_Date || '';
+                        
+                        document.getElementById('targetPeople').value = formatNumberInput(String(existingData.Target_People || 0));
+                        document.getElementById('passedPeople').value = formatNumberInput(String(existingData.Passed_People || 0));
+                        document.getElementById('approvedBudget').value = formatNumberInput(String(existingData.Approved_Budget || 0));
+                        document.getElementById('usedBudget').value = formatNumberInput(String(existingData.Used_Budget || 0));
+                        
+                        document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
+                        document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
+
+                        hint.classList.remove('hidden');
+                        badge.classList.remove('hidden', 'bg-blue-100', 'text-blue-700');
+                        badge.classList.add('bg-emerald-100', 'text-emerald-700');
+                        badge.innerText = 'โหมดแก้ไขข้อมูล';
+                        
+                        submitBtn.innerText = 'อัปเดตข้อมูลทับของเดิม';
+                        submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
+                    }, 100);
+                } else {
+                    resetFormToNewMode();
+                }
             } else {
-                hint.classList.add('hidden');
-                badge.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-700');
-                badge.classList.add('bg-blue-100', 'text-blue-700');
-                badge.innerText = 'โครงการใหม่';
-
-                submitBtn.innerText = 'บันทึกโครงการใหม่';
-                submitBtn.className = "w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
+                resetFormToNewMode();
             }
         });
 
@@ -694,8 +713,6 @@
             }
 
             updateDashboardCardsAndCharts(currentFilteredData);
-            
-            // 🌟 1. แก้ไขบั๊กการค้นหา (ครอบด้วย String ก่อนแปลงพิมพ์เล็ก)
             applyTableSearch(); 
         }
 
@@ -755,7 +772,6 @@
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
             finalDataForTable = currentFilteredData.filter(item => {
-                // 🌟 ป้องกันบั๊ก .toLowerCase() ด้วยการบังคับแปลงเป็นข้อความ (String) เสมอ
                 const id = String(item.ID || '').toLowerCase();
                 const mainCat = String(item.Main_Category || '').toLowerCase();
                 const subCat = String(item.Sub_Category || '').toLowerCase();
@@ -1336,14 +1352,16 @@
 
             const isAssociation = document.getElementById('mainCategory').value.includes('สมาคมกีฬา');
 
-            // 🌟 3. ปลดหน้ากากและแปลงเป็นชนิดตัวเลข (Number) ก่อนส่งไปหลังบ้าน
             const rawTargetPeople = document.getElementById('targetPeople').value.replace(/,/g, '');
             const rawPassedPeople = document.getElementById('passedPeople').value.replace(/,/g, '');
             const rawApprovedBudget = document.getElementById('approvedBudget').value.replace(/,/g, '');
             const rawUsedBudget = document.getElementById('usedBudget').value.replace(/,/g, '');
 
+            // 🌟 4. แก้บั๊กการบันทึก: ประกอบร่าง ID กลับให้สมบูรณ์ก่อนบันทึกลง Google Sheets
+            const finalProjectId = idPrefix + document.getElementById('projectIdInput').value;
+
             const payload = {
-                projectId: document.getElementById('projectId').value,
+                projectId: finalProjectId,
                 mainCategory: document.getElementById('mainCategory').value,
                 subCategory: document.getElementById('subCategory').value, 
                 projectActivity: isAssociation ? document.getElementById('projectActivity').value : "-",
@@ -1370,13 +1388,11 @@
                     alert(result.message);
                     document.getElementById('projectForm').reset();
                     
+                    // 🌟 อุดรอยรั่ว: ล้างหน้าจอและให้กลับไปสถานะ "โครงการใหม่" ทันทีหลังบันทึกเสร็จ
+                    resetFormToNewMode();
                     document.getElementById('subCategoryDiv').classList.add('hidden');
                     document.getElementById('projectActivityDiv').classList.add('hidden');
                     document.getElementById('projectNameDiv').classList.add('hidden');
-                    document.getElementById('idSearchHint').classList.add('hidden');
-                    document.getElementById('formStatusBadge').classList.add('hidden');
-                    btn.className = "w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
-                    btn.innerText = 'บันทึกโครงการใหม่';
 
                     switchTab('dashboard');
                 } else {
@@ -1450,7 +1466,6 @@
                 }
 
                 parsedBatchPayloads = jsonData.map(row => {
-                    // 🌟 2. แก้บั๊กนำเข้า Excel ลบลูกน้ำอัตโนมัติก่อนส่ง
                     let rawTarget = String(row["เป้าหมาย(คน)"] || "0").replace(/,/g, '');
                     let rawPassed = String(row["ผ่านการอบรม(คน)"] || "0").replace(/,/g, '');
                     let rawAppBudget = String(row["งบอนุมัติ(บาท)"] || "0").replace(/,/g, '');
