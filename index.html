@@ -227,16 +227,21 @@
                 </div>
             </div>
 
-            <!-- 🌟 ระบบตาราง Dropdown Interactive (แทนที่ของเดิม) -->
             <div id="interactive-summary-box" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full hidden">
+                <!-- 🌟 เพิ่ม Layout ปุ่ม Export คู่กับ Dropdown ให้สวยงาม -->
                 <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
                     <h3 class="font-bold text-blue-900 flex items-center gap-2">📊 รายงานตารางเจาะลึกข้อมูลสมาคมกีฬา</h3>
-                    <select id="interactiveTableFilter" class="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-700 w-full sm:w-auto shadow-sm cursor-pointer hover:bg-blue-50 transition">
-                        <option value="cancel">🛑 สรุปรายงานการยกเลิกและการส่งคืนเงิน</option>
-                        <option value="done">✅ รายการที่ดำเนินการเรียบร้อย</option>
-                        <option value="op_progress">⏳ รายการที่อยู่ระหว่างการดำเนินงาน</option>
-                        <option value="pay_progress">💸 รายการที่อยู่ระหว่างการเบิกจ่าย</option>
-                    </select>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <select id="interactiveTableFilter" class="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-700 shadow-sm cursor-pointer hover:bg-blue-50 transition w-full sm:w-auto">
+                            <option value="cancel">🛑 สรุปรายงานการยกเลิกและการส่งคืนเงิน</option>
+                            <option value="done">✅ รายการที่ดำเนินการเรียบร้อย</option>
+                            <option value="op_progress">⏳ รายการที่อยู่ระหว่างการดำเนินงาน</option>
+                            <option value="pay_progress">💸 รายการที่อยู่ระหว่างการเบิกจ่าย</option>
+                        </select>
+                        <button onclick="exportInteractiveTable()" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-500 text-emerald-700 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition whitespace-nowrap flex items-center justify-center gap-1 w-full sm:w-auto">
+                            📥 Export Excel
+                        </button>
+                    </div>
                 </div>
                 <div id="interactive-table-content" class="p-0">
                     <!-- ตารางจะถูกเรนเดอร์ผ่าน JS -->
@@ -1004,7 +1009,6 @@
             });
         }
 
-        // 🌟 ฟังก์ชันเรนเดอร์ Interactive Table สำหรับ Dropdown
         function renderInteractiveTable(assocData, filterType) {
             const container = document.getElementById('interactive-table-content');
             if (!assocData || assocData.length === 0) {
@@ -1016,7 +1020,6 @@
             let valueLabel = "งบประมาณอนุมัติ (บาท)";
             let amountColor = "text-blue-600";
             
-            // กรองข้อมูลตาม Dropdown
             if (filterType === 'cancel') {
                 filteredList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
                 valueLabel = "ยอดเงินต้องส่งคืน (บาท)";
@@ -1084,11 +1087,77 @@
             container.innerHTML = listHtml;
         }
 
-        // ตัวแปรเก็บข้อมูลสมาคมล่าสุดไว้สำหรับ Dropdown Table
         window.currentAssocDataForTable = [];
         document.getElementById('interactiveTableFilter').addEventListener('change', function() {
             renderInteractiveTable(window.currentAssocDataForTable, this.value);
         });
+
+        // 🌟 ฟังก์ชันใหม่: Export Interactive Table เป็น Excel
+        function exportInteractiveTable() {
+            const filterElement = document.getElementById('interactiveTableFilter');
+            const filterType = filterElement.value;
+            const filterText = filterElement.options[filterElement.selectedIndex].text.replace(/[\uD83C-\uDBFF\uDC00-\uDFFF]+/g, '').trim(); // ลบ Emoji ออกจากชื่อไฟล์
+            
+            const assocData = window.currentAssocDataForTable;
+            if (!assocData || assocData.length === 0) {
+                alert("ไม่มีข้อมูลให้ Export");
+                return;
+            }
+
+            let filteredList = [];
+            let valueLabel = "งบประมาณอนุมัติ (บาท)";
+            
+            if (filterType === 'cancel') {
+                filteredList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
+                valueLabel = "ยอดเงินต้องส่งคืน (บาท)";
+            } else if (filterType === 'done') {
+                filteredList = assocData.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว');
+            } else if (filterType === 'op_progress') {
+                filteredList = assocData.filter(i => i.Operation_Status === 'อยู่ระหว่างการดำเนินงาน');
+            } else if (filterType === 'pay_progress') {
+                filteredList = assocData.filter(i => i.Payment_Status === 'อยู่ระหว่างการเบิกจ่าย');
+            }
+
+            if (filteredList.length === 0) {
+                alert("หมวดหมู่นี้ไม่มีข้อมูลให้ Export");
+                return;
+            }
+
+            // เตรียมโครงสร้างข้อมูลสำหรับ SheetJS (แปลงเป็นตัวเลขดิบๆ ให้บวกเลขใน Excel ได้)
+            const headers = ["รหัส ID", "สมาคมกีฬา", "กิจกรรม / หลักสูตร", valueLabel];
+            let exportData = [headers];
+            
+            let uniqueAssoc = new Set();
+            let totalBudget = 0;
+
+            filteredList.forEach(item => {
+                let amt = Number(item.Approved_Budget || 0);
+                totalBudget += amt;
+                uniqueAssoc.add(item.Sub_Category || '-');
+                
+                let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+                exportData.push([
+                    item.ID || '-', 
+                    item.Sub_Category || '-', 
+                    activityName, 
+                    amt // ส่งเป็นตัวเลข ไม่ใช่ String ที่มีลูกน้ำ
+                ]);
+            });
+
+            // เพิ่มแถบสรุปที่บรรทัดสุดท้าย
+            exportData.push([]); // บรรทัดว่างกั้น
+            exportData.push(["สรุป", `รวม ${uniqueAssoc.size} สมาคม`, `รวม ${filteredList.length} โครงการ`, totalBudget]);
+
+            // สร้าง Excel File และสั่งดาวน์โหลด
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(exportData);
+            
+            // ปรับความกว้างคอลัมน์อัตโนมัติ
+            ws['!cols'] = [{wch: 20}, {wch: 40}, {wch: 30}, {wch: 25}];
+            
+            XLSX.utils.book_append_sheet(wb, ws, "รายงานเจาะลึกสมาคม");
+            XLSX.writeFile(wb, `${filterText}.xlsx`);
+        }
 
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
@@ -1107,12 +1176,10 @@
             let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
             let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
 
-            // 🌟 อัปเดตข้อมูลให้ Table และคุมโชว์/ซ่อน
             window.currentAssocDataForTable = assocData;
             const interactiveBox = document.getElementById('interactive-summary-box');
             if(assocData.length > 0) {
                 interactiveBox.classList.remove('hidden');
-                // เรนเดอร์ค่าเริ่มต้น
                 renderInteractiveTable(assocData, document.getElementById('interactiveTableFilter').value);
             } else {
                 interactiveBox.classList.add('hidden');
@@ -1131,7 +1198,6 @@
                 let bgPercent = appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0;
                 let ppPercent = targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0;
 
-                // 🌟 แยกสถานะงานและสถานะเงิน
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
                 let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
                 let inProgressCount = dataset.length - completedCount - cancelledCount;
@@ -1177,7 +1243,6 @@
                 
                 let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b><br>`;
                 
-                // 🌟 แถบ Status Badges ใหม่ (แบ่ง 2 บรรทัด งาน/เงิน)
                 projectText += `<div class="flex flex-col gap-2 mt-2 mb-3">`;
                 
                 projectText += `<span class="text-xs sm:text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-md inline-block border border-gray-200">`;
