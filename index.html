@@ -328,24 +328,27 @@
                                 <input type="date" id="endDate" required class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 transition-all">
                             </div>
                         </div>
+
+                        <!-- 🌟 เปลี่ยน input type="number" เป็น type="text" พร้อม inputmode="numeric" และ class="comma-input" -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">ค่าเป้าหมาย (จำนวนคน) <span class="text-red-500">*</span></label>
-                                <input type="number" id="targetPeople" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all">
+                                <input type="text" inputmode="numeric" id="targetPeople" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all comma-input">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนคนผ่านการอบรม <span class="text-red-500">*</span></label>
-                                <input type="number" id="passedPeople" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all">
+                                <input type="text" inputmode="numeric" id="passedPeople" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all comma-input">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">งบประมาณที่อนุมัติ (บาท) <span class="text-red-500">*</span></label>
-                                <input type="number" id="approvedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all">
+                                <input type="text" inputmode="numeric" id="approvedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all comma-input text-blue-700 font-bold bg-blue-50">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">งบประมาณที่ใช้จริง (บาท) <span class="text-red-500">*</span></label>
-                                <input type="number" id="usedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all">
+                                <input type="text" inputmode="numeric" id="usedBudget" value="0" required class="w-full border border-gray-300 rounded-lg p-2.5 transition-all comma-input text-orange-600 font-bold bg-orange-50">
                             </div>
                         </div>
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">สถานะการดำเนินงาน</label>
@@ -568,8 +571,9 @@
         opStatusSelect.addEventListener('change', function() {
             if (this.value === 'ยกเลิกรายการ') {
                 payStatusSelect.value = 'ส่งเงินคืนกองทุนฯ';
-                document.getElementById('passedPeople').value = 0;
-                document.getElementById('usedBudget').value = 0;
+                // 🌟 เมื่อยกเลิก ให้รีเซ็ตค่ากลับเป็น 0
+                document.getElementById('passedPeople').value = '0';
+                document.getElementById('usedBudget').value = '0';
                 payStatusSelect.classList.add('bg-purple-50', 'border-purple-300');
                 setTimeout(() => payStatusSelect.classList.remove('bg-purple-50', 'border-purple-300'), 1500);
             } else {
@@ -577,6 +581,34 @@
                     payStatusSelect.value = 'อยู่ระหว่างการเบิกจ่าย';
                 }
             }
+        });
+
+        // 🌟 ฟังก์ชันจัดฟอร์แมตตัวเลข + ลูกน้ำ
+        function formatNumberInput(value) {
+            let pureNumber = String(value).replace(/\D/g, '');
+            if (!pureNumber) return '';
+            return parseInt(pureNumber, 10).toLocaleString('en-US');
+        }
+
+        // 🌟 ดักจับการพิมพ์ในช่องที่มี class="comma-input"
+        document.querySelectorAll('.comma-input').forEach(input => {
+            input.addEventListener('input', function(e) {
+                let cursorPosition = this.selectionStart;
+                let oldLength = this.value.length;
+                
+                this.value = formatNumberInput(this.value);
+                
+                let newLength = this.value.length;
+                this.setSelectionRange(cursorPosition + (newLength - oldLength), cursorPosition + (newLength - oldLength));
+            });
+
+            input.addEventListener('blur', function() {
+                if(this.value === '') this.value = '0';
+            });
+            
+            input.addEventListener('focus', function() {
+                if(this.value === '0') this.value = '';
+            });
         });
 
         document.getElementById('projectId').addEventListener('blur', function() {
@@ -602,10 +634,13 @@
                     document.getElementById('location').value = existingData.Location || '';
                     document.getElementById('startDate').value = existingData.Start_Date || '';
                     document.getElementById('endDate').value = existingData.End_Date || '';
-                    document.getElementById('targetPeople').value = existingData.Target_People || 0;
-                    document.getElementById('passedPeople').value = existingData.Passed_People || 0;
-                    document.getElementById('approvedBudget').value = existingData.Approved_Budget || 0;
-                    document.getElementById('usedBudget').value = existingData.Used_Budget || 0;
+                    
+                    // 🌟 ดึงข้อมูลเก่ามาใส่ พร้อม Format ลูกน้ำ
+                    document.getElementById('targetPeople').value = formatNumberInput(String(existingData.Target_People || 0));
+                    document.getElementById('passedPeople').value = formatNumberInput(String(existingData.Passed_People || 0));
+                    document.getElementById('approvedBudget').value = formatNumberInput(String(existingData.Approved_Budget || 0));
+                    document.getElementById('usedBudget').value = formatNumberInput(String(existingData.Used_Budget || 0));
+                    
                     document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
                     document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
 
@@ -659,6 +694,8 @@
             }
 
             updateDashboardCardsAndCharts(currentFilteredData);
+            
+            // 🌟 1. แก้ไขบั๊กการค้นหา (ครอบด้วย String ก่อนแปลงพิมพ์เล็ก)
             applyTableSearch(); 
         }
 
@@ -718,12 +755,13 @@
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
             finalDataForTable = currentFilteredData.filter(item => {
-                const id = (item.ID || '').toLowerCase();
-                const mainCat = (item.Main_Category || '').toLowerCase();
-                const subCat = (item.Sub_Category || '').toLowerCase();
-                const activity = (item.Project_Activity || '').toLowerCase();
-                const projName = (item.Project_Name || '').toLowerCase();
-                const location = (item.Location || '').toLowerCase();
+                // 🌟 ป้องกันบั๊ก .toLowerCase() ด้วยการบังคับแปลงเป็นข้อความ (String) เสมอ
+                const id = String(item.ID || '').toLowerCase();
+                const mainCat = String(item.Main_Category || '').toLowerCase();
+                const subCat = String(item.Sub_Category || '').toLowerCase();
+                const activity = String(item.Project_Activity || '').toLowerCase();
+                const projName = String(item.Project_Name || '').toLowerCase();
+                const location = String(item.Location || '').toLowerCase();
                 
                 return id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
             });
@@ -976,7 +1014,6 @@
                 let bgPercent = appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0;
                 let ppPercent = targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0;
 
-                // 🌟 อัปเดตลอจิกการคำนวณและแสดงผลสถานะทั้ง 4 ส่วน
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
                 let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
                 let inProgressCount = dataset.length - completedCount - cancelledCount;
@@ -1016,7 +1053,6 @@
                 let html = `<div>`;
                 html += `<h4 class="font-bold text-blue-900 text-lg border-b-2 border-yellow-400 pb-2 mb-3">${title}</h4>`;
                 
-                // 🌟 อัปเดตการแสดงผลแถบสถานะ (Status Badges)
                 let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b><br>`;
                 projectText += `<span class="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1.5 rounded-md inline-block mt-2 mb-3 border border-gray-200">`;
                 projectText += `⏳ กำลังดำเนินงาน: <b>${inProgressCount}</b> | ✅ เสร็จสิ้น: <b>${completedCount}</b>`;
@@ -1030,7 +1066,7 @@
                     let interBudget = 0, nationalBudget = 0, noneBudget = 0;
 
                     dataset.forEach(item => {
-                        let nameToCheck = (item.Project_Name || '') + " " + (item.Project_Activity || '');
+                        let nameToCheck = String(item.Project_Name || '') + " " + String(item.Project_Activity || '');
                         let approved = Number(item.Approved_Budget || 0);
 
                         if (nameToCheck.includes('นานาชาติ')) {
@@ -1300,6 +1336,12 @@
 
             const isAssociation = document.getElementById('mainCategory').value.includes('สมาคมกีฬา');
 
+            // 🌟 3. ปลดหน้ากากและแปลงเป็นชนิดตัวเลข (Number) ก่อนส่งไปหลังบ้าน
+            const rawTargetPeople = document.getElementById('targetPeople').value.replace(/,/g, '');
+            const rawPassedPeople = document.getElementById('passedPeople').value.replace(/,/g, '');
+            const rawApprovedBudget = document.getElementById('approvedBudget').value.replace(/,/g, '');
+            const rawUsedBudget = document.getElementById('usedBudget').value.replace(/,/g, '');
+
             const payload = {
                 projectId: document.getElementById('projectId').value,
                 mainCategory: document.getElementById('mainCategory').value,
@@ -1309,10 +1351,10 @@
                 location: document.getElementById('location').value || "-",
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value,
-                targetPeople: document.getElementById('targetPeople').value,
-                passedPeople: document.getElementById('passedPeople').value,
-                approvedBudget: document.getElementById('approvedBudget').value,
-                usedBudget: document.getElementById('usedBudget').value,
+                targetPeople: Number(rawTargetPeople) || 0,
+                passedPeople: Number(rawPassedPeople) || 0,
+                approvedBudget: Number(rawApprovedBudget) || 0,
+                usedBudget: Number(rawUsedBudget) || 0,
                 operationStatus: document.getElementById('operationStatus').value,
                 paymentStatus: document.getElementById('paymentStatus').value
             };
@@ -1407,22 +1449,30 @@
                     return;
                 }
 
-                parsedBatchPayloads = jsonData.map(row => ({
-                    projectId: row["รหัส ID โครงการ"],
-                    mainCategory: row["หมวดหมู่หลัก"],
-                    subCategory: row["หลักสูตร/สมาคม"],
-                    projectActivity: row["กิจกรรม"] || "-",
-                    projectName: row["ชื่อรายการย่อย"] || "-",
-                    location: row["สถานที่"] || "-",
-                    startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-",
-                    endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-",
-                    targetPeople: Number(row["เป้าหมาย(คน)"]) || 0,
-                    passedPeople: Number(row["ผ่านการอบรม(คน)"]) || 0,
-                    approvedBudget: Number(row["งบอนุมัติ(บาท)"]) || 0,
-                    usedBudget: Number(row["งบใช้จริง(บาท)"]) || 0,
-                    operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน",
-                    paymentStatus: row["สถานะการเบิกจ่าย"] || "อยู่ระหว่างการเบิกจ่าย"
-                })).filter(item => item.projectId);
+                parsedBatchPayloads = jsonData.map(row => {
+                    // 🌟 2. แก้บั๊กนำเข้า Excel ลบลูกน้ำอัตโนมัติก่อนส่ง
+                    let rawTarget = String(row["เป้าหมาย(คน)"] || "0").replace(/,/g, '');
+                    let rawPassed = String(row["ผ่านการอบรม(คน)"] || "0").replace(/,/g, '');
+                    let rawAppBudget = String(row["งบอนุมัติ(บาท)"] || "0").replace(/,/g, '');
+                    let rawUsedBudget = String(row["งบใช้จริง(บาท)"] || "0").replace(/,/g, '');
+
+                    return {
+                        projectId: row["รหัส ID โครงการ"],
+                        mainCategory: row["หมวดหมู่หลัก"],
+                        subCategory: row["หลักสูตร/สมาคม"],
+                        projectActivity: row["กิจกรรม"] || "-",
+                        projectName: row["ชื่อรายการย่อย"] || "-",
+                        location: row["สถานที่"] || "-",
+                        startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-",
+                        endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-",
+                        targetPeople: Number(rawTarget) || 0,
+                        passedPeople: Number(rawPassed) || 0,
+                        approvedBudget: Number(rawAppBudget) || 0,
+                        usedBudget: Number(rawUsedBudget) || 0,
+                        operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน",
+                        paymentStatus: row["สถานะการเบิกจ่าย"] || "อยู่ระหว่างการเบิกจ่าย"
+                    };
+                }).filter(item => item.projectId);
 
                 if (parsedBatchPayloads.length === 0) {
                     alert("รูปแบบไฟล์ไม่ถูกต้อง หรือไม่พบข้อมูลในคอลัมน์ 'รหัส ID โครงการ'");
