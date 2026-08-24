@@ -73,6 +73,7 @@
             </div>
 
             <div id="dashboard-cards-container" class="space-y-6">
+                <!-- ชุดที่ 1: กกท. -->
                 <div id="cards-sat-section" class="space-y-3">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏢 การกีฬาแห่งประเทศไทย (กกท.)</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -95,6 +96,7 @@
                     </div>
                 </div>
 
+                <!-- ชุดที่ 2: สมาคมกีฬาฯ -->
                 <div id="cards-assoc-section" class="space-y-3">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏅 สมาคมกีฬาแห่งประเทศไทย</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -974,8 +976,10 @@
                 let bgPercent = appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0;
                 let ppPercent = targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0;
 
+                // 🌟 อัปเดตลอจิกการคำนวณและแสดงผลสถานะทั้ง 4 ส่วน
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
                 let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
+                let inProgressCount = dataset.length - completedCount - cancelledCount;
 
                 let overB = [];
                 let highB = [];
@@ -1012,23 +1016,23 @@
                 let html = `<div>`;
                 html += `<h4 class="font-bold text-blue-900 text-lg border-b-2 border-yellow-400 pb-2 mb-3">${title}</h4>`;
                 
-                let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b> (เสร็จสิ้น ${completedCount} โครงการ`;
-                if(isAssoc && cancelledCount > 0) projectText += `, ยกเลิก ${cancelledCount} โครงการ`;
-                projectText += `)`;
+                // 🌟 อัปเดตการแสดงผลแถบสถานะ (Status Badges)
+                let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b><br>`;
+                projectText += `<span class="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1.5 rounded-md inline-block mt-2 mb-3 border border-gray-200">`;
+                projectText += `⏳ กำลังดำเนินงาน: <b>${inProgressCount}</b> | ✅ เสร็จสิ้น: <b>${completedCount}</b>`;
+                if (isAssoc) projectText += ` | ❌ ยกเลิก: <b>${cancelledCount}</b>`;
+                projectText += `</span>`;
 
                 html += `<p class="text-gray-700 mb-3">${projectText}<br>มีการเบิกจ่ายงบประมาณไปแล้ว <b>${bgPercent}%</b> และมีผู้ผ่านการอบรมคิดเป็น <b>${ppPercent}%</b> ของเป้าหมาย</p>`;
                 
-                // 🌟 เพิ่มการจำแนกระดับโครงการสำหรับสมาคมกีฬา
                 if (isAssoc) {
                     let interCount = 0, nationalCount = 0, noneCount = 0;
                     let interBudget = 0, nationalBudget = 0, noneBudget = 0;
 
                     dataset.forEach(item => {
-                        // รวมคำเพื่อหา Keyword ให้แม่นยำ
                         let nameToCheck = (item.Project_Name || '') + " " + (item.Project_Activity || '');
                         let approved = Number(item.Approved_Budget || 0);
 
-                        // ลำดับการหาคำ (นานาชาติต้องมาก่อนระดับชาติ)
                         if (nameToCheck.includes('นานาชาติ')) {
                             interCount++;
                             interBudget += approved;
