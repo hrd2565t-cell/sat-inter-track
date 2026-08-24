@@ -227,12 +227,19 @@
                 </div>
             </div>
 
-            <div id="cancellation-summary-box" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full">
-                <div class="p-4 border-b border-gray-100 bg-gray-50">
-                    <h3 class="font-bold text-blue-900 flex items-center gap-2">🛑 สรุปรายงานการยกเลิกโครงการและการส่งคืนเงินกองทุนฯ</h3>
+            <!-- 🌟 ระบบตาราง Dropdown Interactive (แทนที่ของเดิม) -->
+            <div id="interactive-summary-box" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full hidden">
+                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <h3 class="font-bold text-blue-900 flex items-center gap-2">📊 รายงานตารางเจาะลึกข้อมูลสมาคมกีฬา</h3>
+                    <select id="interactiveTableFilter" class="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-700 w-full sm:w-auto shadow-sm cursor-pointer hover:bg-blue-50 transition">
+                        <option value="cancel">🛑 สรุปรายงานการยกเลิกและการส่งคืนเงิน</option>
+                        <option value="done">✅ รายการที่ดำเนินการเรียบร้อย</option>
+                        <option value="op_progress">⏳ รายการที่อยู่ระหว่างการดำเนินงาน</option>
+                        <option value="pay_progress">💸 รายการที่อยู่ระหว่างการเบิกจ่าย</option>
+                    </select>
                 </div>
-                <div id="cancellation-summary-content" class="p-0">
-                    <div class="p-6 text-center text-gray-400">กำลังตรวจสอบข้อมูลการยกเลิก...</div>
+                <div id="interactive-table-content" class="p-0">
+                    <!-- ตารางจะถูกเรนเดอร์ผ่าน JS -->
                 </div>
             </div>
 
@@ -282,7 +289,6 @@
                     <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">ข้อมูลใหม่</span>
                     <form id="projectForm" class="space-y-6">
                         
-                        <!-- 🌟 ระบบ Prefix Group สำหรับกรอก ID -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-red-500">*</span> <span class="text-xs text-gray-500 font-normal">(กรอกตัวเลข 5 หลักหลังเครื่องหมาย /)</span></label>
                             <div class="flex shadow-sm rounded-lg">
@@ -615,7 +621,6 @@
             });
         });
 
-        // 🌟 ลอจิกใหม่: ค้นหาอัตโนมัติเมื่อพิมพ์ครบ 5 หลัก และรีเซ็ตถ้าพิมพ์ไม่ครบ
         const idPrefix = "NSDF-69-01/";
         const idInputEl = document.getElementById('projectIdInput');
 
@@ -634,7 +639,6 @@
         }
 
         idInputEl.addEventListener('input', function() {
-            // บังคับให้พิมพ์ได้เฉพาะตัวเลข
             this.value = this.value.replace(/\D/g, '');
             
             if (this.value.length === 5) {
@@ -1000,6 +1004,92 @@
             });
         }
 
+        // 🌟 ฟังก์ชันเรนเดอร์ Interactive Table สำหรับ Dropdown
+        function renderInteractiveTable(assocData, filterType) {
+            const container = document.getElementById('interactive-table-content');
+            if (!assocData || assocData.length === 0) {
+                 container.innerHTML = `<div class="p-6 bg-gray-50 text-gray-500 text-center">ไม่มีข้อมูลสมาคมกีฬาในระบบขณะนี้</div>`;
+                 return;
+            }
+
+            let filteredList = [];
+            let valueLabel = "งบประมาณอนุมัติ (บาท)";
+            let amountColor = "text-blue-600";
+            
+            // กรองข้อมูลตาม Dropdown
+            if (filterType === 'cancel') {
+                filteredList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
+                valueLabel = "ยอดเงินต้องส่งคืน (บาท)";
+                amountColor = "text-purple-600";
+            } else if (filterType === 'done') {
+                filteredList = assocData.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว');
+                amountColor = "text-green-600";
+            } else if (filterType === 'op_progress') {
+                filteredList = assocData.filter(i => i.Operation_Status === 'อยู่ระหว่างการดำเนินงาน');
+                amountColor = "text-orange-600";
+            } else if (filterType === 'pay_progress') {
+                filteredList = assocData.filter(i => i.Payment_Status === 'อยู่ระหว่างการเบิกจ่าย');
+                amountColor = "text-orange-600";
+            }
+
+            if (filteredList.length === 0) {
+                 container.innerHTML = `<div class="p-6 bg-blue-50 text-blue-700 text-center flex items-center justify-center gap-2"><span class="text-xl">✨</span> <span class="font-medium">ไม่พบข้อมูลโครงการในสถานะนี้</span></div>`;
+                 return;
+            }
+
+            let uniqueAssoc = new Set();
+            let totalBudget = 0;
+
+            let listHtml = `
+            <div class="overflow-x-auto max-h-[400px]">
+                <table class="w-full text-left text-sm border-collapse relative">
+                    <thead class="bg-gray-100 text-gray-700 border-b border-gray-200 sticky top-0 shadow-sm">
+                        <tr>
+                            <th class="p-3">รหัส ID</th>
+                            <th class="p-3">สมาคมกีฬา</th>
+                            <th class="p-3">กิจกรรม / หลักสูตร</th>
+                            <th class="p-3 text-right">${valueLabel}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">`;
+            
+            filteredList.forEach(item => {
+                let amt = Number(item.Approved_Budget || 0);
+                totalBudget += amt;
+                let assocName = item.Sub_Category || '-';
+                uniqueAssoc.add(assocName);
+                
+                let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+                listHtml += `
+                    <tr class="hover:bg-blue-50/50">
+                        <td class="p-3 font-mono text-xs text-gray-600">${item.ID}</td>
+                        <td class="p-3 font-medium">${assocName}</td>
+                        <td class="p-3 text-gray-600">${activityName}</td>
+                        <td class="p-3 text-right font-bold ${amountColor}">${amt.toLocaleString()}</td>
+                    </tr>`;
+            });
+            
+            listHtml += `
+                    </tbody>
+                    <tfoot class="bg-gray-50 border-t-2 border-gray-200 sticky bottom-0">
+                        <tr>
+                            <td colspan="3" class="p-4 text-right font-medium text-gray-700">
+                                สรุป: <span class="font-bold text-blue-700">${uniqueAssoc.size}</span> สมาคม | <span class="font-bold text-blue-700">${filteredList.length}</span> โครงการ | ยอดเงินรวม:
+                            </td>
+                            <td class="p-4 text-right font-bold ${amountColor} text-lg">${totalBudget.toLocaleString()} บาท</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>`;
+            container.innerHTML = listHtml;
+        }
+
+        // ตัวแปรเก็บข้อมูลสมาคมล่าสุดไว้สำหรับ Dropdown Table
+        window.currentAssocDataForTable = [];
+        document.getElementById('interactiveTableFilter').addEventListener('change', function() {
+            renderInteractiveTable(window.currentAssocDataForTable, this.value);
+        });
+
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
 
@@ -1017,6 +1107,17 @@
             let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
             let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
 
+            // 🌟 อัปเดตข้อมูลให้ Table และคุมโชว์/ซ่อน
+            window.currentAssocDataForTable = assocData;
+            const interactiveBox = document.getElementById('interactive-summary-box');
+            if(assocData.length > 0) {
+                interactiveBox.classList.remove('hidden');
+                // เรนเดอร์ค่าเริ่มต้น
+                renderInteractiveTable(assocData, document.getElementById('interactiveTableFilter').value);
+            } else {
+                interactiveBox.classList.add('hidden');
+            }
+
             function generateInsightBlock(title, dataset, isAssoc) {
                 if (!dataset || dataset.length === 0) {
                     return `<div class="mb-4"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-gray-200 pb-2 mb-3">${title}</h4><p class="text-gray-500">ยังไม่มีข้อมูลโครงการ</p></div>`;
@@ -1030,9 +1131,14 @@
                 let bgPercent = appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0;
                 let ppPercent = targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0;
 
+                // 🌟 แยกสถานะงานและสถานะเงิน
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
                 let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
                 let inProgressCount = dataset.length - completedCount - cancelledCount;
+
+                let payReturnCount = dataset.filter(i => i.Payment_Status === 'ส่งเงินคืนกองทุนฯ').length;
+                let payDoneCount = dataset.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length;
+                let payProgressCount = dataset.length - payDoneCount - payReturnCount;
 
                 let overB = [];
                 let highB = [];
@@ -1070,10 +1176,21 @@
                 html += `<h4 class="font-bold text-blue-900 text-lg border-b-2 border-yellow-400 pb-2 mb-3">${title}</h4>`;
                 
                 let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b><br>`;
-                projectText += `<span class="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1.5 rounded-md inline-block mt-2 mb-3 border border-gray-200">`;
-                projectText += `⏳ กำลังดำเนินงาน: <b>${inProgressCount}</b> | ✅ เสร็จสิ้น: <b>${completedCount}</b>`;
+                
+                // 🌟 แถบ Status Badges ใหม่ (แบ่ง 2 บรรทัด งาน/เงิน)
+                projectText += `<div class="flex flex-col gap-2 mt-2 mb-3">`;
+                
+                projectText += `<span class="text-xs sm:text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-md inline-block border border-gray-200">`;
+                projectText += `<b>📊 สถานะงาน:</b> ⏳ กำลังดำเนินงาน: <b>${inProgressCount}</b> | ✅ เสร็จสิ้น: <b>${completedCount}</b>`;
                 if (isAssoc) projectText += ` | ❌ ยกเลิก: <b>${cancelledCount}</b>`;
                 projectText += `</span>`;
+                
+                projectText += `<span class="text-xs sm:text-sm text-gray-700 bg-blue-50 px-3 py-1.5 rounded-md inline-block border border-blue-100">`;
+                projectText += `<b>💸 สถานะเงิน:</b> ⏳ กำลังเบิกจ่าย: <b>${payProgressCount}</b> | ✅ เบิกเรียบร้อย: <b>${payDoneCount}</b>`;
+                if (isAssoc) projectText += ` | 🔙 ส่งคืนเงิน: <b>${payReturnCount}</b>`;
+                projectText += `</span>`;
+
+                projectText += `</div>`;
 
                 html += `<p class="text-gray-700 mb-3">${projectText}<br>มีการเบิกจ่ายงบประมาณไปแล้ว <b>${bgPercent}%</b> และมีผู้ผ่านการอบรมคิดเป็น <b>${ppPercent}%</b> ของเป้าหมาย</p>`;
                 
@@ -1137,10 +1254,6 @@
                     html += `<li class="flex items-start gap-2"><span class="text-green-600">💸</span> <span><b>งบเหลือจ่ายส่งคืน (โครงการเสร็จแล้ว):</b> <b>${surpTotal.toLocaleString()} บาท</b> รวบรวมเอกสารส่งคืนเงินกองทุนฯ</span></li>`;
                     hasAdvice = true;
                 }
-                if (isAssoc && retTotal > 0) {
-                    html += `<li class="flex items-start gap-2"><span class="text-purple-600">🔙</span> <span><b>ส่งคืนเงินจากโครงการยกเลิก:</b> <b>${retTotal.toLocaleString()} บาท</b> (ดูรายละเอียดสมาคมที่ตารางด้านล่าง)</span></li>`;
-                    hasAdvice = true;
-                }
                 if (!hasAdvice) {
                     html += `<li class="text-green-600 flex items-start gap-2"><span>✨</span> <span>ภาพรวมการบริหารงบประมาณอยู่ในเกณฑ์ปกติ เป็นไปตามแผน</span></li>`;
                 }
@@ -1153,53 +1266,6 @@
             finalInsightsHTML += generateInsightBlock('🏅 สมาคมกีฬาแห่งประเทศไทย', assocData, true);
 
             document.getElementById('smart-insights-text').innerHTML = finalInsightsHTML;
-
-            let cancelledItemsList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
-            let returnTotalAssoc = cancelledItemsList.reduce((sum, i) => sum + Number(i.Approved_Budget || 0), 0);
-
-            let cancelBoxContent = '';
-            if (cancelledItemsList.length === 0) {
-                cancelBoxContent = `<div class="p-6 bg-green-50 text-green-700 text-center flex items-center justify-center gap-2"><span class="text-2xl">🎉</span> <span class="font-medium"><b>ยอดเยี่ยม!</b> ยังไม่มีการยกเลิกโครงการและการส่งคืนเงินในระบบขณะนี้</span></div>`;
-            } else {
-                let listHtml = `
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead class="bg-red-50 text-red-800 border-b border-red-100">
-                            <tr>
-                                <th class="p-3">รหัส ID</th>
-                                <th class="p-3">สมาคมกีฬา</th>
-                                <th class="p-3">กิจกรรม / หลักสูตร</th>
-                                <th class="p-3 text-right">ยอดเงินต้องส่งคืน (บาท)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">`;
-                
-                cancelledItemsList.forEach(item => {
-                    let amt = Number(item.Approved_Budget || 0);
-                    let assocName = item.Sub_Category || '-';
-                    let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
-                    listHtml += `
-                        <tr class="hover:bg-red-50/50">
-                            <td class="p-3 font-mono text-xs text-red-600">${item.ID}</td>
-                            <td class="p-3 font-medium">${assocName}</td>
-                            <td class="p-3 text-gray-600">${activityName}</td>
-                            <td class="p-3 text-right font-bold text-purple-600">${amt.toLocaleString()}</td>
-                        </tr>`;
-                });
-                
-                listHtml += `
-                        </tbody>
-                        <tfoot class="bg-gray-50 border-t-2 border-gray-200">
-                            <tr>
-                                <td colspan="3" class="p-4 text-right font-bold text-gray-700">รวมยกเลิก ${cancelledItemsList.length} รายการ | ยอดส่งคืนทั้งสิ้น:</td>
-                                <td class="p-4 text-right font-bold text-purple-700 text-lg">${returnTotalAssoc.toLocaleString()} บาท</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>`;
-                cancelBoxContent = listHtml;
-            }
-            document.getElementById('cancellation-summary-content').innerHTML = cancelBoxContent;
 
             let monthlyCounts = Array(12).fill(0);
             data.forEach(item => {
@@ -1357,7 +1423,6 @@
             const rawApprovedBudget = document.getElementById('approvedBudget').value.replace(/,/g, '');
             const rawUsedBudget = document.getElementById('usedBudget').value.replace(/,/g, '');
 
-            // 🌟 4. แก้บั๊กการบันทึก: ประกอบร่าง ID กลับให้สมบูรณ์ก่อนบันทึกลง Google Sheets
             const finalProjectId = idPrefix + document.getElementById('projectIdInput').value;
 
             const payload = {
@@ -1388,7 +1453,6 @@
                     alert(result.message);
                     document.getElementById('projectForm').reset();
                     
-                    // 🌟 อุดรอยรั่ว: ล้างหน้าจอและให้กลับไปสถานะ "โครงการใหม่" ทันทีหลังบันทึกเสร็จ
                     resetFormToNewMode();
                     document.getElementById('subCategoryDiv').classList.add('hidden');
                     document.getElementById('projectActivityDiv').classList.add('hidden');
