@@ -19,39 +19,33 @@
         
         /* 🌟 ระบบจัดการหน้ากระดาษพิมพ์ (Print Optimization) */
         @media print {
-            /* ตั้งค่าสีพื้นฐานและลบเงา */
             body { background-color: white; color: black; }
             nav, button, .no-print { display: none !important; }
             .shadow-sm, .shadow-md, .rounded-xl { box-shadow: none !important; border: none !important; }
             main { padding: 0 !important; max-width: 100% !important; margin: 0 auto !important; }
             
-            /* บังคับกระดาษแนวนอน (Landscape) เพื่อให้ Timeline ไม่ตกขอบ */
             @page { size: landscape; margin: 10mm; }
             
-            /* บังคับให้เบราว์เซอร์พิมพ์สีพื้นหลัง (Gantt Bar, Badges) */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
-            /* ปรับขนาดตัวอักษรและตาราง */
             table { font-size: 10px; width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #e5e7eb !important; padding: 6px !important; }
             
-            /* ปรับ Layout กราฟโดนัทให้เป็นแนวตั้ง (บน-ล่าง) */
             .print\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; gap: 1rem !important; }
             .print\:break-inside-avoid { break-inside: avoid; }
+            /* 🌟 คำสั่งบังคับขึ้นหน้าใหม่ รองรับทั้งบราวเซอร์ใหม่และเก่า */
+            .print\:break-before-page { break-before: page; page-break-before: always; display: block; }
             
-            /* ปรับขนาดการ์ดภาพรวม */
             #dashboard-cards-container .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px !important; }
             #dashboard-cards-container .p-5 { padding: 12px !important; }
             
-            /* ควบคุมขนาดกราฟไม่ให้ใหญ่เกินไปตอนพิมพ์ */
             canvas { max-width: 100% !important; height: auto !important; max-height: 250px !important; }
             .gantt-cell { min-width: 25px !important; }
         }
 
-        /* รูปแบบกราฟและ UI ทั่วไป */
         .gantt-cell { min-width: 30px; position: relative; }
         .gantt-bar { position: absolute; top: 20%; bottom: 20%; left: 0; right: 0; background-color: #3b82f6; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .gantt-bar.start { border-top-left-radius: 99px; border-bottom-left-radius: 99px; }
@@ -89,8 +83,8 @@
         </div>
     </nav>
 
-    <!-- Modal สำหรับกรอก PIN (RBAC) -->
-    <div id="pinModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center hidden">
+    <!-- Modal เพิ่ม print:hidden ป้องกันการแสดงผลตอนกดพิมพ์ -->
+    <div id="pinModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center hidden print:hidden">
         <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm transform transition-all scale-95 opacity-0 duration-200" id="pinModalContent">
             <div class="text-center mb-6">
                 <div class="text-4xl mb-2">🔒</div>
@@ -112,7 +106,6 @@
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
-            <!-- เอา no-print ออกจาก Header และใส่เฉพาะที่ส่วนค้นหาด้านขวา -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <h2 id="dashboard-title" class="text-lg font-bold text-blue-900 flex items-center gap-2">
                     📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569
@@ -175,7 +168,7 @@
                 </div>
             </div>
 
-            <!-- แผนผังระยะเวลา (Timeline) นำ no-print ออก -->
+            <!-- แผนผังระยะเวลา (Timeline) -->
             <div id="timeline-section" class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col print:break-inside-avoid">
                 <div class="p-4 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="font-bold text-blue-900 flex items-center gap-2">🗓️ แผนผังระยะเวลาดำเนินโครงการ (Timeline)</h3>
@@ -219,7 +212,7 @@
                 </div>
             </div>
 
-            <!-- กราฟสถานะ นำ no-print ออก และบังคับ print:grid-cols-1 -->
+            <!-- กราฟสถานะ -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 print:grid-cols-1 print:break-inside-avoid">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
@@ -235,7 +228,6 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col print:break-inside-avoid">
                 <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <h3 class="font-bold text-blue-900">รายการโครงการ</h3>
-                    <!-- ซ่อนกล่องค้นหาตอนพิมพ์ -->
                     <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto no-print">
                         <input type="text" id="searchInput" oninput="applyTableSearch()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-yellow-500 focus:border-yellow-500 w-full sm:w-64">
                         <button onclick="loadData()" class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600 transition">รีเฟรชตาราง</button>
@@ -262,7 +254,6 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- ซ่อนปุ่มเลื่อนหน้าตารางตอนพิมพ์ แต่เก็บ Text สรุปข้อมูลไว้ -->
                 <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 text-sm">
                     <div id="table-pagination-info" class="text-gray-600">กำลังคำนวณข้อมูล...</div>
                     <div class="flex space-x-2 mt-3 sm:mt-0 no-print">
@@ -277,33 +268,6 @@
         <!-- TAB 2: ANALYTICS -->
         <section id="tab-analytics" class="hidden space-y-6">
             
-            <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-yellow-500 p-6 rounded-xl shadow-sm">
-                <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">💡 สรุปวิเคราะห์การบริหารงบประมาณ</h3>
-                <div id="smart-insights-text" class="space-y-6">
-                    <p class="text-gray-500">กำลังประมวลผลข้อมูล...</p>
-                </div>
-            </div>
-
-            <div id="interactive-summary-box" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full hidden print:break-inside-avoid">
-                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
-                    <h3 class="font-bold text-blue-900 flex items-center gap-2">📊 รายงานตารางเจาะลึกข้อมูลสมาคมกีฬา</h3>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto no-print">
-                        <select id="interactiveTableFilter" class="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-700 shadow-sm cursor-pointer hover:bg-blue-50 transition w-full sm:w-auto">
-                            <option value="cancel">🛑 สรุปรายงานการยกเลิกและการส่งคืนเงิน</option>
-                            <option value="done">✅ รายการที่ดำเนินการเรียบร้อย</option>
-                            <option value="op_progress">⏳ รายการที่อยู่ระหว่างการดำเนินงาน</option>
-                            <option value="pay_progress">💸 รายการที่อยู่ระหว่างการเบิกจ่าย</option>
-                        </select>
-                        <button onclick="exportInteractiveTable()" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-500 text-emerald-700 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition whitespace-nowrap flex items-center justify-center gap-1 w-full sm:w-auto">
-                            📥 Export Excel
-                        </button>
-                    </div>
-                </div>
-                <div id="interactive-table-content" class="p-0">
-                    <!-- ตารางจะถูกเรนเดอร์ผ่าน JS -->
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 print:grid-cols-2">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
                     <div>
@@ -336,6 +300,35 @@
                     <div class="relative h-64 flex justify-center"><canvas id="budgetCompareChart"></canvas></div>
                 </div>
             </div>
+            
+            <!-- 🌟 ใส่คลาส print:break-before-page เพื่อให้กล่องข้อความสรุปวิเคราะห์ ปัดไปขึ้นหน้า 2 เสมอ -->
+            <div class="bg-gradient-to-r from-blue-50 to-white border-l-4 border-yellow-500 p-6 rounded-xl shadow-sm print:break-before-page">
+                <h3 class="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">💡 สรุปวิเคราะห์การบริหารงบประมาณ</h3>
+                <div id="smart-insights-text" class="space-y-6">
+                    <p class="text-gray-500">กำลังประมวลผลข้อมูล...</p>
+                </div>
+            </div>
+
+            <div id="interactive-summary-box" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden w-full hidden print:break-inside-avoid">
+                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <h3 class="font-bold text-blue-900 flex items-center gap-2">📊 รายงานตารางเจาะลึกข้อมูลสมาคมกีฬา</h3>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto no-print">
+                        <select id="interactiveTableFilter" class="border-2 border-blue-200 rounded-lg px-3 py-1.5 text-sm focus:ring-blue-500 focus:border-blue-500 font-medium text-gray-700 shadow-sm cursor-pointer hover:bg-blue-50 transition w-full sm:w-auto">
+                            <option value="cancel">🛑 สรุปรายงานการยกเลิกและการส่งคืนเงิน</option>
+                            <option value="done">✅ รายการที่ดำเนินการเรียบร้อย</option>
+                            <option value="op_progress">⏳ รายการที่อยู่ระหว่างการดำเนินงาน</option>
+                            <option value="pay_progress">💸 รายการที่อยู่ระหว่างการเบิกจ่าย</option>
+                        </select>
+                        <button onclick="exportInteractiveTable()" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-500 text-emerald-700 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition whitespace-nowrap flex items-center justify-center gap-1 w-full sm:w-auto">
+                            📥 Export Excel
+                        </button>
+                    </div>
+                </div>
+                <div id="interactive-table-content" class="p-0">
+                    <!-- ตารางจะถูกเรนเดอร์ผ่าน JS -->
+                </div>
+            </div>
+
         </section>
 
         <!-- TAB 3: FORM ENTRY -->
