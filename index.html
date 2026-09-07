@@ -54,6 +54,12 @@
         .drag-area { border: 2px dashed #93c5fd; background-color: #eff6ff; transition: all 0.3s; }
         .drag-area.active { border-color: #2563eb; background-color: #dbeafe; }
         .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; transition: all 0.3s ease; }
+        
+        /* 🌟 คลาสพิเศษสำหรับ Kanban Board */
+        .kanban-column { min-height: 300px; background-color: #f8fafc; }
+        .kanban-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .chart-cursor-pointer canvas { cursor: pointer; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen relative">
@@ -119,6 +125,7 @@
             </div>
 
             <div id="dashboard-cards-container" class="space-y-6">
+                <!-- ชุดที่ 1: กกท. -->
                 <div id="cards-sat-section" class="space-y-3 print:break-inside-avoid">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏢 การกีฬาแห่งประเทศไทย (กกท.)</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -141,6 +148,7 @@
                     </div>
                 </div>
 
+                <!-- ชุดที่ 2: สมาคมกีฬาฯ -->
                 <div id="cards-assoc-section" class="space-y-3 print:break-inside-avoid">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏅 สมาคมกีฬาแห่งประเทศไทย</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -208,56 +216,118 @@
                 </div>
             </div>
 
-            <!-- กราฟสถานะ -->
+            <!-- กราฟสถานะ (Interactive) -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 print:grid-cols-1 print:break-inside-avoid">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการดำเนินงาน</h3>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 chart-cursor-pointer">
+                    <h3 class="font-bold text-blue-900 mb-1">สัดส่วนสถานะการดำเนินงาน</h3>
+                    <p class="text-xs text-gray-400 mb-4 no-print">💡 คลิกที่กราฟเพื่อกรองข้อมูลในตารางด้านล่าง</p>
                     <div class="relative h-64 flex justify-center"><canvas id="opStatusChart"></canvas></div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="font-bold text-blue-900 mb-4">สัดส่วนสถานะการเบิกจ่าย</h3>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 chart-cursor-pointer">
+                    <h3 class="font-bold text-blue-900 mb-1">สัดส่วนสถานะการเบิกจ่าย</h3>
+                    <p class="text-xs text-gray-400 mb-4 no-print">💡 คลิกที่กราฟเพื่อกรองข้อมูลในตารางด้านล่าง</p>
                     <div class="relative h-64 flex justify-center"><canvas id="payStatusChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- ตารางรายการโครงการ -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col print:break-inside-avoid">
-                <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                    <h3 class="font-bold text-blue-900">รายการโครงการ</h3>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto no-print">
+            <!-- 🌟 โซนตาราง / Kanban Board -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col print:break-inside-avoid relative">
+                
+                <!-- หัวตารางและปุ่มสลับมุมมอง -->
+                <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <h3 class="font-bold text-blue-900 text-lg">รายการโครงการ</h3>
+                        <!-- ปุ่มเคลียร์ตัวกรอง (ซ่อนเป็นค่าเริ่มต้น) -->
+                        <button id="btnClearChartFilter" onclick="clearChartFilter()" class="hidden px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-full transition no-print items-center gap-1 shadow-sm border border-red-200">
+                            ❌ ยกเลิกตัวกรองกราฟ
+                        </button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto no-print">
+                        <!-- ปุ่ม Toggle สลับมุมมอง Table / Kanban -->
+                        <div class="flex bg-gray-200 p-1 rounded-lg border border-gray-300 w-full sm:w-auto justify-center">
+                            <button id="btn-view-table" onclick="switchDataView('table')" class="px-4 py-1.5 bg-white shadow-sm rounded-md text-sm font-bold text-blue-800 w-1/2 sm:w-auto transition">📋 ตาราง</button>
+                            <button id="btn-view-kanban" onclick="switchDataView('kanban')" class="px-4 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 rounded-md w-1/2 sm:w-auto transition">🗂️ บอร์ด</button>
+                        </div>
+                        
                         <input type="text" id="searchInput" oninput="applyTableSearch()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-yellow-500 focus:border-yellow-500 w-full sm:w-64">
-                        <button onclick="loadData()" class="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-gray-600 transition">รีเฟรชตาราง</button>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
-                                <th class="p-3 border-b">รหัส ID</th>
-                                <th class="p-3 border-b">หลักสูตร / สมาคม</th>
-                                <th id="th-activity" class="p-3 border-b">กิจกรรม / ชื่อรายการ</th>
-                                <th class="p-3 border-b">สถานที่</th>
-                                <th class="p-3 border-b text-center">ระยะเวลา</th>
-                                <th class="p-3 border-b text-center">เป้าหมาย(คน)</th>
-                                <th class="p-3 border-b text-right">งบประมาณ</th>
-                                <th class="p-3 border-b text-center">สถานะงาน</th>
-                                <th class="p-3 border-b text-center">สถานะเบิกจ่าย</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dataTableBody" class="divide-y divide-gray-100 text-sm text-gray-700">
-                            <tr><td colspan="9" class="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 text-sm">
-                    <div id="table-pagination-info" class="text-gray-600">กำลังคำนวณข้อมูล...</div>
-                    <div class="flex space-x-2 mt-3 sm:mt-0 no-print">
-                        <button onclick="changePage(-1)" id="btn-prev-table" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">◀ ก่อนหน้า</button>
-                        <span id="table-page-num" class="px-3 py-1 font-bold text-blue-800">หน้า 1/1</span>
-                        <button onclick="changePage(1)" id="btn-next-table" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed">ถัดไป ▶</button>
+                <!-- มุมมองแบบตาราง (Table View) -->
+                <div id="view-section-table" class="w-full">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
+                                    <th class="p-3">รหัส ID</th>
+                                    <th class="p-3">หลักสูตร / สมาคม</th>
+                                    <th id="th-activity" class="p-3">กิจกรรม / ชื่อรายการ</th>
+                                    <th class="p-3">สถานที่</th>
+                                    <th class="p-3 text-center">ระยะเวลา</th>
+                                    <th class="p-3 text-center">เป้าหมาย(คน)</th>
+                                    <th class="p-3 text-right">งบประมาณ</th>
+                                    <th class="p-3 text-center">สถานะงาน</th>
+                                    <th class="p-3 text-center">สถานะเบิกจ่าย</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody" class="divide-y divide-gray-100 text-sm text-gray-700 bg-white">
+                                <tr><td colspan="9" class="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination สำหรับ Table -->
+                    <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 text-sm">
+                        <div id="table-pagination-info" class="text-gray-600">กำลังคำนวณข้อมูล...</div>
+                        <div class="flex space-x-2 mt-3 sm:mt-0 no-print">
+                            <button onclick="changePage(-1)" id="btn-prev-table" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">◀ ก่อนหน้า</button>
+                            <span id="table-page-num" class="px-3 py-1 font-bold text-blue-800">หน้า 1/1</span>
+                            <button onclick="changePage(1)" id="btn-next-table" class="px-3 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">ถัดไป ▶</button>
+                        </div>
                     </div>
                 </div>
+
+                <!-- มุมมองแบบบอร์ด (Kanban View) -->
+                <div id="view-section-kanban" class="w-full hidden p-4 bg-gray-100 overflow-x-auto print:hidden">
+                    <div class="flex gap-4 min-w-[900px]">
+                        
+                        <!-- Column 1: รอดำเนินการ / กำลังดำเนินงาน -->
+                        <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
+                            <div class="p-3 bg-orange-100 border-b border-orange-200 rounded-t-xl flex justify-between items-center">
+                                <h4 class="font-bold text-orange-800 flex items-center gap-1">⏳ กำลังดำเนินงาน</h4>
+                                <span id="kanban-count-prog" class="bg-orange-200 text-orange-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-col-prog" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]">
+                                <!-- Cards Go Here -->
+                            </div>
+                        </div>
+
+                        <!-- Column 2: เสร็จสิ้น -->
+                        <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
+                            <div class="p-3 bg-emerald-100 border-b border-emerald-200 rounded-t-xl flex justify-between items-center">
+                                <h4 class="font-bold text-emerald-800 flex items-center gap-1">✅ ดำเนินการเสร็จสิ้น</h4>
+                                <span id="kanban-count-done" class="bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-col-done" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]">
+                                <!-- Cards Go Here -->
+                            </div>
+                        </div>
+
+                        <!-- Column 3: ยกเลิก -->
+                        <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
+                            <div class="p-3 bg-red-100 border-b border-red-200 rounded-t-xl flex justify-between items-center">
+                                <h4 class="font-bold text-red-800 flex items-center gap-1">❌ ยกเลิกรายการ</h4>
+                                <span id="kanban-count-cancel" class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                            </div>
+                            <div id="kanban-col-cancel" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]">
+                                <!-- Cards Go Here -->
+                            </div>
+                        </div>
+
+                    </div>
+                    <p class="text-center text-xs text-gray-400 mt-4">* มุมมองบอร์ดนี้จะแสดงข้อมูลทั้งหมดที่ตรงกับเงื่อนไขการค้นหา (ไม่แบ่งหน้า)</p>
+                </div>
+
             </div>
         </section>
 
@@ -485,6 +555,10 @@
         
         let currentPage = 1;
         const itemsPerPage = 10; 
+        
+        // 🌟 ตัวแปรเก็บสถานะการ Filter จากกราฟ
+        let activeChartFilter = { type: null, label: null };
+        let currentDataView = 'table'; // สเตตัสมุมมองปัจจุบัน 'table' หรือ 'kanban'
 
         let opChartInstance = null;
         let payChartInstance = null;
@@ -607,6 +681,29 @@
             if(tabName === 'dashboard' || tabName === 'analytics') {
                 loadData();
             }
+        }
+
+        // 🌟 ฟังก์ชันสลับมุมมอง Table / Kanban
+        function switchDataView(viewMode) {
+            currentDataView = viewMode;
+            const btnTable = document.getElementById('btn-view-table');
+            const btnKanban = document.getElementById('btn-view-kanban');
+            const secTable = document.getElementById('view-section-table');
+            const secKanban = document.getElementById('view-section-kanban');
+
+            if(viewMode === 'table') {
+                btnTable.className = "px-4 py-1.5 bg-white shadow-sm rounded-md text-sm font-bold text-blue-800 w-1/2 sm:w-auto transition";
+                btnKanban.className = "px-4 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 rounded-md w-1/2 sm:w-auto transition";
+                secTable.classList.remove('hidden');
+                secKanban.classList.add('hidden');
+            } else {
+                btnKanban.className = "px-4 py-1.5 bg-white shadow-sm rounded-md text-sm font-bold text-blue-800 w-1/2 sm:w-auto transition";
+                btnTable.className = "px-4 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 rounded-md w-1/2 sm:w-auto transition";
+                secTable.classList.add('hidden');
+                secKanban.classList.remove('hidden');
+            }
+            // เมื่อสลับมุมมอง ให้ Render ข้อมูลใหม่ทันที
+            renderPaginatedView();
         }
 
         function switchFormMode(mode) {
@@ -832,6 +929,9 @@
             const categoryFilter = document.getElementById('globalFilterCategory').value;
             const dashboardTitle = document.getElementById('dashboard-title');
             
+            // ยกเลิกตัวกรองกราฟอัตโนมัติเมื่อเปลี่ยนหมวดหมู่หลัก
+            clearChartFilter(false);
+            
             if (categoryFilter === '') {
                 currentFilteredData = [...globalData]; 
                 dashboardTitle.innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569';
@@ -845,6 +945,24 @@
 
             updateDashboardCardsAndCharts(currentFilteredData);
             applyTableSearch(); 
+        }
+
+        // 🌟 ฟังก์ชันจัดการ Chart Filter
+        function handleChartClick(chartType, label) {
+            activeChartFilter = { type: chartType, label: label };
+            document.getElementById('btnClearChartFilter').classList.remove('hidden');
+            document.getElementById('btnClearChartFilter').classList.add('flex');
+            applyTableSearch();
+            
+            // เลื่อนจอลงมาที่ตารางอัตโนมัติ
+            document.getElementById('view-section-table').parentElement.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearChartFilter(applySearch = true) {
+            activeChartFilter = { type: null, label: null };
+            document.getElementById('btnClearChartFilter').classList.remove('flex');
+            document.getElementById('btnClearChartFilter').classList.add('hidden');
+            if (applySearch) applyTableSearch();
         }
 
         function updateDashboardCardsAndCharts(data) {
@@ -902,6 +1020,7 @@
         function applyTableSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             
+            // 🌟 กรองข้อมูลตาม Keyword และ Chart Filter ควบคู่กัน
             finalDataForTable = currentFilteredData.filter(item => {
                 const id = String(item.ID || '').toLowerCase();
                 const mainCat = String(item.Main_Category || '').toLowerCase();
@@ -910,7 +1029,22 @@
                 const projName = String(item.Project_Name || '').toLowerCase();
                 const location = String(item.Location || '').toLowerCase();
                 
-                return id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
+                const matchKeyword = id.includes(keyword) || subCat.includes(keyword) || activity.includes(keyword) || projName.includes(keyword) || mainCat.includes(keyword) || location.includes(keyword);
+                
+                let matchChart = true;
+                if (activeChartFilter.type === 'operation') {
+                    // Normalize Label: กราฟโชว์คำย่อ แต่ข้อมูลเต็ม
+                    let searchLabel = activeChartFilter.label;
+                    if (searchLabel === 'เสร็จสิ้นแล้ว') searchLabel = 'ดำเนินการเสร็จสิ้นแล้ว';
+                    else if (searchLabel === 'อยู่ระหว่างดำเนินการ') searchLabel = 'อยู่ระหว่างการดำเนินงาน';
+                    matchChart = (item.Operation_Status === searchLabel);
+                } else if (activeChartFilter.type === 'payment') {
+                    let searchLabel = activeChartFilter.label;
+                    if (searchLabel === 'อยู่ระหว่างเบิกจ่าย') searchLabel = 'อยู่ระหว่างการเบิกจ่าย';
+                    matchChart = (item.Payment_Status === searchLabel);
+                }
+
+                return matchKeyword && matchChart;
             });
 
             currentPage = 1;
@@ -926,12 +1060,83 @@
 
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
+            
             const pagedData = finalDataForTable.slice(startIndex, endIndex);
 
+            // Timeline อิงตามข้อมูล Pagination
             renderTimeline(pagedData);
-            renderTable(pagedData);
+            
+            if (currentDataView === 'table') {
+                renderTable(pagedData);
+            } else {
+                // 🌟 Kanban ให้แสดงผลตาม Filter แบบเต็มจำนวน ไม่ต้องรอ Pagination เพื่อ UX ที่ดี
+                renderKanban(finalDataForTable);
+            }
 
             renderPaginationControls(totalItems, totalPages, startIndex, pagedData.length);
+        }
+
+        // 🌟 สร้างฟังก์ชันวาด Kanban Board
+        function renderKanban(data) {
+            const colProg = document.getElementById('kanban-col-prog');
+            const colDone = document.getElementById('kanban-col-done');
+            const colCancel = document.getElementById('kanban-col-cancel');
+
+            // Reset Board
+            colProg.innerHTML = ''; colDone.innerHTML = ''; colCancel.innerHTML = '';
+            let countProg = 0, countDone = 0, countCancel = 0;
+
+            if(data.length === 0) {
+                const emptyMsg = `<div class="text-center text-sm text-gray-400 p-4">ไม่มีโครงการในหมวดหมู่นี้</div>`;
+                colProg.innerHTML = emptyMsg; colDone.innerHTML = emptyMsg; colCancel.innerHTML = emptyMsg;
+                document.getElementById('kanban-count-prog').innerText = 0;
+                document.getElementById('kanban-count-done').innerText = 0;
+                document.getElementById('kanban-count-cancel').innerText = 0;
+                return;
+            }
+
+            data.forEach(item => {
+                let status = item.Operation_Status;
+                let amt = Number(item.Approved_Budget || 0);
+                let title = item.Sub_Category;
+                if ((item.Main_Category || '').includes('การกีฬา')) title = item.Sub_Category;
+                
+                let activity = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+
+                // สร้าง Card HTML
+                let cardHtml = `
+                    <div class="kanban-card bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-2">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">${item.ID}</span>
+                            <span class="text-[10px] text-gray-400">${item.Start_Date !== '-' ? item.Start_Date : 'ไม่ระบุวัน'}</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-gray-800 line-clamp-2" title="${title}">${title}</div>
+                            <div class="text-xs text-gray-500 line-clamp-1">${activity}</div>
+                        </div>
+                        <div class="mt-1 flex justify-between items-center border-t border-gray-50 pt-2">
+                            <div class="text-xs text-gray-500">งบอนุมัติ:</div>
+                            <div class="font-bold text-sm text-gray-800">${amt.toLocaleString()} ฿</div>
+                        </div>
+                    </div>
+                `;
+
+                if (status === 'ดำเนินการเสร็จสิ้นแล้ว') {
+                    colDone.innerHTML += cardHtml;
+                    countDone++;
+                } else if (status === 'ยกเลิกรายการ') {
+                    colCancel.innerHTML += cardHtml;
+                    countCancel++;
+                } else {
+                    colProg.innerHTML += cardHtml;
+                    countProg++;
+                }
+            });
+
+            // Update Counts
+            document.getElementById('kanban-count-prog').innerText = countProg;
+            document.getElementById('kanban-count-done').innerText = countDone;
+            document.getElementById('kanban-count-cancel').innerText = countCancel;
         }
 
         function changePage(direction) {
@@ -1049,7 +1254,7 @@
                 }
 
                 return `
-                <tr class="hover:bg-gray-50 border-gray-100">
+                <tr class="hover:bg-blue-50/50 border-gray-100 transition">
                     <td class="p-3 border-b font-mono text-xs font-semibold text-blue-700">${item.ID || ''}</td>
                     <td class="p-3 border-b">
                         <div class="font-medium text-gray-800">${item.Sub_Category || ''}</div>
@@ -1091,6 +1296,18 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '65%', 
+                // 🌟 เพิ่มคำสั่ง onClick ให้คลิกแล้ว Filter
+                onClick: (event, elements, chart) => {
+                    if (elements.length > 0) {
+                        const dataIndex = elements[0].index;
+                        const label = chart.data.labels[dataIndex];
+                        const chartType = chart.canvas.id === 'opStatusChart' ? 'operation' : 'payment';
+                        handleChartClick(chartType, label);
+                    }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                },
                 plugins: {
                     legend: { position: 'top' },
                     datalabels: {
@@ -1112,7 +1329,7 @@
                 type: 'doughnut',
                 data: {
                     labels: ['อยู่ระหว่างดำเนินการ', 'เสร็จสิ้นแล้ว', 'ยกเลิกรายการ'],
-                    datasets: [{ data: [opProg, opDone, opCancel], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'], borderWidth: 2 }]
+                    datasets: [{ data: [opProg, opDone, opCancel], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'], borderWidth: 2, hoverOffset: 4 }]
                 },
                 options: doughnutOptions,
                 plugins: [centerTextPlugin] 
@@ -1124,7 +1341,7 @@
                 type: 'doughnut',
                 data: {
                     labels: ['อยู่ระหว่างเบิกจ่าย', 'เบิกจ่ายเรียบร้อย', 'ส่งเงินคืนกองทุนฯ'],
-                    datasets: [{ data: [payProg, payDone, payReturn], backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'], borderWidth: 2 }]
+                    datasets: [{ data: [payProg, payDone, payReturn], backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'], borderWidth: 2, hoverOffset: 4 }]
                 },
                 options: doughnutOptions,
                 plugins: [centerTextPlugin] 
@@ -1186,7 +1403,7 @@
                 
                 let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
                 listHtml += `
-                    <tr class="hover:bg-blue-50/50">
+                    <tr class="hover:bg-blue-50/50 transition">
                         <td class="p-3 font-mono text-xs text-gray-600">${item.ID}</td>
                         <td class="p-3 font-medium">${assocName}</td>
                         <td class="p-3 text-gray-600">${activityName}</td>
