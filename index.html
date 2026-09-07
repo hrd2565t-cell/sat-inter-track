@@ -12,35 +12,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <!-- SheetJS -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- 🌟 PDF.js สำหรับอ่านไฟล์ PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
         
-        /* 🌟 ระบบจัดการหน้ากระดาษพิมพ์ (Print Optimization) */
+        /* ระบบจัดการหน้ากระดาษพิมพ์ (Print Optimization) */
         @media print {
             body { background-color: white; color: black; }
             nav, button, .no-print { display: none !important; }
             .shadow-sm, .shadow-md, .rounded-xl { box-shadow: none !important; border: none !important; }
             main { padding: 0 !important; max-width: 100% !important; margin: 0 auto !important; }
-            
             @page { size: landscape; margin: 10mm; }
-            
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             table { font-size: 10px; width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #e5e7eb !important; padding: 6px !important; }
-            
             .print\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; gap: 1rem !important; }
             .print\:break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
             .print\:break-before-page { break-before: page; page-break-before: always; display: block; }
-            
             #dashboard-cards-container .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px !important; }
             #dashboard-cards-container .p-5 { padding: 12px !important; }
-            
             canvas { max-width: 100% !important; height: auto !important; max-height: 250px !important; }
             .gantt-cell { min-width: 25px !important; }
         }
@@ -51,11 +44,9 @@
         .gantt-bar.end { border-top-right-radius: 99px; border-bottom-right-radius: 99px; }
         .gantt-bar.cancel { background-color: #ef4444; }
         .gantt-bar.done { background-color: #10b981; }
-        .drag-area { border: 2px dashed #93c5fd; background-color: #eff6ff; transition: all 0.3s; }
+        .drag-area { border: 2px dashed #93c5fd; transition: all 0.3s; }
         .drag-area.active { border-color: #2563eb; background-color: #dbeafe; }
         .input-error { border-color: #ef4444 !important; background-color: #fef2f2 !important; transition: all 0.3s ease; }
-        
-        /* 🌟 คลาสพิเศษสำหรับ Kanban Board */
         .kanban-column { min-height: 300px; background-color: #f8fafc; }
         .kanban-card { transition: transform 0.2s, box-shadow 0.2s; }
         .kanban-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
@@ -230,31 +221,26 @@
                 </div>
             </div>
 
-            <!-- 🌟 โซนตาราง / Kanban Board -->
+            <!-- โซนตาราง / Kanban Board -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col print:break-inside-avoid relative">
                 
-                <!-- หัวตารางและปุ่มสลับมุมมอง -->
                 <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50">
                     <div class="flex items-center gap-3">
                         <h3 class="font-bold text-blue-900 text-lg">รายการโครงการ</h3>
-                        <!-- ปุ่มเคลียร์ตัวกรอง (ซ่อนเป็นค่าเริ่มต้น) -->
                         <button id="btnClearChartFilter" onclick="clearChartFilter()" class="hidden px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-full transition no-print items-center gap-1 shadow-sm border border-red-200">
                             ❌ ยกเลิกตัวกรองกราฟ
                         </button>
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto no-print">
-                        <!-- ปุ่ม Toggle สลับมุมมอง Table / Kanban -->
                         <div class="flex bg-gray-200 p-1 rounded-lg border border-gray-300 w-full sm:w-auto justify-center">
                             <button id="btn-view-table" onclick="switchDataView('table')" class="px-4 py-1.5 bg-white shadow-sm rounded-md text-sm font-bold text-blue-800 w-1/2 sm:w-auto transition">📋 ตาราง</button>
                             <button id="btn-view-kanban" onclick="switchDataView('kanban')" class="px-4 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 rounded-md w-1/2 sm:w-auto transition">🗂️ บอร์ด</button>
                         </div>
-                        
                         <input type="text" id="searchInput" oninput="applyTableSearch()" placeholder="🔍 ค้นหา ID, หลักสูตร, สถานที่..." class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-yellow-500 focus:border-yellow-500 w-full sm:w-64">
                     </div>
                 </div>
 
-                <!-- มุมมองแบบตาราง (Table View) -->
                 <div id="view-section-table" class="w-full">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
@@ -276,7 +262,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- Pagination สำหรับ Table -->
                     <div class="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50 text-sm">
                         <div id="table-pagination-info" class="text-gray-600">กำลังคำนวณข้อมูล...</div>
                         <div class="flex space-x-2 mt-3 sm:mt-0 no-print">
@@ -287,43 +272,29 @@
                     </div>
                 </div>
 
-                <!-- มุมมองแบบบอร์ด (Kanban View) -->
                 <div id="view-section-kanban" class="w-full hidden p-4 bg-gray-100 overflow-x-auto print:hidden">
                     <div class="flex gap-4 min-w-[900px]">
-                        
-                        <!-- Column 1: รอดำเนินการ / กำลังดำเนินงาน -->
                         <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
                             <div class="p-3 bg-orange-100 border-b border-orange-200 rounded-t-xl flex justify-between items-center">
                                 <h4 class="font-bold text-orange-800 flex items-center gap-1">⏳ กำลังดำเนินงาน</h4>
                                 <span id="kanban-count-prog" class="bg-orange-200 text-orange-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-col-prog" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]">
-                                <!-- Cards Go Here -->
-                            </div>
+                            <div id="kanban-col-prog" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]"></div>
                         </div>
-
-                        <!-- Column 2: เสร็จสิ้น -->
                         <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
                             <div class="p-3 bg-emerald-100 border-b border-emerald-200 rounded-t-xl flex justify-between items-center">
                                 <h4 class="font-bold text-emerald-800 flex items-center gap-1">✅ ดำเนินการเสร็จสิ้น</h4>
                                 <span id="kanban-count-done" class="bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-col-done" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]">
-                                <!-- Cards Go Here -->
-                            </div>
+                            <div id="kanban-col-done" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]"></div>
                         </div>
-
-                        <!-- Column 3: ยกเลิก -->
                         <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
                             <div class="p-3 bg-red-100 border-b border-red-200 rounded-t-xl flex justify-between items-center">
                                 <h4 class="font-bold text-red-800 flex items-center gap-1">❌ ยกเลิกรายการ</h4>
                                 <span id="kanban-count-cancel" class="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
                             </div>
-                            <div id="kanban-col-cancel" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]">
-                                <!-- Cards Go Here -->
-                            </div>
+                            <div id="kanban-col-cancel" class="p-3 flex-1 flex flex-col gap-3 overflow-y-auto max-h-[600px]"></div>
                         </div>
-
                     </div>
                     <p class="text-center text-xs text-gray-400 mt-4">* มุมมองบอร์ดนี้จะแสดงข้อมูลทั้งหมดที่ตรงกับเงื่อนไขการค้นหา (ไม่แบ่งหน้า)</p>
                 </div>
@@ -389,9 +360,7 @@
                         </button>
                     </div>
                 </div>
-                <div id="interactive-table-content" class="p-0">
-                    <!-- ตารางจะถูกเรนเดอร์ผ่าน JS -->
-                </div>
+                <div id="interactive-table-content" class="p-0"></div>
             </div>
 
         </section>
@@ -405,9 +374,24 @@
                 </div>
                 
                 <div id="section-single">
-                    <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">ข้อมูลใหม่</span>
-                    <form id="projectForm" class="space-y-6">
+                    
+                    <!-- 🌟 โซนลากวางไฟล์ PDF (Smart Evidence Upload) -->
+                    <div id="pdf-drop-area" class="mb-6 bg-blue-50 drag-area p-6 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer border-2 border-dashed border-blue-300 transition-all hover:bg-blue-100 relative overflow-hidden">
+                        <div class="text-3xl mb-2">📄</div>
+                        <h3 class="font-bold text-blue-900 mb-1">ลากไฟล์ PDF ประกาศอนุมัติมาวางที่นี่</h3>
+                        <p class="text-xs text-blue-600 mb-3">หรือคลิกเพื่อเลือกไฟล์ (ระบบจะอ่านเอกสารและกรอกข้อมูลฟอร์มให้อัตโนมัติ)</p>
+                        <input type="file" id="pdfFileInput" accept=".pdf" class="hidden">
+                        <button type="button" onclick="document.getElementById('pdfFileInput').click()" class="bg-white border border-blue-300 text-blue-700 px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-50 transition">
+                            เลือกไฟล์ PDF
+                        </button>
                         
+                        <!-- 🌟 สถานะการอ่าน PDF (Inline Preview Badge) -->
+                        <div id="pdf-status-banner" class="hidden w-full mt-4 p-3 rounded-lg text-sm text-left flex items-start gap-2 border"></div>
+                    </div>
+
+                    <span id="formStatusBadge" class="absolute top-8 right-8 bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full hidden">ข้อมูลใหม่</span>
+                    
+                    <form id="projectForm" class="space-y-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">รหัส ID โครงการ <span class="text-red-500">*</span> <span class="text-xs text-gray-500 font-normal">(กรอกตัวเลข 5 หลักหลังเครื่องหมาย /)</span></label>
                             <div class="flex shadow-sm rounded-lg">
@@ -507,7 +491,7 @@
                             📥 โหลดไฟล์ Template
                         </button>
                     </div>
-                    <div id="drop-area" class="drag-area p-8 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer">
+                    <div id="batch-drop-area" class="drag-area p-8 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer border-2 border-dashed border-blue-300">
                         <div class="text-4xl mb-3 opacity-60">📊</div>
                         <h3 class="font-bold text-gray-700 mb-1">คลิกที่นี่เพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวาง</h3>
                         <p class="text-xs text-gray-500 mb-4">รองรับเฉพาะไฟล์นามสกุล .xlsx เท่านั้น</p>
@@ -548,6 +532,9 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSRqOD8z-ulipSSZUJb6DDl01W8lduHA0ugvhr3yiE8_lVQEFylIzaR8uHl6r7-VkzUA/exec';
 
+        // 🌟 ตั้งค่า PDF.js Worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
         let globalData = [];         
         let currentFilteredData = []; 
         let finalDataForTable = []; 
@@ -556,9 +543,8 @@
         let currentPage = 1;
         const itemsPerPage = 10; 
         
-        // 🌟 ตัวแปรเก็บสถานะการ Filter จากกราฟ
         let activeChartFilter = { type: null, label: null };
-        let currentDataView = 'table'; // สเตตัสมุมมองปัจจุบัน 'table' หรือ 'kanban'
+        let currentDataView = 'table'; 
 
         let opChartInstance = null;
         let payChartInstance = null;
@@ -569,7 +555,18 @@
         let isAdminActive = false;
         const ADMIN_PIN = "123456";
 
+        let uploadedPdfBase64 = null;
+        let uploadedPdfName = null;
+
         Chart.register(ChartDataLabels);
+
+        // 🌟 Helper Function: จัดการกฎแปลคำว่า "ทั่วไป" เป็น "ไม่ระบุ"
+        function sanitizeGeneralWord(val) {
+            if (typeof val === 'string' && val.trim() === 'ทั่วไป') {
+                return 'ไม่ระบุ';
+            }
+            return val;
+        }
 
         const centerTextPlugin = {
             id: 'centerText',
@@ -625,12 +622,9 @@
             if (input === ADMIN_PIN) {
                 isAdminActive = true;
                 closePinModal();
-                
                 document.getElementById('btn-admin-login').classList.add('hidden');
                 document.getElementById('btn-admin-logout').classList.remove('hidden');
-                
                 document.getElementById('btn-form').classList.remove('hidden');
-                
             } else {
                 errorMsg.classList.remove('hidden');
                 document.getElementById('adminPinInput').value = '';
@@ -642,10 +636,8 @@
             isAdminActive = false;
             document.getElementById('btn-admin-logout').classList.add('hidden');
             document.getElementById('btn-admin-login').classList.remove('hidden');
-            
             const btnForm = document.getElementById('btn-form');
             btnForm.classList.add('hidden');
-            
             const formSection = document.getElementById('tab-form');
             if (!formSection.classList.contains('hidden')) {
                 switchTab('dashboard');
@@ -653,9 +645,7 @@
         }
 
         document.getElementById('adminPinInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                verifyPin();
-            }
+            if (e.key === 'Enter') verifyPin();
         });
 
         function switchTab(tabName) {
@@ -664,26 +654,18 @@
                 const btn = document.getElementById(`btn-${t}`);
                 if (btn) {
                     btn.className = "px-4 py-2 rounded-md font-medium text-sm text-white hover:text-yellow-400 transition";
-                    if (t === 'form' && !isAdminActive) {
-                        btn.classList.add('hidden');
-                    }
+                    if (t === 'form' && !isAdminActive) btn.classList.add('hidden');
                 }
             });
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`btn-${tabName}`);
             if (activeBtn) {
                 activeBtn.className = "px-4 py-2 rounded-md font-bold text-sm bg-yellow-500 text-blue-900 shadow transition";
-                if (tabName === 'form' && !isAdminActive) {
-                    activeBtn.classList.add('hidden');
-                }
+                if (tabName === 'form' && !isAdminActive) activeBtn.classList.add('hidden');
             }
-            
-            if(tabName === 'dashboard' || tabName === 'analytics') {
-                loadData();
-            }
+            if(tabName === 'dashboard' || tabName === 'analytics') loadData();
         }
 
-        // 🌟 ฟังก์ชันสลับมุมมอง Table / Kanban
         function switchDataView(viewMode) {
             currentDataView = viewMode;
             const btnTable = document.getElementById('btn-view-table');
@@ -702,7 +684,6 @@
                 secTable.classList.add('hidden');
                 secKanban.classList.remove('hidden');
             }
-            // เมื่อสลับมุมมอง ให้ Render ข้อมูลใหม่ทันที
             renderPaginatedView();
         }
 
@@ -829,20 +810,12 @@
             input.addEventListener('input', function(e) {
                 let cursorPosition = this.selectionStart;
                 let oldLength = this.value.length;
-                
                 this.value = formatNumberInput(this.value);
-                
                 let newLength = this.value.length;
                 this.setSelectionRange(cursorPosition + (newLength - oldLength), cursorPosition + (newLength - oldLength));
             });
-
-            input.addEventListener('blur', function() {
-                if(this.value === '') this.value = '0';
-            });
-            
-            input.addEventListener('focus', function() {
-                if(this.value === '0') this.value = '';
-            });
+            input.addEventListener('blur', function() { if(this.value === '') this.value = '0'; });
+            input.addEventListener('focus', function() { if(this.value === '0') this.value = ''; });
         });
 
         const idPrefix = "NSDF-69-01/";
@@ -860,6 +833,14 @@
 
             submitBtn.innerText = 'บันทึกโครงการใหม่';
             submitBtn.className = "w-full bg-blue-900 hover:bg-yellow-500 hover:text-blue-900 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
+            
+            uploadedPdfBase64 = null;
+            uploadedPdfName = null;
+            document.getElementById('pdf-status-banner').classList.add('hidden');
+            document.querySelectorAll('.border-green-500').forEach(el => {
+                el.classList.remove('border-green-500', 'bg-green-50', 'ring-2', 'ring-green-200');
+                el.classList.add('border-gray-300');
+            });
         }
 
         idInputEl.addEventListener('input', function() {
@@ -887,10 +868,15 @@
                         document.getElementById('startDate').value = existingData.Start_Date || '';
                         document.getElementById('endDate').value = existingData.End_Date || '';
                         
-                        document.getElementById('targetPeople').value = formatNumberInput(String(existingData.Target_People || 0));
-                        document.getElementById('passedPeople').value = formatNumberInput(String(existingData.Passed_People || 0));
-                        document.getElementById('approvedBudget').value = formatNumberInput(String(existingData.Approved_Budget || 0));
-                        document.getElementById('usedBudget').value = formatNumberInput(String(existingData.Used_Budget || 0));
+                        const targetIn = document.getElementById('targetPeople');
+                        const passIn = document.getElementById('passedPeople');
+                        const appIn = document.getElementById('approvedBudget');
+                        const useIn = document.getElementById('usedBudget');
+                        
+                        if(!targetIn.classList.contains('border-green-500')) targetIn.value = formatNumberInput(String(existingData.Target_People || 0));
+                        if(!passIn.classList.contains('border-green-500')) passIn.value = formatNumberInput(String(existingData.Passed_People || 0));
+                        if(!appIn.classList.contains('border-green-500')) appIn.value = formatNumberInput(String(existingData.Approved_Budget || 0));
+                        if(!useIn.classList.contains('border-green-500')) useIn.value = formatNumberInput(String(existingData.Used_Budget || 0));
                         
                         document.getElementById('operationStatus').value = existingData.Operation_Status || 'อยู่ระหว่างการดำเนินงาน';
                         document.getElementById('paymentStatus').value = existingData.Payment_Status || 'อยู่ระหว่างการเบิกจ่าย';
@@ -904,19 +890,176 @@
                         submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-md";
                     }, 100);
                 } else {
-                    resetFormToNewMode();
+                    const isPdfFilled = document.querySelector('.border-green-500');
+                    if(!isPdfFilled) resetFormToNewMode();
                 }
             } else {
-                resetFormToNewMode();
+                const isPdfFilled = document.querySelector('.border-green-500');
+                if(!isPdfFilled) resetFormToNewMode();
             }
         });
+
+        const pdfDropArea = document.getElementById('pdf-drop-area');
+        const pdfFileInput = document.getElementById('pdfFileInput');
+        const pdfStatusBanner = document.getElementById('pdf-status-banner');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            pdfDropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            pdfDropArea.addEventListener(eventName, () => pdfDropArea.classList.add('border-blue-500', 'bg-blue-100'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            pdfDropArea.addEventListener(eventName, () => pdfDropArea.classList.remove('border-blue-500', 'bg-blue-100'), false);
+        });
+
+        pdfDropArea.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handlePdfFiles(files);
+        }, false);
+        
+        pdfFileInput.addEventListener('change', (e) => handlePdfFiles(e.target.files), false);
+
+        function handlePdfFiles(files) {
+            if (files.length === 0) return;
+            const file = files[0];
+            if (file.type !== "application/pdf") {
+                showPdfStatus("error", "ระบบรองรับเฉพาะไฟล์เอกสารนามสกุล .pdf เท่านั้น");
+                return;
+            }
+            
+            showPdfStatus("loading", `กำลังใช้ AI สกัดข้อมูลจากไฟล์ ${file.name}...`);
+            
+            const base64Reader = new FileReader();
+            base64Reader.onload = function() {
+                uploadedPdfBase64 = this.result.split(',')[1];
+                uploadedPdfName = file.name;
+            };
+            base64Reader.readAsDataURL(file);
+
+            const fileReader = new FileReader();
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                extractTextFromPDF(typedarray, file.name);
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        function showPdfStatus(type, message) {
+            pdfStatusBanner.classList.remove('hidden', 'bg-green-50', 'border-green-200', 'text-green-800', 'bg-red-50', 'border-red-200', 'text-red-800', 'bg-yellow-50', 'border-yellow-200', 'text-yellow-800', 'bg-blue-50', 'border-blue-200', 'text-blue-800');
+            let icon = '';
+            if (type === 'loading') {
+                pdfStatusBanner.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-800');
+                icon = '⏳';
+            } else if (type === 'success') {
+                pdfStatusBanner.classList.add('bg-green-50', 'border-green-200', 'text-green-800');
+                icon = '✅';
+            } else if (type === 'error') {
+                pdfStatusBanner.classList.add('bg-red-50', 'border-red-200', 'text-red-800');
+                icon = '🚨';
+            } else if (type === 'warning') {
+                pdfStatusBanner.classList.add('bg-yellow-50', 'border-yellow-200', 'text-yellow-800');
+                icon = '⚠️';
+            }
+            pdfStatusBanner.innerHTML = `<span class="text-xl">${icon}</span> <div class="font-medium flex-1">${message}</div>`;
+        }
+
+        async function extractTextFromPDF(typedarray, fileName) {
+            try {
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(" ");
+                    fullText += pageText + " ";
+                }
+                
+                const idMatch = fullText.match(/NSDF-69-01\/(\d{5})/);
+                const approvedMatch = fullText.match(/รวมงบประมาณที่อนุมัติ\s*([0-9.,]+)/);
+                const usedMatch = fullText.match(/รวมงบประมาณใช้จริงทั้งหมด\s*([0-9.,]+)/);
+                const remainingMatch = fullText.match(/รวมงบประมาณคงเหลือคืนกองทุนทั้งหมด\s*([0-9.,]+)/);
+                
+                let extractedData = {
+                    id: idMatch ? idMatch[1] : null,
+                    approved: approvedMatch ? parseFloat(approvedMatch[1].replace(/,/g, '')) : null,
+                    used: usedMatch ? parseFloat(usedMatch[1].replace(/,/g, '')) : null,
+                    remaining: remainingMatch ? parseFloat(remainingMatch[1].replace(/,/g, '')) : null
+                };
+
+                applyPdfDataToForm(extractedData, fileName);
+            } catch (error) {
+                console.error(error);
+                showPdfStatus("error", "เกิดข้อผิดพลาดในการอ่านไฟล์ PDF อาจเป็นไฟล์รูปภาพสแกนที่ไม่สามารถแกะตัวอักษรได้");
+            }
+        }
+
+        function highlightAutoFill(element) {
+            element.classList.remove('border-gray-300');
+            element.classList.add('border-green-500', 'bg-green-50', 'ring-2', 'ring-green-200');
+            setTimeout(() => {
+                element.classList.remove('ring-2', 'ring-green-200');
+            }, 2000);
+        }
+
+        function applyPdfDataToForm(data, fileName) {
+            let successCount = 0;
+            
+            if (data.id) {
+                const idInput = document.getElementById('projectIdInput');
+                idInput.value = data.id;
+                highlightAutoFill(idInput);
+                idInput.dispatchEvent(new Event('input')); 
+                successCount++;
+            }
+
+            setTimeout(() => {
+                if (data.approved !== null) {
+                    const appInput = document.getElementById('approvedBudget');
+                    appInput.value = formatNumberInput(String(data.approved));
+                    highlightAutoFill(appInput);
+                    successCount++;
+                }
+                if (data.used !== null) {
+                    const usedInput = document.getElementById('usedBudget');
+                    usedInput.value = formatNumberInput(String(data.used));
+                    highlightAutoFill(usedInput);
+                    successCount++;
+                }
+                
+                if (data.approved !== null && data.used !== null && data.remaining !== null) {
+                    let calcRemaining = data.approved - data.used;
+                    if (Math.abs(calcRemaining - data.remaining) < 0.01) {
+                        showPdfStatus("success", `<b>อ่านข้อมูลสำเร็จ:</b> ดึงข้อมูลจากไฟล์ <i>${fileName}</i> เรียบร้อย และตัวเลขบัญชีสมดุลกัน (สามารถกดบันทึกได้เลย)`);
+                    } else {
+                        showPdfStatus("warning", `<b>ตรวจสอบข้อมูล:</b> ดึงข้อมูลสำเร็จ แต่พบตัวเลขบัญชีไม่สมดุล (ยอดอนุมัติ ${data.approved.toLocaleString()} - ยอดใช้จริง ${data.used.toLocaleString()} = คงเหลือ ${calcRemaining.toLocaleString()} แต่เอกสารระบุ ${data.remaining.toLocaleString()}) กรุณาตรวจสอบและแก้ไขตัวเลขในช่องด้านล่างก่อนบันทึก`);
+                    }
+                } else if (successCount > 0) {
+                    showPdfStatus("success", `<b>อ่านข้อมูลสำเร็จ:</b> ดึงข้อมูลบางส่วนจากไฟล์ <i>${fileName}</i> เรียบร้อย กรุณากรอกข้อมูลส่วนที่เหลือ`);
+                } else {
+                    showPdfStatus("error", `<b>ไม่พบข้อมูลที่ต้องการ:</b> ระบบไม่พบรหัสโครงการหรืองบประมาณตามรูปแบบ กกท. ในไฟล์ <i>${fileName}</i> (กรุณากรอกข้อมูลด้วยตนเอง)`);
+                }
+            }, 300);
+        }
 
         async function loadData() {
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
                 if(result.status === 'success') {
-                    globalData = result.data;
+                    globalData = result.data.map(item => {
+                        item.Main_Category = sanitizeGeneralWord(item.Main_Category);
+                        item.Sub_Category = sanitizeGeneralWord(item.Sub_Category);
+                        item.Project_Activity = sanitizeGeneralWord(item.Project_Activity);
+                        item.Project_Name = sanitizeGeneralWord(item.Project_Name);
+                        item.Location = sanitizeGeneralWord(item.Location);
+                        return item;
+                    });
                     applyGlobalFilter(); 
                     renderAnalytics(globalData); 
                 }
@@ -929,7 +1072,6 @@
             const categoryFilter = document.getElementById('globalFilterCategory').value;
             const dashboardTitle = document.getElementById('dashboard-title');
             
-            // ยกเลิกตัวกรองกราฟอัตโนมัติเมื่อเปลี่ยนหมวดหมู่หลัก
             clearChartFilter(false);
             
             if (categoryFilter === '') {
@@ -942,19 +1084,15 @@
                 currentFilteredData = globalData.filter(item => (item.Main_Category || '').includes('สมาคมกีฬาแห่งประเทศไทย'));
                 dashboardTitle.innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย ประจำปีงบประมาณ พ.ศ. 2569';
             }
-
             updateDashboardCardsAndCharts(currentFilteredData);
             applyTableSearch(); 
         }
 
-        // 🌟 ฟังก์ชันจัดการ Chart Filter
         function handleChartClick(chartType, label) {
             activeChartFilter = { type: chartType, label: label };
             document.getElementById('btnClearChartFilter').classList.remove('hidden');
             document.getElementById('btnClearChartFilter').classList.add('flex');
             applyTableSearch();
-            
-            // เลื่อนจอลงมาที่ตารางอัตโนมัติ
             document.getElementById('view-section-table').parentElement.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -969,25 +1107,18 @@
             const categoryFilter = document.getElementById('globalFilterCategory').value;
             const satSection = document.getElementById('cards-sat-section');
             const assocSection = document.getElementById('cards-assoc-section');
-
-            let satData = [];
-            let assocData = [];
+            let satData = []; let assocData = [];
 
             if (categoryFilter === '') {
                 satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
                 assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
-                satSection.classList.remove('hidden');
-                assocSection.classList.remove('hidden');
+                satSection.classList.remove('hidden'); assocSection.classList.remove('hidden');
             } else if (categoryFilter === 'กกท.') {
-                satData = data;
-                assocData = [];
-                satSection.classList.remove('hidden');
-                assocSection.classList.add('hidden');
+                satData = data; assocData = [];
+                satSection.classList.remove('hidden'); assocSection.classList.add('hidden');
             } else if (categoryFilter === 'สมาคมกีฬา') {
-                satData = [];
-                assocData = data;
-                satSection.classList.add('hidden');
-                assocSection.classList.remove('hidden');
+                satData = []; assocData = data;
+                satSection.classList.add('hidden'); assocSection.classList.remove('hidden');
             }
 
             function updateCardSet(prefix, dataset) {
@@ -1002,25 +1133,18 @@
                 
                 let remainingEl = document.getElementById(`card-${prefix}-remaining`);
                 remainingEl.innerText = totalRemainingBudget.toLocaleString() + ' บาท';
-                if (totalRemainingBudget < 0) {
-                    remainingEl.className = "text-2xl font-bold text-red-600 mt-1"; 
-                } else {
-                    remainingEl.className = "text-2xl font-bold text-blue-600 mt-1";
-                }
-
+                if (totalRemainingBudget < 0) remainingEl.className = "text-2xl font-bold text-red-600 mt-1"; 
+                else remainingEl.className = "text-2xl font-bold text-blue-600 mt-1";
                 document.getElementById(`card-${prefix}-participants`).innerHTML = `${totalPassed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${totalTarget.toLocaleString()} คน</span>`;
             }
 
             updateCardSet('sat', satData);
             updateCardSet('assoc', assocData);
-
             renderCharts(data);
         }
 
         function applyTableSearch() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            
-            // 🌟 กรองข้อมูลตาม Keyword และ Chart Filter ควบคู่กัน
             finalDataForTable = currentFilteredData.filter(item => {
                 const id = String(item.ID || '').toLowerCase();
                 const mainCat = String(item.Main_Category || '').toLowerCase();
@@ -1033,7 +1157,6 @@
                 
                 let matchChart = true;
                 if (activeChartFilter.type === 'operation') {
-                    // Normalize Label: กราฟโชว์คำย่อ แต่ข้อมูลเต็ม
                     let searchLabel = activeChartFilter.label;
                     if (searchLabel === 'เสร็จสิ้นแล้ว') searchLabel = 'ดำเนินการเสร็จสิ้นแล้ว';
                     else if (searchLabel === 'อยู่ระหว่างดำเนินการ') searchLabel = 'อยู่ระหว่างการดำเนินงาน';
@@ -1043,10 +1166,8 @@
                     if (searchLabel === 'อยู่ระหว่างเบิกจ่าย') searchLabel = 'อยู่ระหว่างการเบิกจ่าย';
                     matchChart = (item.Payment_Status === searchLabel);
                 }
-
                 return matchKeyword && matchChart;
             });
-
             currentPage = 1;
             renderPaginatedView();
         }
@@ -1054,35 +1175,25 @@
         function renderPaginatedView() {
             const totalItems = finalDataForTable.length;
             const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-            
             if (currentPage > totalPages) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
 
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
-            
             const pagedData = finalDataForTable.slice(startIndex, endIndex);
 
-            // Timeline อิงตามข้อมูล Pagination
             renderTimeline(pagedData);
             
-            if (currentDataView === 'table') {
-                renderTable(pagedData);
-            } else {
-                // 🌟 Kanban ให้แสดงผลตาม Filter แบบเต็มจำนวน ไม่ต้องรอ Pagination เพื่อ UX ที่ดี
-                renderKanban(finalDataForTable);
-            }
+            if (currentDataView === 'table') renderTable(pagedData);
+            else renderKanban(finalDataForTable);
 
             renderPaginationControls(totalItems, totalPages, startIndex, pagedData.length);
         }
 
-        // 🌟 สร้างฟังก์ชันวาด Kanban Board
         function renderKanban(data) {
             const colProg = document.getElementById('kanban-col-prog');
             const colDone = document.getElementById('kanban-col-done');
             const colCancel = document.getElementById('kanban-col-cancel');
-
-            // Reset Board
             colProg.innerHTML = ''; colDone.innerHTML = ''; colCancel.innerHTML = '';
             let countProg = 0, countDone = 0, countCancel = 0;
 
@@ -1096,19 +1207,17 @@
             }
 
             data.forEach(item => {
-                let status = item.Operation_Status;
+                let status = item.Operation_Status || '';
                 let amt = Number(item.Approved_Budget || 0);
-                let title = item.Sub_Category;
-                if ((item.Main_Category || '').includes('การกีฬา')) title = item.Sub_Category;
-                
+                let title = item.Sub_Category || 'ไม่ระบุ';
+                if ((item.Main_Category || '').includes('การกีฬา')) title = item.Sub_Category || 'ไม่ระบุ';
                 let activity = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
 
-                // สร้าง Card HTML
                 let cardHtml = `
                     <div class="kanban-card bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-2">
                         <div class="flex justify-between items-start">
-                            <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">${item.ID}</span>
-                            <span class="text-[10px] text-gray-400">${item.Start_Date !== '-' ? item.Start_Date : 'ไม่ระบุวัน'}</span>
+                            <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">${item.ID || ''}</span>
+                            <span class="text-[10px] text-gray-400">${item.Start_Date && item.Start_Date !== '-' ? item.Start_Date : 'ไม่ระบุวัน'}</span>
                         </div>
                         <div>
                             <div class="font-bold text-sm text-gray-800 line-clamp-2" title="${title}">${title}</div>
@@ -1121,19 +1230,11 @@
                     </div>
                 `;
 
-                if (status === 'ดำเนินการเสร็จสิ้นแล้ว') {
-                    colDone.innerHTML += cardHtml;
-                    countDone++;
-                } else if (status === 'ยกเลิกรายการ') {
-                    colCancel.innerHTML += cardHtml;
-                    countCancel++;
-                } else {
-                    colProg.innerHTML += cardHtml;
-                    countProg++;
-                }
+                if (status === 'ดำเนินการเสร็จสิ้นแล้ว') { colDone.innerHTML += cardHtml; countDone++; } 
+                else if (status === 'ยกเลิกรายการ') { colCancel.innerHTML += cardHtml; countCancel++; } 
+                else { colProg.innerHTML += cardHtml; countProg++; }
             });
 
-            // Update Counts
             document.getElementById('kanban-count-prog').innerText = countProg;
             document.getElementById('kanban-count-done').innerText = countDone;
             document.getElementById('kanban-count-cancel').innerText = countCancel;
@@ -1145,11 +1246,8 @@
         }
 
         function renderPaginationControls(total, totalPages, startIndex, pageItemCount) {
-            const textInfo = total === 0 
-                ? `แสดงรายการที่ 0 - 0 จากทั้งหมด 0 โครงการ` 
-                : `แสดงรายการที่ ${startIndex + 1} - ${startIndex + pageItemCount} จากทั้งหมด ${total} โครงการ`;
+            const textInfo = total === 0 ? `แสดงรายการที่ 0 - 0 จากทั้งหมด 0 โครงการ` : `แสดงรายการที่ ${startIndex + 1} - ${startIndex + pageItemCount} จากทั้งหมด ${total} โครงการ`;
             const textPage = `หน้า ${currentPage}/${totalPages}`;
-            
             const isPrevDisabled = currentPage === 1;
             const isNextDisabled = currentPage === totalPages || total === 0;
 
@@ -1157,7 +1255,6 @@
             document.getElementById('timeline-page-num').innerText = textPage;
             document.getElementById('btn-prev-timeline').disabled = isPrevDisabled;
             document.getElementById('btn-next-timeline').disabled = isNextDisabled;
-
             document.getElementById('table-pagination-info').innerText = textInfo;
             document.getElementById('table-page-num').innerText = textPage;
             document.getElementById('btn-prev-table').disabled = isPrevDisabled;
@@ -1167,15 +1264,12 @@
         function renderTimeline(data) {
             const tbody = document.getElementById('timelineBody');
             let html = '';
-
             const validData = data.filter(item => item.Start_Date && item.End_Date && item.Start_Date !== '-' && item.End_Date !== '-');
 
             if(data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`; return;
             } else if (validData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">โครงการในหน้านี้ยังไม่มีการระบุวันที่ดำเนินงาน</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">โครงการในหน้านี้ยังไม่มีการระบุวันที่ดำเนินงาน</td></tr>`; return;
             }
 
             validData.forEach(item => {
@@ -1183,8 +1277,7 @@
                 let end = new Date(item.End_Date);
                 let startMonth = start.getMonth(); 
                 let endMonth = end.getMonth();
-
-                let name = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : item.Sub_Category;
+                let name = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Sub_Category || 'ไม่ระบุ');
                 if(item.Project_Name && item.Project_Name !== '-') name += ` (${item.Project_Name})`;
 
                 let barClass = 'gantt-bar';
@@ -1208,7 +1301,6 @@
                 }
                 html += `</tr>`;
             });
-
             tbody.innerHTML = html;
         }
 
@@ -1225,8 +1317,7 @@
             const tbody = document.getElementById('dataTableBody');
             if(data.length === 0) {
                 const colSpan = showActivityCol ? 9 : 8;
-                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="${colSpan}" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`; return;
             }
             tbody.innerHTML = data.map(item => {
                 let approved = Number(item.Approved_Budget || 0);
@@ -1253,9 +1344,11 @@
                     </td>`;
                 }
 
+                let fileIcon = item.Evidence_File ? `<a href="${item.Evidence_File}" target="_blank" class="text-blue-500 hover:text-blue-700 ml-1" title="ดูเอกสารแนบ">📄</a>` : '';
+
                 return `
                 <tr class="hover:bg-blue-50/50 border-gray-100 transition">
-                    <td class="p-3 border-b font-mono text-xs font-semibold text-blue-700">${item.ID || ''}</td>
+                    <td class="p-3 border-b font-mono text-xs font-semibold text-blue-700">${item.ID || ''} ${fileIcon}</td>
                     <td class="p-3 border-b">
                         <div class="font-medium text-gray-800">${item.Sub_Category || ''}</div>
                         <div class="text-xs text-gray-400">${item.Main_Category || ''}</div>
@@ -1276,8 +1369,8 @@
                         <div class="text-orange-500 font-semibold text-sm border-t border-gray-200 pt-1">ใช้ไป: ${used.toLocaleString()}</div>
                         <div class="${remainingColor} font-bold text-sm border-t border-gray-200 pt-1 mt-1">คงเหลือ: ${remaining.toLocaleString()}</div>
                     </td>
-                    <td class="p-3 border-b text-center"><span class="px-2 py-1 text-xs rounded-full ${opStatusClass}">${item.Operation_Status}</span></td>
-                    <td class="p-3 border-b text-center"><span class="px-2 py-1 text-xs rounded-full ${payStatusClass}">${item.Payment_Status}</span></td>
+                    <td class="p-3 border-b text-center"><span class="px-2 py-1 text-xs rounded-full ${opStatusClass}">${item.Operation_Status || '-'}</span></td>
+                    <td class="p-3 border-b text-center"><span class="px-2 py-1 text-xs rounded-full ${payStatusClass}">${item.Payment_Status || '-'}</span></td>
                 </tr>
                 `;
             }).join('');
@@ -1296,7 +1389,6 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 cutout: '65%', 
-                // 🌟 เพิ่มคำสั่ง onClick ให้คลิกแล้ว Filter
                 onClick: (event, elements, chart) => {
                     if (elements.length > 0) {
                         const dataIndex = elements[0].index;
@@ -1316,8 +1408,7 @@
                         formatter: (value, context) => {
                             if (value === 0) return null; 
                             let total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                            let percentage = Math.round((value / total) * 100) + '%';
-                            return percentage;
+                            return Math.round((value / total) * 100) + '%';
                         }
                     }
                 }
@@ -1331,8 +1422,7 @@
                     labels: ['อยู่ระหว่างดำเนินการ', 'เสร็จสิ้นแล้ว', 'ยกเลิกรายการ'],
                     datasets: [{ data: [opProg, opDone, opCancel], backgroundColor: ['#f59e0b', '#10b981', '#ef4444'], borderWidth: 2, hoverOffset: 4 }]
                 },
-                options: doughnutOptions,
-                plugins: [centerTextPlugin] 
+                options: doughnutOptions, plugins: [centerTextPlugin] 
             });
 
             if(payChartInstance) payChartInstance.destroy();
@@ -1343,16 +1433,14 @@
                     labels: ['อยู่ระหว่างเบิกจ่าย', 'เบิกจ่ายเรียบร้อย', 'ส่งเงินคืนกองทุนฯ'],
                     datasets: [{ data: [payProg, payDone, payReturn], backgroundColor: ['#f59e0b', '#10b981', '#8b5cf6'], borderWidth: 2, hoverOffset: 4 }]
                 },
-                options: doughnutOptions,
-                plugins: [centerTextPlugin] 
+                options: doughnutOptions, plugins: [centerTextPlugin] 
             });
         }
 
         function renderInteractiveTable(assocData, filterType) {
             const container = document.getElementById('interactive-table-content');
             if (!assocData || assocData.length === 0) {
-                 container.innerHTML = `<div class="p-6 bg-gray-50 text-gray-500 text-center">ไม่มีข้อมูลสมาคมกีฬาในระบบขณะนี้</div>`;
-                 return;
+                 container.innerHTML = `<div class="p-6 bg-gray-50 text-gray-500 text-center">ไม่มีข้อมูลสมาคมกีฬาในระบบขณะนี้</div>`; return;
             }
 
             let filteredList = [];
@@ -1361,8 +1449,7 @@
             
             if (filterType === 'cancel') {
                 filteredList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
-                valueLabel = "ยอดเงินต้องส่งคืน (บาท)";
-                amountColor = "text-purple-600";
+                valueLabel = "ยอดเงินต้องส่งคืน (บาท)"; amountColor = "text-purple-600";
             } else if (filterType === 'done') {
                 filteredList = assocData.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว');
                 amountColor = "text-green-600";
@@ -1375,13 +1462,11 @@
             }
 
             if (filteredList.length === 0) {
-                 container.innerHTML = `<div class="p-6 bg-blue-50 text-blue-700 text-center flex items-center justify-center gap-2"><span class="text-xl">✨</span> <span class="font-medium">ไม่พบข้อมูลโครงการในสถานะนี้</span></div>`;
-                 return;
+                 container.innerHTML = `<div class="p-6 bg-blue-50 text-blue-700 text-center flex items-center justify-center gap-2"><span class="text-xl">✨</span> <span class="font-medium">ไม่พบข้อมูลโครงการในสถานะนี้</span></div>`; return;
             }
 
             let uniqueAssoc = new Set();
             let totalBudget = 0;
-
             let listHtml = `
             <div class="overflow-x-auto max-h-[400px]">
                 <table class="w-full text-left text-sm border-collapse relative">
@@ -1396,11 +1481,8 @@
                     <tbody class="divide-y divide-gray-100">`;
             
             filteredList.forEach(item => {
-                let amt = Number(item.Approved_Budget || 0);
-                totalBudget += amt;
-                let assocName = item.Sub_Category || '-';
-                uniqueAssoc.add(assocName);
-                
+                let amt = Number(item.Approved_Budget || 0); totalBudget += amt;
+                let assocName = item.Sub_Category || '-'; uniqueAssoc.add(assocName);
                 let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
                 listHtml += `
                     <tr class="hover:bg-blue-50/50 transition">
@@ -1410,14 +1492,11 @@
                         <td class="p-3 text-right font-bold ${amountColor}">${amt.toLocaleString()}</td>
                     </tr>`;
             });
-            
             listHtml += `
                     </tbody>
                     <tfoot class="bg-gray-50 border-t-2 border-gray-200 sticky bottom-0">
                         <tr>
-                            <td colspan="3" class="p-4 text-right font-medium text-gray-700">
-                                สรุป: <span class="font-bold text-blue-700">${uniqueAssoc.size}</span> สมาคม | <span class="font-bold text-blue-700">${filteredList.length}</span> โครงการ | ยอดเงินรวม:
-                            </td>
+                            <td colspan="3" class="p-4 text-right font-medium text-gray-700">สรุป: <span class="font-bold text-blue-700">${uniqueAssoc.size}</span> สมาคม | <span class="font-bold text-blue-700">${filteredList.length}</span> โครงการ | ยอดเงินรวม:</td>
                             <td class="p-4 text-right font-bold ${amountColor} text-lg">${totalBudget.toLocaleString()} บาท</td>
                         </tr>
                     </tfoot>
@@ -1435,102 +1514,60 @@
             const filterElement = document.getElementById('interactiveTableFilter');
             const filterType = filterElement.value;
             const filterText = filterElement.options[filterElement.selectedIndex].text.replace(/[\uD83C-\uDBFF\uDC00-\uDFFF]+/g, '').trim(); 
-            
             const assocData = window.currentAssocDataForTable;
-            if (!assocData || assocData.length === 0) {
-                alert("ไม่มีข้อมูลให้ Export");
-                return;
-            }
-
-            let filteredList = [];
-            let valueLabel = "งบประมาณอนุมัติ (บาท)";
             
-            if (filterType === 'cancel') {
-                filteredList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ');
-                valueLabel = "ยอดเงินต้องส่งคืน (บาท)";
-            } else if (filterType === 'done') {
-                filteredList = assocData.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว');
-            } else if (filterType === 'op_progress') {
-                filteredList = assocData.filter(i => i.Operation_Status === 'อยู่ระหว่างการดำเนินงาน');
-            } else if (filterType === 'pay_progress') {
-                filteredList = assocData.filter(i => i.Payment_Status === 'อยู่ระหว่างการเบิกจ่าย');
-            }
+            if (!assocData || assocData.length === 0) { alert("ไม่มีข้อมูลให้ Export"); return; }
 
-            if (filteredList.length === 0) {
-                alert("หมวดหมู่นี้ไม่มีข้อมูลให้ Export");
-                return;
-            }
+            let filteredList = []; let valueLabel = "งบประมาณอนุมัติ (บาท)";
+            if (filterType === 'cancel') { filteredList = assocData.filter(i => i.Operation_Status === 'ยกเลิกรายการ'); valueLabel = "ยอดเงินต้องส่งคืน (บาท)"; }
+            else if (filterType === 'done') filteredList = assocData.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว');
+            else if (filterType === 'op_progress') filteredList = assocData.filter(i => i.Operation_Status === 'อยู่ระหว่างการดำเนินงาน');
+            else if (filterType === 'pay_progress') filteredList = assocData.filter(i => i.Payment_Status === 'อยู่ระหว่างการเบิกจ่าย');
 
-            const headers = ["รหัส ID", "สมาคมกีฬา", "กิจกรรม / หลักสูตร", valueLabel];
-            let exportData = [headers];
-            
-            let uniqueAssoc = new Set();
-            let totalBudget = 0;
+            if (filteredList.length === 0) { alert("หมวดหมู่นี้ไม่มีข้อมูลให้ Export"); return; }
+
+            let exportData = [["รหัส ID", "สมาคมกีฬา", "กิจกรรม / หลักสูตร", valueLabel]];
+            let uniqueAssoc = new Set(); let totalBudget = 0;
 
             filteredList.forEach(item => {
-                let amt = Number(item.Approved_Budget || 0);
-                totalBudget += amt;
-                uniqueAssoc.add(item.Sub_Category || '-');
-                
+                let amt = Number(item.Approved_Budget || 0); totalBudget += amt; uniqueAssoc.add(item.Sub_Category || '-');
                 let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
-                exportData.push([
-                    item.ID || '-', 
-                    item.Sub_Category || '-', 
-                    activityName, 
-                    amt 
-                ]);
+                exportData.push([item.ID || '-', item.Sub_Category || '-', activityName, amt]);
             });
-
             exportData.push([]); 
             exportData.push(["สรุป", `รวม ${uniqueAssoc.size} สมาคม`, `รวม ${filteredList.length} โครงการ`, totalBudget]);
 
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(exportData);
-            
+            const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(exportData);
             ws['!cols'] = [{wch: 20}, {wch: 40}, {wch: 30}, {wch: 25}];
-            
             XLSX.utils.book_append_sheet(wb, ws, "รายงานเจาะลึกสมาคม");
             XLSX.writeFile(wb, `${filterText}.xlsx`);
         }
 
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
-
             let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
             let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
             let totalPassed = data.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
 
-            let budgetPercent = totalAppBudget > 0 ? ((totalUsedBudget / totalAppBudget) * 100).toFixed(2) : 0;
-            let passPercent = totalTarget > 0 ? ((totalPassed / totalTarget) * 100).toFixed(2) : 0;
-
-            document.getElementById('analytics-budget-percent').innerText = budgetPercent + '%';
-            document.getElementById('analytics-people-percent').innerText = passPercent + '%';
+            document.getElementById('analytics-budget-percent').innerText = (totalAppBudget > 0 ? ((totalUsedBudget / totalAppBudget) * 100).toFixed(2) : 0) + '%';
+            document.getElementById('analytics-people-percent').innerText = (totalTarget > 0 ? ((totalPassed / totalTarget) * 100).toFixed(2) : 0) + '%';
 
             let satData = data.filter(i => (i.Main_Category || '').includes('การกีฬาแห่งประเทศไทย'));
             let assocData = data.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา'));
 
             window.currentAssocDataForTable = assocData;
             const interactiveBox = document.getElementById('interactive-summary-box');
-            if(assocData.length > 0) {
-                interactiveBox.classList.remove('hidden');
-                renderInteractiveTable(assocData, document.getElementById('interactiveTableFilter').value);
-            } else {
-                interactiveBox.classList.add('hidden');
-            }
+            if(assocData.length > 0) { interactiveBox.classList.remove('hidden'); renderInteractiveTable(assocData, document.getElementById('interactiveTableFilter').value); } 
+            else interactiveBox.classList.add('hidden');
 
             function generateInsightBlock(title, dataset, isAssoc) {
-                if (!dataset || dataset.length === 0) {
-                    return `<div class="mb-4"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-gray-200 pb-2 mb-3">${title}</h4><p class="text-gray-500">ยังไม่มีข้อมูลโครงการ</p></div>`;
-                }
+                if (!dataset || dataset.length === 0) return `<div class="mb-4"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-gray-200 pb-2 mb-3">${title}</h4><p class="text-gray-500">ยังไม่มีข้อมูลโครงการ</p></div>`;
 
                 let appBudget = dataset.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
                 let useBudget = dataset.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
                 let targPeople = dataset.reduce((sum, item) => sum + Number(item.Target_People || 0), 0);
                 let passPeople = dataset.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
-
-                let bgPercent = appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0;
-                let ppPercent = targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0;
 
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length;
                 let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length;
@@ -1540,131 +1577,57 @@
                 let payDoneCount = dataset.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length;
                 let payProgressCount = dataset.length - payDoneCount - payReturnCount;
 
-                let overB = [];
-                let highB = [];
-                let lowB = [];
-                let surpTotal = 0;
-                let retTotal = 0;
+                let overB = []; let highB = []; let lowB = []; let surpTotal = 0; let retTotal = 0;
 
                 dataset.forEach(item => {
-                    let approved = Number(item.Approved_Budget || 0);
-                    let used = Number(item.Used_Budget || 0);
-                    let remaining = approved - used;
-                    let percentUsed = approved > 0 ? (used / approved) * 100 : 0;
-                    let status = item.Operation_Status;
-                    let idName = `<b>${item.ID}</b>`;
+                    let approved = Number(item.Approved_Budget || 0); let used = Number(item.Used_Budget || 0);
+                    let remaining = approved - used; let percentUsed = approved > 0 ? (used / approved) * 100 : 0;
+                    let status = item.Operation_Status; let idName = `<b>${item.ID}</b>`;
 
-                    if (status === 'ยกเลิกรายการ') {
-                        retTotal += approved;
-                    } else {
-                        if (used > approved) {
-                            overB.push(`${idName} (เกินไป ${Math.abs(remaining).toLocaleString()} บาท)`);
-                        }
-                        else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') {
-                            highB.push(`${idName} (ใช้ไป ${percentUsed.toFixed(1)}%)`);
-                        }
-                        else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') {
-                            lowB.push(idName);
-                        }
-                        if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) {
-                            surpTotal += remaining;
-                        }
+                    if (status === 'ยกเลิกรายการ') retTotal += approved;
+                    else {
+                        if (used > approved) overB.push(`${idName} (เกินไป ${Math.abs(remaining).toLocaleString()} บาท)`);
+                        else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') highB.push(`${idName} (ใช้ไป ${percentUsed.toFixed(1)}%)`);
+                        else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') lowB.push(idName);
+                        
+                        if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) surpTotal += remaining;
                     }
                 });
 
-                let html = `<div class="mb-6">`;
-                html += `<h4 class="font-bold text-blue-900 text-lg border-b-2 border-yellow-400 pb-2 mb-3">${title}</h4>`;
-                
-                let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b><br>`;
-                
-                projectText += `<div class="flex flex-col gap-2 mt-2 mb-3">`;
-                
-                projectText += `<span class="text-xs sm:text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-md inline-block border border-gray-200">`;
-                projectText += `<b>📊 สถานะงาน:</b> ⏳ กำลังดำเนินงาน: <b>${inProgressCount}</b> | ✅ เสร็จสิ้น: <b>${completedCount}</b>`;
+                let html = `<div class="mb-6"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-yellow-400 pb-2 mb-3">${title}</h4>`;
+                let projectText = `มีทั้งหมด <b>${dataset.length} โครงการ</b><br><div class="flex flex-col gap-2 mt-2 mb-3"><span class="text-xs sm:text-sm text-gray-700 bg-gray-100 px-3 py-1.5 rounded-md inline-block border border-gray-200"><b>📊 สถานะงาน:</b> ⏳ กำลังดำเนินงาน: <b>${inProgressCount}</b> | ✅ เสร็จสิ้น: <b>${completedCount}</b>`;
                 if (isAssoc) projectText += ` | ❌ ยกเลิก: <b>${cancelledCount}</b>`;
-                projectText += `</span>`;
-                
-                projectText += `<span class="text-xs sm:text-sm text-gray-700 bg-blue-50 px-3 py-1.5 rounded-md inline-block border border-blue-100">`;
-                projectText += `<b>💸 สถานะเงิน:</b> ⏳ กำลังเบิกจ่าย: <b>${payProgressCount}</b> | ✅ เบิกเรียบร้อย: <b>${payDoneCount}</b>`;
+                projectText += `</span><span class="text-xs sm:text-sm text-gray-700 bg-blue-50 px-3 py-1.5 rounded-md inline-block border border-blue-100"><b>💸 สถานะเงิน:</b> ⏳ กำลังเบิกจ่าย: <b>${payProgressCount}</b> | ✅ เบิกเรียบร้อย: <b>${payDoneCount}</b>`;
                 if (isAssoc) projectText += ` | 🔙 ส่งคืนเงิน: <b>${payReturnCount}</b>`;
-                projectText += `</span>`;
+                projectText += `</span></div>`;
 
-                projectText += `</div>`;
-
-                html += `<p class="text-gray-700 mb-3">${projectText}<br>มีการเบิกจ่ายงบประมาณไปแล้ว <b>${bgPercent}%</b> และมีผู้ผ่านการอบรมคิดเป็น <b>${ppPercent}%</b> ของเป้าหมาย</p>`;
+                html += `<p class="text-gray-700 mb-3">${projectText}<br>มีการเบิกจ่ายงบประมาณไปแล้ว <b>${appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0}%</b> และมีผู้ผ่านการอบรมคิดเป็น <b>${targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0}%</b> ของเป้าหมาย</p>`;
                 
                 if (isAssoc) {
-                    let interCount = 0, nationalCount = 0, noneCount = 0;
-                    let interBudget = 0, nationalBudget = 0, noneBudget = 0;
-
+                    let interCount = 0, nationalCount = 0, noneCount = 0, interBudget = 0, nationalBudget = 0, noneBudget = 0;
                     dataset.forEach(item => {
                         let nameToCheck = String(item.Project_Name || '') + " " + String(item.Project_Activity || '');
                         let approved = Number(item.Approved_Budget || 0);
-
-                        if (nameToCheck.includes('นานาชาติ')) {
-                            interCount++;
-                            interBudget += approved;
-                        } else if (nameToCheck.includes('ระดับชาติ')) {
-                            nationalCount++;
-                            nationalBudget += approved;
-                        } else {
-                            noneCount++;
-                            noneBudget += approved;
-                        }
+                        if (nameToCheck.includes('นานาชาติ')) { interCount++; interBudget += approved; } 
+                        else if (nameToCheck.includes('ระดับชาติ')) { nationalCount++; nationalBudget += approved; } 
+                        else { noneCount++; noneBudget += approved; }
                     });
-
-                    html += `<div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4 text-sm text-gray-800 print:break-inside-avoid">`;
-                    html += `<div class="font-bold text-indigo-900 mb-2">🎯 สัดส่วนโครงการจำแนกตามระดับ (วิเคราะห์จากชื่อรายการ)</div>`;
-                    html += `<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">`;
-                    html += `<div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-blue-500">
-                                <div class="text-lg">🌍 ระดับนานาชาติ</div>
-                                <div class="font-bold text-xl text-blue-700">${interCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div>
-                                <div class="text-xs text-gray-500 mt-1">งบอนุมัติรวม: ${interBudget.toLocaleString()} บาท</div>
-                             </div>`;
-                    html += `<div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-red-500">
-                                <div class="text-lg">🇹🇭 ระดับชาติ</div>
-                                <div class="font-bold text-xl text-red-700">${nationalCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div>
-                                <div class="text-xs text-gray-500 mt-1">งบอนุมัติรวม: ${nationalBudget.toLocaleString()} บาท</div>
-                             </div>`;
-                    html += `<div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-gray-400">
-                                <div class="text-lg">📌 ไม่ระบุ</div>
-                                <div class="font-bold text-xl text-gray-700">${noneCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div>
-                                <div class="text-xs text-gray-500 mt-1">งบอนุมัติรวม: ${noneBudget.toLocaleString()} บาท</div>
-                             </div>`;
-                    html += `</div></div>`;
+                    html += `<div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4 text-sm text-gray-800 print:break-inside-avoid"><div class="font-bold text-indigo-900 mb-2">🎯 สัดส่วนโครงการจำแนกตามระดับ (วิเคราะห์จากชื่อรายการ)</div><div class="grid grid-cols-1 sm:grid-cols-3 gap-3"><div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-blue-500"><div class="text-lg">🌍 ระดับนานาชาติ</div><div class="font-bold text-xl text-blue-700">${interCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div><div class="text-xs text-gray-500 mt-1">งบอนุมัติรวม: ${interBudget.toLocaleString()} บาท</div></div><div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-red-500"><div class="text-lg">🇹🇭 ระดับชาติ</div><div class="font-bold text-xl text-red-700">${nationalCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div><div class="text-xs text-gray-500 mt-1">งบอนุมัติรวม: ${nationalBudget.toLocaleString()} บาท</div></div><div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-gray-400"><div class="text-lg">📌 ไม่ระบุ</div><div class="font-bold text-xl text-gray-700">${noneCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div><div class="text-xs text-gray-500 mt-1">งบอนุมัติรวม: ${noneBudget.toLocaleString()} บาท</div></div></div></div>`;
                 }
 
                 html += `<ul class="space-y-2 text-sm text-gray-700 bg-white p-4 rounded-lg border border-blue-50 shadow-sm print:break-inside-avoid">`;
                 let hasAdvice = false;
-
-                if (overB.length > 0) {
-                    html += `<li class="flex items-start gap-2"><span class="text-red-500">🚨</span> <span><b>พบการใช้งบเกิน:</b> ${overB.join(', ')} แนะนำให้ตรวจสอบสาเหตุด่วน</span></li>`;
-                    hasAdvice = true;
-                }
-                if (highB.length > 0) {
-                    html += `<li class="flex items-start gap-2"><span class="text-orange-500">⚠️</span> <span><b>เฝ้าระวังงบใกล้หมด (ใช้ไป >90%):</b> ${highB.join(', ')} ควบคุมค่าใช้จ่ายส่วนที่เหลืออย่างรัดกุม</span></li>`;
-                    hasAdvice = true;
-                }
-                if (lowB.length > 0) {
-                    html += `<li class="flex items-start gap-2"><span class="text-yellow-500">⏱️</span> <span><b>การเบิกจ่ายล่าช้า (ใช้ไป <30%):</b> ${lowB.join(', ')} ติดตามเร่งรัดการดำเนินงานให้เป็นตามแผน</span></li>`;
-                    hasAdvice = true;
-                }
-                if (surpTotal > 0) {
-                    html += `<li class="flex items-start gap-2"><span class="text-green-600">💸</span> <span><b>งบเหลือจ่ายส่งคืน (โครงการเสร็จแล้ว):</b> <b>${surpTotal.toLocaleString()} บาท</b> รวบรวมเอกสารส่งคืนเงินกองทุนฯ</span></li>`;
-                    hasAdvice = true;
-                }
-                if (!hasAdvice) {
-                    html += `<li class="text-green-600 flex items-start gap-2"><span>✨</span> <span>ภาพรวมการบริหารงบประมาณอยู่ในเกณฑ์ปกติ เป็นไปตามแผน</span></li>`;
-                }
-
+                if (overB.length > 0) { html += `<li class="flex items-start gap-2"><span class="text-red-500">🚨</span> <span><b>พบการใช้งบเกิน:</b> ${overB.join(', ')} แนะนำให้ตรวจสอบสาเหตุด่วน</span></li>`; hasAdvice = true; }
+                if (highB.length > 0) { html += `<li class="flex items-start gap-2"><span class="text-orange-500">⚠️</span> <span><b>เฝ้าระวังงบใกล้หมด (ใช้ไป >90%):</b> ${highB.join(', ')} ควบคุมค่าใช้จ่ายส่วนที่เหลืออย่างรัดกุม</span></li>`; hasAdvice = true; }
+                if (lowB.length > 0) { html += `<li class="flex items-start gap-2"><span class="text-yellow-500">⏱️</span> <span><b>การเบิกจ่ายล่าช้า (ใช้ไป <30%):</b> ${lowB.join(', ')} ติดตามเร่งรัดการดำเนินงานให้เป็นตามแผน</span></li>`; hasAdvice = true; }
+                if (surpTotal > 0) { html += `<li class="flex items-start gap-2"><span class="text-green-600">💸</span> <span><b>งบเหลือจ่ายส่งคืน (โครงการเสร็จแล้ว):</b> <b>${surpTotal.toLocaleString()} บาท</b> รวบรวมเอกสารส่งคืนเงินกองทุนฯ</span></li>`; hasAdvice = true; }
+                if (!hasAdvice) html += `<li class="text-green-600 flex items-start gap-2"><span>✨</span> <span>ภาพรวมการบริหารงบประมาณอยู่ในเกณฑ์ปกติ เป็นไปตามแผน</span></li>`;
+                
                 html += `</ul></div>`;
                 return html;
             }
 
-            let finalInsightsHTML = generateInsightBlock('🏢 การกีฬาแห่งประเทศไทย (กกท.)', satData, false);
-            finalInsightsHTML += generateInsightBlock('🏅 สมาคมกีฬาแห่งประเทศไทย', assocData, true);
-
-            document.getElementById('smart-insights-text').innerHTML = finalInsightsHTML;
+            document.getElementById('smart-insights-text').innerHTML = generateInsightBlock('🏢 การกีฬาแห่งประเทศไทย (กกท.)', satData, false) + generateInsightBlock('🏅 สมาคมกีฬาแห่งประเทศไทย', assocData, true);
 
             let monthlyCounts = Array(12).fill(0);
             data.forEach(item => {
@@ -1674,43 +1637,15 @@
                 }
             });
 
-            const barOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { datalabels: { display: false } } 
-            };
-
             if(monthlyDensityChartInstance) monthlyDensityChartInstance.destroy();
             const ctxDensity = document.getElementById('monthlyDensityChart').getContext('2d');
             monthlyDensityChartInstance = new Chart(ctxDensity, {
                 type: 'bar',
                 data: {
                     labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'],
-                    datasets: [{ 
-                        label: 'จำนวนโครงการเริ่มต้นในเดือน', 
-                        data: monthlyCounts, 
-                        backgroundColor: '#eab308',
-                        borderRadius: 4
-                    }]
+                    datasets: [{ label: 'จำนวนโครงการเริ่มต้นในเดือน', data: monthlyCounts, backgroundColor: '#eab308', borderRadius: 4 }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: {
-                            display: true,
-                            color: '#1e3a8a',
-                            font: { weight: 'bold' },
-                            anchor: 'end',
-                            align: 'top',
-                            formatter: (val) => val > 0 ? val : ''
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { display: true, color: '#1e3a8a', font: { weight: 'bold' }, anchor: 'end', align: 'top', formatter: (val) => val > 0 ? val : '' } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
 
             let satAppTotal = satData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
@@ -1718,34 +1653,29 @@
             let assocAppTotal = assocData.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0);
             let assocUsedTotal = assocData.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
 
+            const barOptions = { responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: false } } };
+
             if(window.agencyChartInstance) window.agencyChartInstance.destroy();
             const ctxAgency = document.getElementById('agencyCompareChart').getContext('2d');
             window.agencyChartInstance = new Chart(ctxAgency, {
                 type: 'bar',
                 data: {
                     labels: ['การกีฬาแห่งประเทศไทย (กกท.)', 'สมาคมกีฬาแห่งประเทศไทย'],
-                    datasets: [
-                        { label: 'งบอนุมัติ', data: [satAppTotal, assocAppTotal], backgroundColor: '#3b82f6', borderRadius: 4 },
-                        { label: 'งบใช้จริง', data: [satUsedTotal, assocUsedTotal], backgroundColor: '#10b981', borderRadius: 4 }
-                    ]
-                },
-                options: barOptions
+                    datasets: [ { label: 'งบอนุมัติ', data: [satAppTotal, assocAppTotal], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'งบใช้จริง', data: [satUsedTotal, assocUsedTotal], backgroundColor: '#10b981', borderRadius: 4 } ]
+                }, options: barOptions
             });
 
             let aggregatedBudget = {};
             data.forEach(item => {
                 let name = item.Sub_Category || 'ไม่ระบุ';
-                if(!aggregatedBudget[name]) {
-                    aggregatedBudget[name] = { app: 0, used: 0 };
-                }
+                if(!aggregatedBudget[name]) aggregatedBudget[name] = { app: 0, used: 0 };
                 aggregatedBudget[name].app += Number(item.Approved_Budget || 0);
                 aggregatedBudget[name].used += Number(item.Used_Budget || 0);
             });
 
             let sortedBudgets = Object.keys(aggregatedBudget).map(key => ({
                 name: String(key).length > 20 ? String(key).substring(0, 20) + '...' : String(key),
-                app: aggregatedBudget[key].app,
-                used: aggregatedBudget[key].used
+                app: aggregatedBudget[key].app, used: aggregatedBudget[key].used
             })).sort((a, b) => b.app - a.app).slice(0, 15);
 
             if(budgetChartInstance) budgetChartInstance.destroy();
@@ -1754,29 +1684,19 @@
                 type: 'bar',
                 data: {
                     labels: sortedBudgets.map(i => i.name),
-                    datasets: [
-                        { label: 'งบอนุมัติ', data: sortedBudgets.map(i => i.app), backgroundColor: '#60a5fa', borderRadius: 4 },
-                        { label: 'งบใช้จริง', data: sortedBudgets.map(i => i.used), backgroundColor: '#34d399', borderRadius: 4 }
-                    ]
-                },
-                options: barOptions
+                    datasets: [ { label: 'งบอนุมัติ', data: sortedBudgets.map(i => i.app), backgroundColor: '#60a5fa', borderRadius: 4 }, { label: 'งบใช้จริง', data: sortedBudgets.map(i => i.used), backgroundColor: '#34d399', borderRadius: 4 } ]
+                }, options: barOptions
             });
         }
 
         document.getElementById('submitBtn').addEventListener('click', function(e) {
             const form = document.getElementById('projectForm');
             const requiredFields = form.querySelectorAll('[required]');
-            
             requiredFields.forEach(field => {
                 if (field.closest('.hidden')) return;
                 if (!field.value) {
-                    field.classList.remove('border-gray-300');
-                    field.classList.add('input-error');
-                    
-                    setTimeout(() => {
-                        field.classList.remove('input-error');
-                        field.classList.add('border-gray-300');
-                    }, 3000);
+                    field.classList.remove('border-gray-300'); field.classList.add('input-error');
+                    setTimeout(() => { field.classList.remove('input-error'); field.classList.add('border-gray-300'); }, 3000);
                 }
             });
         });
@@ -1786,24 +1706,19 @@
                 try {
                     const response = await fetch(url, options);
                     const result = await response.json();
-                    
                     if (result.status === 'locked') {
                         if (i < maxRetries - 1) {
                             btnElement.innerText = `กำลังจัดคิวบันทึกข้อมูล (รอ ${i + 1}/${maxRetries})...`;
                             await new Promise(res => setTimeout(res, retryDelay));
                             continue; 
-                        } else {
-                            return { status: 'error', message: 'ขณะนี้มีผู้ใช้งานบันทึกข้อมูลพร้อมกันจำนวนมาก โปรดลองกดบันทึกใหม่อีกครั้ง' };
-                        }
+                        } else return { status: 'error', message: 'ขณะนี้มีผู้ใช้งานบันทึกข้อมูลพร้อมกันจำนวนมาก โปรดลองกดบันทึกใหม่อีกครั้ง' };
                     }
                     return result; 
                 } catch (error) {
                     if (i < maxRetries - 1) {
                         btnElement.innerText = `กำลังลองเชื่อมต่อใหม่ (${i + 1}/${maxRetries})...`;
                         await new Promise(res => setTimeout(res, retryDelay));
-                    } else {
-                        throw error;
-                    }
+                    } else throw error;
                 }
             }
         }
@@ -1812,25 +1727,22 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             const originalText = btn.innerText;
-            btn.innerText = 'กำลังส่งข้อมูล...';
-            btn.disabled = true;
+            btn.innerText = 'กำลังส่งข้อมูล...'; btn.disabled = true;
 
             const isAssociation = document.getElementById('mainCategory').value.includes('สมาคมกีฬา');
-
             const rawTargetPeople = document.getElementById('targetPeople').value.replace(/,/g, '');
             const rawPassedPeople = document.getElementById('passedPeople').value.replace(/,/g, '');
             const rawApprovedBudget = document.getElementById('approvedBudget').value.replace(/,/g, '');
             const rawUsedBudget = document.getElementById('usedBudget').value.replace(/,/g, '');
-
             const finalProjectId = idPrefix + document.getElementById('projectIdInput').value;
 
             const payload = {
                 projectId: finalProjectId,
-                mainCategory: document.getElementById('mainCategory').value,
-                subCategory: document.getElementById('subCategory').value, 
-                projectActivity: isAssociation ? document.getElementById('projectActivity').value : "-",
-                projectName: isAssociation ? (document.getElementById('projectName').value || "-") : "-",
-                location: document.getElementById('location').value || "-",
+                mainCategory: sanitizeGeneralWord(document.getElementById('mainCategory').value),
+                subCategory: sanitizeGeneralWord(document.getElementById('subCategory').value), 
+                projectActivity: isAssociation ? sanitizeGeneralWord(document.getElementById('projectActivity').value) : "-",
+                projectName: isAssociation ? sanitizeGeneralWord(document.getElementById('projectName').value || "-") : "-",
+                location: sanitizeGeneralWord(document.getElementById('location').value || "-"),
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value,
                 targetPeople: Number(rawTargetPeople) || 0,
@@ -1838,25 +1750,23 @@
                 approvedBudget: Number(rawApprovedBudget) || 0,
                 usedBudget: Number(rawUsedBudget) || 0,
                 operationStatus: document.getElementById('operationStatus').value,
-                paymentStatus: document.getElementById('paymentStatus').value
+                paymentStatus: document.getElementById('paymentStatus').value,
+                pdfBase64: uploadedPdfBase64 || null,
+                pdfFileName: uploadedPdfName || null
             };
 
             try {
                 const result = await fetchWithRetry(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 }, 3, 2000, btn);
 
                 if (result.status === 'success') {
                     alert(result.message);
                     document.getElementById('projectForm').reset();
-                    
                     resetFormToNewMode();
                     document.getElementById('subCategoryDiv').classList.add('hidden');
                     document.getElementById('projectActivityDiv').classList.add('hidden');
                     document.getElementById('projectNameDiv').classList.add('hidden');
-
                     switchTab('dashboard');
                 } else {
                     alert('เกิดข้อผิดพลาด: ' + result.message);
@@ -1871,143 +1781,85 @@
         });
 
         function downloadTemplate() {
-            const headers = [
-                "รหัส ID โครงการ", "หมวดหมู่หลัก", "หลักสูตร/สมาคม", "กิจกรรม", "ชื่อรายการย่อย", 
-                "สถานที่", "วันที่เริ่มต้น (YYYY-MM-DD)", "วันที่สิ้นสุด (YYYY-MM-DD)", 
-                "เป้าหมาย(คน)", "ผ่านการอบรม(คน)", "งบอนุมัติ(บาท)", "งบใช้จริง(บาท)", 
-                "สถานะการดำเนินงาน", "สถานะการเบิกจ่าย"
-            ];
-            
-            const exampleData = [
-                "NSDF-EX-001", "การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย", "สมาคมกีฬาเทควันโดแห่งประเทศไทย", "อบรมผู้ฝึกสอน", "อบรมโค้ชระดับ 1",
-                "กรุงเทพมหานคร", "2026-05-01", "2026-05-05", 
-                50, 45, 150000, 145000, 
-                "ดำเนินการเสร็จสิ้นแล้ว", "เบิกจ่ายเรียบร้อย"
-            ];
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet([headers, exampleData]);
+            const headers = ["รหัส ID โครงการ", "หมวดหมู่หลัก", "หลักสูตร/สมาคม", "กิจกรรม", "ชื่อรายการย่อย", "สถานที่", "วันที่เริ่มต้น (YYYY-MM-DD)", "วันที่สิ้นสุด (YYYY-MM-DD)", "เป้าหมาย(คน)", "ผ่านการอบรม(คน)", "งบอนุมัติ(บาท)", "งบใช้จริง(บาท)", "สถานะการดำเนินงาน", "สถานะการเบิกจ่าย"];
+            const exampleData = ["NSDF-EX-001", "การพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย", "สมาคมกีฬาเทควันโดแห่งประเทศไทย", "อบรมผู้ฝึกสอน", "อบรมโค้ชระดับ 1", "กรุงเทพมหานคร", "2026-05-01", "2026-05-05", 50, 45, 150000, 145000, "ดำเนินการเสร็จสิ้นแล้ว", "เบิกจ่ายเรียบร้อย"];
+            const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet([headers, exampleData]);
             ws['!cols'] = headers.map(h => ({wch: Math.max(h.length, 15)}));
-            
             XLSX.utils.book_append_sheet(wb, ws, "Template");
             XLSX.writeFile(wb, "Template_บันทึกข้อมูลโครงการ.xlsx");
         }
 
-        const dropArea = document.getElementById('drop-area');
-        const fileInput = document.getElementById('excelFileInput');
+        const dropAreaBatch = document.getElementById('batch-drop-area');
+        const fileInputBatch = document.getElementById('excelFileInput');
 
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('active');
+        dropAreaBatch.addEventListener('dragover', (e) => { e.preventDefault(); dropAreaBatch.classList.add('active'); });
+        dropAreaBatch.addEventListener('dragleave', () => dropAreaBatch.classList.remove('active'));
+        dropAreaBatch.addEventListener('drop', (e) => {
+            e.preventDefault(); dropAreaBatch.classList.remove('active');
+            if (e.dataTransfer.files.length) { fileInputBatch.files = e.dataTransfer.files; processExcelFile(fileInputBatch.files[0]); }
         });
-        dropArea.addEventListener('dragleave', () => dropArea.classList.remove('active'));
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('active');
-            if (e.dataTransfer.files.length) {
-                fileInput.files = e.dataTransfer.files;
-                processExcelFile(fileInput.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', function() {
-            if (this.files.length) processExcelFile(this.files[0]);
-        });
+        fileInputBatch.addEventListener('change', function() { if (this.files.length) processExcelFile(this.files[0]); });
 
         function processExcelFile(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type: 'array', cellDates: true});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {raw: false, dateNF: 'yyyy-mm-dd'});
                 
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, {raw: false, dateNF: 'yyyy-mm-dd'});
-                
-                if(jsonData.length === 0) {
-                    alert("ไม่พบข้อมูลในไฟล์ Excel");
-                    return;
-                }
+                if(jsonData.length === 0) { alert("ไม่พบข้อมูลในไฟล์ Excel"); return; }
 
                 parsedBatchPayloads = jsonData.map(row => {
-                    let rawTarget = String(row["เป้าหมาย(คน)"] || "0").replace(/,/g, '');
-                    let rawPassed = String(row["ผ่านการอบรม(คน)"] || "0").replace(/,/g, '');
-                    let rawAppBudget = String(row["งบอนุมัติ(บาท)"] || "0").replace(/,/g, '');
-                    let rawUsedBudget = String(row["งบใช้จริง(บาท)"] || "0").replace(/,/g, '');
-
                     return {
-                        projectId: row["รหัส ID โครงการ"],
-                        mainCategory: row["หมวดหมู่หลัก"],
-                        subCategory: row["หลักสูตร/สมาคม"],
-                        projectActivity: row["กิจกรรม"] || "-",
-                        projectName: row["ชื่อรายการย่อย"] || "-",
-                        location: row["สถานที่"] || "-",
-                        startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-",
+                        projectId: row["รหัส ID โครงการ"], 
+                        mainCategory: sanitizeGeneralWord(row["หมวดหมู่หลัก"]), 
+                        subCategory: sanitizeGeneralWord(row["หลักสูตร/สมาคม"]),
+                        projectActivity: sanitizeGeneralWord(row["กิจกรรม"]) || "-", 
+                        projectName: sanitizeGeneralWord(row["ชื่อรายการย่อย"]) || "-", 
+                        location: sanitizeGeneralWord(row["สถานที่"]) || "-",
+                        startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-", 
                         endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-",
-                        targetPeople: Number(rawTarget) || 0,
-                        passedPeople: Number(rawPassed) || 0,
-                        approvedBudget: Number(rawAppBudget) || 0,
-                        usedBudget: Number(rawUsedBudget) || 0,
-                        operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน",
+                        targetPeople: Number(String(row["เป้าหมาย(คน)"] || "0").replace(/,/g, '')) || 0,
+                        passedPeople: Number(String(row["ผ่านการอบรม(คน)"] || "0").replace(/,/g, '')) || 0,
+                        approvedBudget: Number(String(row["งบอนุมัติ(บาท)"] || "0").replace(/,/g, '')) || 0,
+                        usedBudget: Number(String(row["งบใช้จริง(บาท)"] || "0").replace(/,/g, '')) || 0,
+                        operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน", 
                         paymentStatus: row["สถานะการเบิกจ่าย"] || "อยู่ระหว่างการเบิกจ่าย"
                     };
                 }).filter(item => item.projectId);
 
-                if (parsedBatchPayloads.length === 0) {
-                    alert("รูปแบบไฟล์ไม่ถูกต้อง หรือไม่พบข้อมูลในคอลัมน์ 'รหัส ID โครงการ'");
-                    return;
-                }
+                if (parsedBatchPayloads.length === 0) { alert("รูปแบบไฟล์ไม่ถูกต้อง หรือไม่พบข้อมูลในคอลัมน์ 'รหัส ID โครงการ'"); return; }
 
-                document.getElementById('drop-area').classList.add('hidden');
+                document.getElementById('batch-drop-area').classList.add('hidden');
                 document.getElementById('preview-area').classList.remove('hidden');
                 document.getElementById('preview-count').innerText = parsedBatchPayloads.length;
-
-                const tbody = document.getElementById('preview-tbody');
-                tbody.innerHTML = parsedBatchPayloads.map(item => `
-                    <tr>
-                        <td class="p-2 border-b font-mono text-blue-700">${item.projectId}</td>
-                        <td class="p-2 border-b truncate max-w-[150px]" title="${item.mainCategory}">${item.mainCategory}</td>
-                        <td class="p-2 border-b truncate max-w-[150px]">${item.subCategory}</td>
-                        <td class="p-2 border-b text-green-600">${item.approvedBudget.toLocaleString()}</td>
-                        <td class="p-2 border-b text-orange-600">${item.operationStatus}</td>
-                    </tr>
+                document.getElementById('preview-tbody').innerHTML = parsedBatchPayloads.map(item => `
+                    <tr><td class="p-2 border-b font-mono text-blue-700">${item.projectId}</td><td class="p-2 border-b truncate max-w-[150px]" title="${item.mainCategory}">${item.mainCategory}</td><td class="p-2 border-b truncate max-w-[150px]">${item.subCategory}</td><td class="p-2 border-b text-green-600">${item.approvedBudget.toLocaleString()}</td><td class="p-2 border-b text-orange-600">${item.operationStatus}</td></tr>
                 `).join('');
             };
             reader.readAsArrayBuffer(file);
         }
 
         function resetBatchUpload() {
-            fileInput.value = "";
-            parsedBatchPayloads = [];
-            document.getElementById('drop-area').classList.remove('hidden');
+            fileInputBatch.value = ""; parsedBatchPayloads = [];
+            document.getElementById('batch-drop-area').classList.remove('hidden');
             document.getElementById('preview-area').classList.add('hidden');
         }
 
         async function submitBatchData() {
             const btn = document.getElementById('submitBatchBtn');
-            btn.innerText = 'กำลังเตรียมข้อมูล...';
-            btn.disabled = true;
+            btn.innerText = 'กำลังเตรียมข้อมูล...'; btn.disabled = true;
 
             try {
                 const result = await fetchWithRetry(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(parsedBatchPayloads),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    method: 'POST', body: JSON.stringify(parsedBatchPayloads), headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                 }, 3, 3000, btn);
 
-                if (result.status === 'success') {
-                    alert(result.message);
-                    resetBatchUpload();
-                    switchTab('dashboard');
-                } else {
-                    alert('เกิดข้อผิดพลาด: ' + result.message);
-                    btn.innerText = 'ยืนยันนำเข้าข้อมูลทั้งหมด';
-                }
+                if (result.status === 'success') { alert(result.message); resetBatchUpload(); switchTab('dashboard'); } 
+                else { alert('เกิดข้อผิดพลาด: ' + result.message); btn.innerText = 'ยืนยันนำเข้าข้อมูลทั้งหมด'; }
             } catch (error) {
-                alert('ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่');
-                btn.innerText = 'ยืนยันนำเข้าข้อมูลทั้งหมด';
-            } finally {
-                btn.disabled = false;
-            }
+                alert('ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่'); btn.innerText = 'ยืนยันนำเข้าข้อมูลทั้งหมด';
+            } finally { btn.disabled = false; }
         }
 
         loadData();
