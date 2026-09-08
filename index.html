@@ -560,7 +560,7 @@
 
         Chart.register(ChartDataLabels);
 
-        // 🌟 Helper Function: จัดการกฎแปลคำว่า "ทั่วไป" เป็น "ไม่ระบุ"
+        // 🌟 Helper Function: จัดการกฎแปลคำว่า "ทั่วไป" เป็น "ไม่ระบุ" อัตโนมัติ
         function sanitizeGeneralWord(val) {
             if (typeof val === 'string' && val.trim() === 'ทั่วไป') {
                 return 'ไม่ระบุ';
@@ -935,9 +935,16 @@
             
             showPdfStatus("loading", `กำลังใช้ AI สกัดข้อมูลจากไฟล์ ${file.name}...`);
             
+            // 🌟 จุดที่มีการแก้ไขและตรวจสอบแล้ว: ใช้วิธี indexOf เพื่อดึงข้อมูลเฉพาะ Base64 จริงๆ แบบเสถียรที่สุด
             const base64Reader = new FileReader();
             base64Reader.onload = function() {
-                uploadedPdfBase64 = this.result.split(',')[1];
+                const fullDataUrl = this.result.toString();
+                const base64Index = fullDataUrl.indexOf('base64,');
+                if (base64Index !== -1) {
+                    uploadedPdfBase64 = fullDataUrl.substring(base64Index + 7);
+                } else {
+                    uploadedPdfBase64 = fullDataUrl.split(',')[1] || fullDataUrl; // fallback กรณีสุดวิสัย
+                }
                 uploadedPdfName = file.name;
             };
             base64Reader.readAsDataURL(file);
@@ -1211,7 +1218,12 @@
                 let amt = Number(item.Approved_Budget || 0);
                 let title = item.Sub_Category || 'ไม่ระบุ';
                 if ((item.Main_Category || '').includes('การกีฬา')) title = item.Sub_Category || 'ไม่ระบุ';
-                let activity = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+                
+                let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : '';
+                let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : '';
+                let activityName = act;
+                if (subAct) activityName += act ? ` (${subAct})` : subAct;
+                if (!activityName) activityName = '-';
 
                 let cardHtml = `
                     <div class="kanban-card bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-2">
@@ -1221,7 +1233,7 @@
                         </div>
                         <div>
                             <div class="font-bold text-sm text-gray-800 line-clamp-2" title="${title}">${title}</div>
-                            <div class="text-xs text-gray-500 line-clamp-1">${activity}</div>
+                            <div class="text-xs text-gray-500 line-clamp-1" title="${activityName}">${activityName}</div>
                         </div>
                         <div class="mt-1 flex justify-between items-center border-t border-gray-50 pt-2">
                             <div class="text-xs text-gray-500">งบอนุมัติ:</div>
@@ -1483,7 +1495,13 @@
             filteredList.forEach(item => {
                 let amt = Number(item.Approved_Budget || 0); totalBudget += amt;
                 let assocName = item.Sub_Category || '-'; uniqueAssoc.add(assocName);
-                let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+                
+                let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : '';
+                let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : '';
+                let activityName = act;
+                if (subAct) activityName += act ? ` (${subAct})` : subAct;
+                if (!activityName) activityName = '-';
+
                 listHtml += `
                     <tr class="hover:bg-blue-50/50 transition">
                         <td class="p-3 font-mono text-xs text-gray-600">${item.ID}</td>
@@ -1531,7 +1549,13 @@
 
             filteredList.forEach(item => {
                 let amt = Number(item.Approved_Budget || 0); totalBudget += amt; uniqueAssoc.add(item.Sub_Category || '-');
-                let activityName = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Project_Name || '-');
+                
+                let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : '';
+                let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : '';
+                let activityName = act;
+                if (subAct) activityName += act ? ` (${subAct})` : subAct;
+                if (!activityName) activityName = '-';
+
                 exportData.push([item.ID || '-', item.Sub_Category || '-', activityName, amt]);
             });
             exportData.push([]); 
