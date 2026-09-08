@@ -848,10 +848,7 @@
             this.value = this.value.replace(/\D/g, '');
             
             if (this.value.length === 5) {
-                // 🌟 Trim() รหัสที่กำลังค้นหา เพื่อป้องกันช่องว่างส่วนเกิน
                 const fullIdToSearch = (idPrefix + this.value).trim();
-                
-                // 🌟 Trim() รหัสเดิมในฐานข้อมูลตอนเปรียบเทียบ
                 const existingData = globalData.find(item => String(item.ID).trim() === fullIdToSearch);
 
                 const submitBtn = document.getElementById('submitBtn');
@@ -939,11 +936,9 @@
             
             showPdfStatus("loading", `กำลังใช้ AI สกัดข้อมูลจากไฟล์ ${file.name}...`);
             
-            // 🌟 แก้ไข: ใช้ Replace Regex ตัด Data URL Header ออกอย่างรัดกุม 100%
             const base64Reader = new FileReader();
             base64Reader.onload = function() {
                 const fullDataUrl = this.result.toString();
-                // นำเฉพาะส่วนที่เป็น base64 จริงๆ ไปส่งต่อ (ป้องกัน error ตอนสร้างไฟล์)
                 uploadedPdfBase64 = fullDataUrl.replace(/^data:.*\/.*;base64,/, '');
                 uploadedPdfName = file.name;
             };
@@ -987,7 +982,6 @@
                     fullText += pageText + " ";
                 }
                 
-                // 🌟 แก้ไข Regex: เพิ่มความยืดหยุ่นให้กับการเว้นวรรค (space) ที่อาจเกิดจากการสแกน PDF
                 const idMatch = fullText.match(/NSDF\s*-\s*69\s*-\s*01\s*\/\s*(\d{5})/);
                 const approvedMatch = fullText.match(/รวมงบประมาณที่อนุมัติ\s*([0-9.,\s]+)/);
                 const usedMatch = fullText.match(/รวมงบประมาณใช้จริงทั้งหมด\s*([0-9.,\s]+)/);
@@ -1060,7 +1054,6 @@
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
                 if(result.status === 'success') {
-                    // 🌟 Trim ลบช่องว่างส่วนเกินของข้อมูลทุกบรรทัดตั้งแต่โหลดครั้งแรก
                     globalData = result.data.map(item => {
                         item.ID = String(item.ID || '').trim();
                         item.Main_Category = sanitizeGeneralWord(String(item.Main_Category || '')).trim();
@@ -1222,7 +1215,6 @@
                 let title = item.Sub_Category || 'ไม่ระบุ';
                 if ((item.Main_Category || '').includes('การกีฬา')) title = item.Sub_Category || 'ไม่ระบุ';
                 
-                // นำข้อมูล Project_Activity และ Project_Name มารวมกัน ไม่ให้ข้อมูลสูญหาย
                 let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : '';
                 let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : '';
                 let activityName = act;
@@ -1277,22 +1269,34 @@
             document.getElementById('btn-next-table').disabled = isNextDisabled;
         }
 
+        // 🌟 แก้ไข: เลิกซ่อนข้อมูลที่ไม่มีวันที่ แต่แสดงข้อความแจ้งเตือนแทน
         function renderTimeline(data) {
             const tbody = document.getElementById('timelineBody');
             let html = '';
-            const validData = data.filter(item => item.Start_Date && item.End_Date && item.Start_Date !== '-' && item.End_Date !== '-');
 
             if(data.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`; return;
-            } else if (validData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400">โครงการในหน้านี้ยังไม่มีการระบุวันที่ดำเนินงาน</td></tr>`; return;
             }
 
-            validData.forEach(item => {
-                let start = new Date(item.Start_Date);
-                let end = new Date(item.End_Date);
-                let startMonth = start.getMonth(); 
-                let endMonth = end.getMonth();
+            data.forEach(item => {
+                let startStr = String(item.Start_Date || '').trim();
+                let endStr = String(item.End_Date || '').trim();
+                let hasValidDate = startStr !== '' && startStr !== '-' && endStr !== '' && endStr !== '-';
+                
+                let startMonth = -1; 
+                let endMonth = -1;
+                
+                if (hasValidDate) {
+                    let start = new Date(startStr);
+                    let end = new Date(endStr);
+                    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                        startMonth = start.getMonth(); 
+                        endMonth = end.getMonth();
+                    } else {
+                        hasValidDate = false;
+                    }
+                }
+
                 let name = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Sub_Category || 'ไม่ระบุ');
                 if(item.Project_Name && item.Project_Name !== '-') name += ` (${item.Project_Name})`;
 
@@ -1305,15 +1309,19 @@
                             <div class="text-[10px] text-gray-400 font-mono">${item.ID || ''}</div>
                          </td>`;
                 
-                for(let i=0; i<12; i++) {
-                    html += `<td class="border-r border-b gantt-cell p-0 h-10 border-gray-100">`;
-                    if(i >= startMonth && i <= endMonth) {
-                        let classExt = '';
-                        if(i === startMonth) classExt += ' start';
-                        if(i === endMonth) classExt += ' end';
-                        html += `<div class="${barClass} ${classExt}"></div>`;
+                if (hasValidDate) {
+                    for(let i=0; i<12; i++) {
+                        html += `<td class="border-r border-b gantt-cell p-0 h-10 border-gray-100">`;
+                        if(i >= startMonth && i <= endMonth) {
+                            let classExt = '';
+                            if(i === startMonth) classExt += ' start';
+                            if(i === endMonth) classExt += ' end';
+                            html += `<div class="${barClass} ${classExt}"></div>`;
+                        }
+                        html += `</td>`;
                     }
-                    html += `</td>`;
+                } else {
+                    html += `<td colspan="12" class="border-b text-center text-xs text-red-500 bg-red-50/50 font-medium tracking-wide">⚠️ ไม่สามารถวาดกราฟได้ (ไม่มีข้อมูลวันที่ หรือรูปแบบผิด)</td>`;
                 }
                 html += `</tr>`;
             });
