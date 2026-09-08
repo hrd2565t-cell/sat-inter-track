@@ -530,6 +530,7 @@
     </main>
 
     <script>
+        // 🌟 ใส่ Web App URL ให้เรียบร้อย
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSRqOD8z-ulipSSZUJb6DDl01W8lduHA0ugvhr3yiE8_lVQEFylIzaR8uHl6r7-VkzUA/exec';
 
         // 🌟 ตั้งค่า PDF.js Worker
@@ -847,8 +848,11 @@
             this.value = this.value.replace(/\D/g, '');
             
             if (this.value.length === 5) {
-                const fullIdToSearch = idPrefix + this.value;
-                const existingData = globalData.find(item => item.ID === fullIdToSearch);
+                // 🌟 Trim() รหัสที่กำลังค้นหา เพื่อป้องกันช่องว่างส่วนเกิน
+                const fullIdToSearch = (idPrefix + this.value).trim();
+                
+                // 🌟 Trim() รหัสเดิมในฐานข้อมูลตอนเปรียบเทียบ
+                const existingData = globalData.find(item => String(item.ID).trim() === fullIdToSearch);
 
                 const submitBtn = document.getElementById('submitBtn');
                 const hint = document.getElementById('idSearchHint');
@@ -935,16 +939,12 @@
             
             showPdfStatus("loading", `กำลังใช้ AI สกัดข้อมูลจากไฟล์ ${file.name}...`);
             
-            // 🌟 จุดที่มีการแก้ไขและตรวจสอบแล้ว: ใช้วิธี indexOf เพื่อดึงข้อมูลเฉพาะ Base64 จริงๆ แบบเสถียรที่สุด
+            // 🌟 แก้ไข: ใช้ Replace Regex ตัด Data URL Header ออกอย่างรัดกุม 100%
             const base64Reader = new FileReader();
             base64Reader.onload = function() {
                 const fullDataUrl = this.result.toString();
-                const base64Index = fullDataUrl.indexOf('base64,');
-                if (base64Index !== -1) {
-                    uploadedPdfBase64 = fullDataUrl.substring(base64Index + 7);
-                } else {
-                    uploadedPdfBase64 = fullDataUrl.split(',')[1] || fullDataUrl; // fallback กรณีสุดวิสัย
-                }
+                // นำเฉพาะส่วนที่เป็น base64 จริงๆ ไปส่งต่อ (ป้องกัน error ตอนสร้างไฟล์)
+                uploadedPdfBase64 = fullDataUrl.replace(/^data:.*\/.*;base64,/, '');
                 uploadedPdfName = file.name;
             };
             base64Reader.readAsDataURL(file);
@@ -987,16 +987,17 @@
                     fullText += pageText + " ";
                 }
                 
-                const idMatch = fullText.match(/NSDF-69-01\/(\d{5})/);
-                const approvedMatch = fullText.match(/รวมงบประมาณที่อนุมัติ\s*([0-9.,]+)/);
-                const usedMatch = fullText.match(/รวมงบประมาณใช้จริงทั้งหมด\s*([0-9.,]+)/);
-                const remainingMatch = fullText.match(/รวมงบประมาณคงเหลือคืนกองทุนทั้งหมด\s*([0-9.,]+)/);
+                // 🌟 แก้ไข Regex: เพิ่มความยืดหยุ่นให้กับการเว้นวรรค (space) ที่อาจเกิดจากการสแกน PDF
+                const idMatch = fullText.match(/NSDF\s*-\s*69\s*-\s*01\s*\/\s*(\d{5})/);
+                const approvedMatch = fullText.match(/รวมงบประมาณที่อนุมัติ\s*([0-9.,\s]+)/);
+                const usedMatch = fullText.match(/รวมงบประมาณใช้จริงทั้งหมด\s*([0-9.,\s]+)/);
+                const remainingMatch = fullText.match(/รวมงบประมาณคงเหลือคืนกองทุนทั้งหมด\s*([0-9.,\s]+)/);
                 
                 let extractedData = {
-                    id: idMatch ? idMatch[1] : null,
-                    approved: approvedMatch ? parseFloat(approvedMatch[1].replace(/,/g, '')) : null,
-                    used: usedMatch ? parseFloat(usedMatch[1].replace(/,/g, '')) : null,
-                    remaining: remainingMatch ? parseFloat(remainingMatch[1].replace(/,/g, '')) : null
+                    id: idMatch ? idMatch[1].trim() : null,
+                    approved: approvedMatch ? parseFloat(approvedMatch[1].replace(/,/g, '').replace(/\s/g, '')) : null,
+                    used: usedMatch ? parseFloat(usedMatch[1].replace(/,/g, '').replace(/\s/g, '')) : null,
+                    remaining: remainingMatch ? parseFloat(remainingMatch[1].replace(/,/g, '').replace(/\s/g, '')) : null
                 };
 
                 applyPdfDataToForm(extractedData, fileName);
@@ -1059,12 +1060,14 @@
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
                 if(result.status === 'success') {
+                    // 🌟 Trim ลบช่องว่างส่วนเกินของข้อมูลทุกบรรทัดตั้งแต่โหลดครั้งแรก
                     globalData = result.data.map(item => {
-                        item.Main_Category = sanitizeGeneralWord(item.Main_Category);
-                        item.Sub_Category = sanitizeGeneralWord(item.Sub_Category);
-                        item.Project_Activity = sanitizeGeneralWord(item.Project_Activity);
-                        item.Project_Name = sanitizeGeneralWord(item.Project_Name);
-                        item.Location = sanitizeGeneralWord(item.Location);
+                        item.ID = String(item.ID || '').trim();
+                        item.Main_Category = sanitizeGeneralWord(String(item.Main_Category || '')).trim();
+                        item.Sub_Category = sanitizeGeneralWord(String(item.Sub_Category || '')).trim();
+                        item.Project_Activity = sanitizeGeneralWord(String(item.Project_Activity || '')).trim();
+                        item.Project_Name = sanitizeGeneralWord(String(item.Project_Name || '')).trim();
+                        item.Location = sanitizeGeneralWord(String(item.Location || '')).trim();
                         return item;
                     });
                     applyGlobalFilter(); 
@@ -1219,6 +1222,7 @@
                 let title = item.Sub_Category || 'ไม่ระบุ';
                 if ((item.Main_Category || '').includes('การกีฬา')) title = item.Sub_Category || 'ไม่ระบุ';
                 
+                // นำข้อมูล Project_Activity และ Project_Name มารวมกัน ไม่ให้ข้อมูลสูญหาย
                 let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : '';
                 let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : '';
                 let activityName = act;
@@ -1758,15 +1762,15 @@
             const rawPassedPeople = document.getElementById('passedPeople').value.replace(/,/g, '');
             const rawApprovedBudget = document.getElementById('approvedBudget').value.replace(/,/g, '');
             const rawUsedBudget = document.getElementById('usedBudget').value.replace(/,/g, '');
-            const finalProjectId = idPrefix + document.getElementById('projectIdInput').value;
+            const finalProjectId = (idPrefix + document.getElementById('projectIdInput').value).trim();
 
             const payload = {
                 projectId: finalProjectId,
-                mainCategory: sanitizeGeneralWord(document.getElementById('mainCategory').value),
-                subCategory: sanitizeGeneralWord(document.getElementById('subCategory').value), 
-                projectActivity: isAssociation ? sanitizeGeneralWord(document.getElementById('projectActivity').value) : "-",
-                projectName: isAssociation ? sanitizeGeneralWord(document.getElementById('projectName').value || "-") : "-",
-                location: sanitizeGeneralWord(document.getElementById('location').value || "-"),
+                mainCategory: sanitizeGeneralWord(document.getElementById('mainCategory').value).trim(),
+                subCategory: sanitizeGeneralWord(document.getElementById('subCategory').value).trim(), 
+                projectActivity: isAssociation ? sanitizeGeneralWord(document.getElementById('projectActivity').value).trim() : "-",
+                projectName: isAssociation ? sanitizeGeneralWord(document.getElementById('projectName').value || "-").trim() : "-",
+                location: sanitizeGeneralWord(document.getElementById('location').value || "-").trim(),
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value,
                 targetPeople: Number(rawTargetPeople) || 0,
@@ -1835,12 +1839,12 @@
 
                 parsedBatchPayloads = jsonData.map(row => {
                     return {
-                        projectId: row["รหัส ID โครงการ"], 
-                        mainCategory: sanitizeGeneralWord(row["หมวดหมู่หลัก"]), 
-                        subCategory: sanitizeGeneralWord(row["หลักสูตร/สมาคม"]),
-                        projectActivity: sanitizeGeneralWord(row["กิจกรรม"]) || "-", 
-                        projectName: sanitizeGeneralWord(row["ชื่อรายการย่อย"]) || "-", 
-                        location: sanitizeGeneralWord(row["สถานที่"]) || "-",
+                        projectId: String(row["รหัส ID โครงการ"]).trim(), 
+                        mainCategory: sanitizeGeneralWord(String(row["หมวดหมู่หลัก"] || "")).trim(), 
+                        subCategory: sanitizeGeneralWord(String(row["หลักสูตร/สมาคม"] || "")).trim(),
+                        projectActivity: sanitizeGeneralWord(String(row["กิจกรรม"] || "-")).trim(), 
+                        projectName: sanitizeGeneralWord(String(row["ชื่อรายการย่อย"] || "-")).trim(), 
+                        location: sanitizeGeneralWord(String(row["สถานที่"] || "-")).trim(),
                         startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-", 
                         endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-",
                         targetPeople: Number(String(row["เป้าหมาย(คน)"] || "0").replace(/,/g, '')) || 0,
