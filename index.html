@@ -15,7 +15,7 @@
     <!-- PDF.js สำหรับอ่านไฟล์ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
-    <!-- 🌟 อัปเกรดระบบแผนที่เป็น MapLibre & OpenFreeMap (เสถียร, ฟรี, โหลดไว) -->
+    <!-- MapLibre & OpenFreeMap -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
@@ -130,7 +130,6 @@
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
             <div id="dashboard-cards-container" class="space-y-6">
-                <!-- ชุดที่ 1: กกท. -->
                 <div id="cards-sat-section" class="space-y-3 print:break-inside-avoid">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏢 การกีฬาแห่งประเทศไทย (กกท.)</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -153,7 +152,6 @@
                     </div>
                 </div>
 
-                <!-- ชุดที่ 2: สมาคมกีฬาฯ -->
                 <div id="cards-assoc-section" class="space-y-3 print:break-inside-avoid">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏅 สมาคมกีฬาแห่งประเทศไทย</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1182,7 +1180,6 @@
             if (mapInstance) return; 
             mapInstance = L.map('map-container').setView([13.736717, 100.523186], 6);
             
-            // 🌟 อัปเดต TileLayer: เปลี่ยนจาก CARTO ที่ติด API Key เป็น OpenFreeMap (ฟรี, เร็ว, สวยงาม) 🌟
             L.tileLayer('https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
                 maxZoom: 18
@@ -1258,7 +1255,13 @@
 
             geoJsonLayer = L.geoJson(thailandGeoJson, {
                 style: function (feature) {
-                    let enName = String(feature.properties.NAME_1 || '').replace(/\s/g, '').toLowerCase();
+                    // 🌟 แก้ไข: ดักจับชื่อตัวแปรของ GeoJSON ให้ครอบคลุมทุกแบบ (NAME_1, name, pro_en) และตัดคำว่า Province ทิ้ง
+                    let geoName = feature.properties.NAME_1 || feature.properties.name || feature.properties.pro_en || feature.properties.NAME_ENG || '';
+                    let enName = String(geoName).replace(/province|metropolis/gi, '').replace(/\s/g, '').toLowerCase();
+                    
+                    // ป้องกันความผิดพลาดของคำว่ากรุงเทพในไฟล์ GeoJSON
+                    if(enName.includes('krungthep') || enName.includes('bangkok')) enName = 'bangkok';
+
                     let stat = currentMapData[enName];
                     let val = stat ? (mapDisplayMode === 'count' ? stat.count : stat.budget) : 0;
                     
@@ -1272,13 +1275,16 @@
                     };
                 },
                 onEachFeature: function (feature, layer) {
-                    let enName = String(feature.properties.NAME_1 || '').replace(/\s/g, '').toLowerCase();
+                    let geoName = feature.properties.NAME_1 || feature.properties.name || feature.properties.pro_en || feature.properties.NAME_ENG || '';
+                    let enName = String(geoName).replace(/province|metropolis/gi, '').replace(/\s/g, '').toLowerCase();
+                    if(enName.includes('krungthep') || enName.includes('bangkok')) enName = 'bangkok';
+
                     let stat = currentMapData[enName];
                     
                     if (stat) {
                         let tooltipContent = `
                             <div class="p-1">
-                                <div class="font-bold text-blue-900 border-b pb-1 mb-1">📍 จ.${stat.thName || feature.properties.NAME_1}</div>
+                                <div class="font-bold text-blue-900 border-b pb-1 mb-1">📍 จ.${stat.thName || geoName}</div>
                                 <div class="text-gray-700">จัดโครงการ: <span class="font-bold text-orange-600">${stat.count.toLocaleString()}</span> รายการ</div>
                                 <div class="text-gray-700">งบประมาณ: <span class="font-bold text-green-600">${stat.budget.toLocaleString()}</span> บาท</div>
                             </div>
