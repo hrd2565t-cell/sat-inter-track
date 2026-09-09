@@ -71,7 +71,6 @@
                 <div class="flex space-x-1 sm:space-x-2 bg-blue-800 p-1 rounded-lg border border-blue-700">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-3 sm:px-4 py-2 rounded-md font-bold text-xs sm:text-sm bg-yellow-500 text-blue-900 shadow transition">Dashboard ภาพรวม</button>
                     <button onclick="switchTab('analytics')" id="btn-analytics" class="px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm text-white hover:text-yellow-400 transition">วิเคราะห์โครงการ</button>
-                    <!-- แท็บแผนที่ใหม่ -->
                     <button onclick="switchTab('map')" id="btn-map" class="px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm text-white hover:text-yellow-400 transition">🗺️ แผนที่งบประมาณ</button>
                     <button onclick="switchTab('form')" id="btn-form" class="hidden px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm text-white hover:text-yellow-400 transition">+ บันทึกข้อมูล</button>
                 </div>
@@ -284,7 +283,6 @@
 
                 <div id="view-section-kanban" class="w-full hidden p-4 bg-gray-100 overflow-x-auto print:hidden">
                     <div class="flex gap-4 min-w-[900px]">
-                        <!-- คอลัมน์ Kanban ต่างๆ -->
                         <div class="flex-1 kanban-column rounded-xl border border-gray-200 flex flex-col shadow-inner">
                             <div class="p-3 bg-orange-100 border-b border-orange-200 rounded-t-xl flex justify-between items-center">
                                 <h4 class="font-bold text-orange-800 flex items-center gap-1">⏳ กำลังดำเนินงาน</h4>
@@ -391,8 +389,10 @@
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <!-- คอนเทนเนอร์แสดงแผนที่ -->
                 <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
-                    <!-- z-index=0 เพื่อไม่ให้ทับกับ Nav หรือ ป๊อปอัป -->
-                    <div id="map-container" class="w-full h-[500px] sm:h-[600px] rounded-lg z-0"></div>
+                    <div id="map-container" class="w-full h-[500px] sm:h-[600px] rounded-lg z-0 relative">
+                        <!-- 🌟 แก้ไข: เพิ่มกล่อง Map Legend ที่ตกหล่น -->
+                        <div id="map-legend" class="info-legend absolute bottom-5 right-5 z-[400] pointer-events-none"></div>
+                    </div>
                 </div>
                 
                 <!-- กล่องข้อความด้านข้าง (Summary & Outliers) -->
@@ -580,10 +580,7 @@
     </main>
 
     <script>
-        // 🌟 ใส่ Web App URL ให้เรียบร้อย
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSRqOD8z-ulipSSZUJb6DDl01W8lduHA0ugvhr3yiE8_lVQEFylIzaR8uHl6r7-VkzUA/exec';
-
-        // ตั้งค่า PDF.js Worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
         let globalData = [];         
@@ -1021,7 +1018,15 @@
                 let name = (item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : (item.Sub_Category || 'ไม่ระบุ')) + (item.Project_Name && item.Project_Name !== '-' ? ` (${item.Project_Name})` : '');
                 let barClass = 'gantt-bar' + (item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว' ? ' done' : item.Operation_Status === 'ยกเลิกรายการ' ? ' cancel' : '');
                 html += `<tr><td class="p-2 border-r border-b text-gray-700 truncate max-w-[250px]" title="${name}"><div class="font-medium">${name}</div><div class="text-[10px] text-gray-400 font-mono">${item.ID || ''}</div></td>`;
-                if (hasValidDate) { for(let i=0; i<12; i++) { html += `<td class="border-r border-b gantt-cell p-0 h-10 border-gray-100">${i >= startMonth && i <= endMonth ? `<div class="${barClass}${i===startMonth?' start':''}${i===endMonth?' end':''}"></div>` : ''}</td>`; } } 
+                if (hasValidDate) { 
+                    // 🌟 แก้ไข: เพิ่มตรรกะสำหรับโครงการที่มีระยะเวลาคาบเกี่ยวข้ามปี (Cross-year)
+                    let isCrossYear = startMonth > endMonth;
+                    for(let i=0; i<12; i++) { 
+                        let isActive = isCrossYear ? (i >= startMonth || i <= endMonth) : (i >= startMonth && i <= endMonth);
+                        let isStart = (i === startMonth); let isEnd = (i === endMonth);
+                        html += `<td class="border-r border-b gantt-cell p-0 h-10 border-gray-100">${isActive ? `<div class="${barClass}${isStart?' start':''}${isEnd?' end':''}"></div>` : ''}</td>`; 
+                    } 
+                } 
                 else { html += `<td colspan="12" class="border-b text-center text-xs text-red-500 bg-red-50/50 font-medium tracking-wide">⚠️ ไม่สามารถวาดกราฟได้ (ไม่มีข้อมูลวันที่ หรือรูปแบบผิด)</td>`; }
                 html += `</tr>`;
             });
@@ -1139,7 +1144,38 @@
             budgetChartInstance = new Chart(document.getElementById('budgetCompareChart').getContext('2d'), { type: 'bar', data: { labels: sortedBudgets.map(i => i.name), datasets: [ { label: 'งบอนุมัติ', data: sortedBudgets.map(i => i.app), backgroundColor: '#60a5fa', borderRadius: 4 }, { label: 'งบใช้จริง', data: sortedBudgets.map(i => i.used), backgroundColor: '#34d399', borderRadius: 4 } ] }, options: barOptions });
         }
 
-        // 🌟🌟🌟 สคริปต์ส่วนแผนที่ (Leaflet) แก้ไขจุดโหลดข้อมูล 🌟🌟🌟
+        // 🌟 สคริปต์แผนที่ GeoJSON 
+        const thProvinceMap = {
+            "กรุงเทพ": "bangkok", "กทม": "bangkok", "เชียงใหม่": "chiangmai", "เชียงราย": "chiangrai",
+            "ภูเก็ต": "phuket", "ชลบุรี": "chonburi", "พัทยา": "chonburi", "ระยอง": "rayong",
+            "ขอนแก่น": "khonkaen", "นครราชสีมา": "nakhonratchasima", "โคราช": "nakhonratchasima",
+            "สงขลา": "songkhla", "หาดใหญ่": "songkhla", "สุราษฎร์ธานี": "suratthani", "สมุย": "suratthani",
+            "สมุทรปราการ": "samutprakan", "นนทบุรี": "nonthaburi", "ปทุมธานี": "pathumthani",
+            "พระนครศรีอยุธยา": "phranakhonsiayutthaya", "อยุธยา": "phranakhonsiayutthaya", "สมุทรสาคร": "samutsakhon",
+            "นครปฐม": "nakhonpathom", "สมุทรสงคราม": "samutsongkhram", "สุพรรณบุรี": "suphanburi",
+            "ราชบุรี": "ratchaburi", "เพชรบุรี": "phetchaburi", "ชะอำ": "phetchaburi", "ประจวบคีรีขันธ์": "prachuapkhirikhan",
+            "หัวหิน": "prachuapkhirikhan", "กาญจนบุรี": "kanchanaburi", "ฉะเชิงเทรา": "chachoengsao",
+            "อ่างทอง": "angthong", "ลพบุรี": "lopburi", "สิงห์บุรี": "singburi", "ชัยนาท": "chainat",
+            "สระบุรี": "saraburi", "จันทบุรี": "chanthaburi", "ตราด": "trat", "ปราจีนบุรี": "prachinburi",
+            "นครนายก": "nakhonnayok", "สระแก้ว": "sakaeo", "บุรีรัมย์": "buriram", "สุรินทร์": "surin",
+            "ศรีสะเกษ": "sisaket", "อุบลราชธานี": "ubonratchathani", "ยโสธร": "yasothon", "ชัยภูมิ": "chaiyaphum",
+            "อำนาจเจริญ": "amnatcharoen", "บึงกาฬ": "buengkan", "หนองบัวลำภู": "nongbualamphu", "อุดรธานี": "udonthani",
+            "เลย": "loei", "หนองคาย": "nongkhai", "มหาสารคาม": "mahasarakham", "ร้อยเอ็ด": "roiet",
+            "กาฬสินธุ์": "kalasin", "สกลนคร": "sakonnakhon", "นครพนม": "nakhonphanom", "มุกดาหาร": "mukdahan",
+            "ลำพูน": "lamphun", "ลำปาง": "lampang", "อุตรดิตถ์": "uttaradit", "แพร่": "phrae", "น่าน": "nan",
+            "พะเยา": "phayao", "แม่ฮ่องสอน": "maehongson", "นครสวรรค์": "nakhonsawan", "อุทัยธานี": "uthaithani",
+            "กำแพงเพชร": "kamphaengphet", "ตาก": "tak", "สุโขทัย": "sukhothai", "พิษณุโลก": "phitsanulok",
+            "พิจิตร": "phichit", "เพชรบูรณ์": "phetchabun", "นครศรีธรรมราช": "nakhonsithammarat", "กระบี่": "krabi",
+            "พังงา": "phangnga", "ระนอง": "ranong", "ชุมพร": "chumphon", "สตูล": "satun", "ตรัง": "trang",
+            "พัทลุง": "phatthalung", "ปัตตานี": "pattani", "ยะลา": "yala", "นราธิวาส": "narathiwat"
+        };
+
+        let mapInstance = null;
+        let geoJsonLayer = null;
+        let thailandGeoJson = null;
+        let currentMapData = {}; 
+        let mapDisplayMode = 'count'; 
+
         async function initMap() {
             if (mapInstance) return; 
             mapInstance = L.map('map-container').setView([13.736717, 100.523186], 6);
@@ -1149,7 +1185,6 @@
             }).addTo(mapInstance);
 
             try {
-                // 🌟 เปลี่ยนเส้นทางการดึงไฟล์เป็น CDN (jsDelivr) ป้องกันการบล็อก (CORS) จาก Vercel/GitHub
                 const response = await fetch('https://cdn.jsdelivr.net/gh/apisit/thailand.json@master/thailand.json');
                 thailandGeoJson = await response.json();
                 processMapData();
@@ -1257,9 +1292,32 @@
                     }
                 }
             }).addTo(mapInstance);
+
+            // 🌟 เรียกใช้ฟังก์ชันแสดง Legend ที่เพิ่มกลับเข้ามา
+            updateMapLegend();
         }
 
-        // ส่วนล่าง Form Submission คงเดิม
+        // 🌟 เพิ่มฟังก์ชันสำหรับสร้างและอัปเดตกล่องอธิบายสัญลักษณ์ (Map Legend)
+        function updateMapLegend() {
+            const legendDiv = document.getElementById('map-legend');
+            if(!legendDiv) return;
+            let html = `<strong>${mapDisplayMode === 'count' ? '📊 จำนวนโครงการ (แห่ง)' : '💰 งบประมาณ (บาท)'}</strong><br><br>`;
+            
+            const countGrades = [0, 1, 3, 6, 11, 21];
+            const countLabels = ["0", "1 - 2", "3 - 5", "6 - 10", "11 - 20", "มากกว่า 20"];
+            
+            const budgetGrades = [0, 1, 500001, 1000001, 5000001, 10000001];
+            const budgetLabels = ["0", "ไม่เกิน 5 แสน", "5 แสน - 1 ล้าน", "1 - 5 ล้าน", "5 - 10 ล้าน", "มากกว่า 10 ล้าน"];
+
+            const grades = mapDisplayMode === 'count' ? countGrades : budgetGrades;
+            const labelsText = mapDisplayMode === 'count' ? countLabels : budgetLabels;
+
+            for (var i = 0; i < grades.length; i++) {
+                html += '<i style="background:' + getFeatureColor(grades[i] + 1, mapDisplayMode) + '"></i> ' + labelsText[i] + '<br>';
+            }
+            legendDiv.innerHTML = html;
+        }
+
         document.getElementById('submitBtn').addEventListener('click', function(e) {
             const form = document.getElementById('projectForm');
             const requiredFields = form.querySelectorAll('[required]');
