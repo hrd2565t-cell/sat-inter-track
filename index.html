@@ -14,9 +14,13 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- PDF.js สำหรับอ่านไฟล์ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- Leaflet CSS & JS สำหรับระบบแผนที่ -->
+    
+    <!-- 🌟 อัปเกรดระบบแผนที่เป็น MapLibre & OpenFreeMap (เสถียร, ฟรี, โหลดไว) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -390,7 +394,6 @@
                 <!-- คอนเทนเนอร์แสดงแผนที่ -->
                 <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
                     <div id="map-container" class="w-full h-[500px] sm:h-[600px] rounded-lg z-0 relative">
-                        <!-- 🌟 แก้ไข: เพิ่มกล่อง Map Legend ที่ตกหล่น -->
                         <div id="map-legend" class="info-legend absolute bottom-5 right-5 z-[400] pointer-events-none"></div>
                     </div>
                 </div>
@@ -1019,7 +1022,6 @@
                 let barClass = 'gantt-bar' + (item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว' ? ' done' : item.Operation_Status === 'ยกเลิกรายการ' ? ' cancel' : '');
                 html += `<tr><td class="p-2 border-r border-b text-gray-700 truncate max-w-[250px]" title="${name}"><div class="font-medium">${name}</div><div class="text-[10px] text-gray-400 font-mono">${item.ID || ''}</div></td>`;
                 if (hasValidDate) { 
-                    // 🌟 แก้ไข: เพิ่มตรรกะสำหรับโครงการที่มีระยะเวลาคาบเกี่ยวข้ามปี (Cross-year)
                     let isCrossYear = startMonth > endMonth;
                     for(let i=0; i<12; i++) { 
                         let isActive = isCrossYear ? (i >= startMonth || i <= endMonth) : (i >= startMonth && i <= endMonth);
@@ -1180,8 +1182,10 @@
             if (mapInstance) return; 
             mapInstance = L.map('map-container').setView([13.736717, 100.523186], 6);
             
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            // 🌟 อัปเดต TileLayer: เปลี่ยนจาก CARTO ที่ติด API Key เป็น OpenFreeMap (ฟรี, เร็ว, สวยงาม) 🌟
+            L.tileLayer('https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 18
             }).addTo(mapInstance);
 
             try {
@@ -1293,11 +1297,9 @@
                 }
             }).addTo(mapInstance);
 
-            // 🌟 เรียกใช้ฟังก์ชันแสดง Legend ที่เพิ่มกลับเข้ามา
             updateMapLegend();
         }
 
-        // 🌟 เพิ่มฟังก์ชันสำหรับสร้างและอัปเดตกล่องอธิบายสัญลักษณ์ (Map Legend)
         function updateMapLegend() {
             const legendDiv = document.getElementById('map-legend');
             if(!legendDiv) return;
