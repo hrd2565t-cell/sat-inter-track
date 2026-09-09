@@ -15,12 +15,9 @@
     <!-- PDF.js สำหรับอ่านไฟล์ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
-    <!-- MapLibre & OpenFreeMap -->
+    <!-- 🌟 Leaflet CSS & JS สำหรับระบบแผนที่ (ใช้เวอร์ชันเสถียรสุด) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
-    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -61,8 +58,8 @@
         
         /* ปรับแต่งแผนที่ Leaflet ให้ลอยตัวสวยงาม */
         .leaflet-container { font-family: 'Prompt', sans-serif; background: #e0f2fe; }
-        .info-legend { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 12px; line-height: 1.5; color: #374151; }
-        .info-legend i { width: 14px; height: 14px; float: left; margin-right: 8px; opacity: 0.8; border-radius: 3px; }
+        .info-legend { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.3); font-size: 12px; line-height: 1.5; color: #374151; }
+        .info-legend i { width: 14px; height: 14px; float: left; margin-right: 8px; opacity: 0.85; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
         .map-tooltip { font-family: 'Prompt', sans-serif; font-size: 13px; font-weight: 500; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
     </style>
 </head>
@@ -130,6 +127,7 @@
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="space-y-6">
             <div id="dashboard-cards-container" class="space-y-6">
+                <!-- ชุดที่ 1: กกท. -->
                 <div id="cards-sat-section" class="space-y-3 print:break-inside-avoid">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏢 การกีฬาแห่งประเทศไทย (กกท.)</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -152,6 +150,7 @@
                     </div>
                 </div>
 
+                <!-- ชุดที่ 2: สมาคมกีฬาฯ -->
                 <div id="cards-assoc-section" class="space-y-3 print:break-inside-avoid">
                     <h3 class="font-bold text-blue-800 flex items-center gap-2">🏅 สมาคมกีฬาแห่งประเทศไทย</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -392,7 +391,8 @@
                 <!-- คอนเทนเนอร์แสดงแผนที่ -->
                 <div class="lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
                     <div id="map-container" class="w-full h-[500px] sm:h-[600px] rounded-lg z-0 relative">
-                        <div id="map-legend" class="info-legend absolute bottom-5 right-5 z-[400] pointer-events-none"></div>
+                        <!-- กล่อง Legend ของแผนที่ -->
+                        <div id="map-legend" class="info-legend absolute bottom-5 right-5 z-[1000]"></div>
                     </div>
                 </div>
                 
@@ -1144,7 +1144,7 @@
             budgetChartInstance = new Chart(document.getElementById('budgetCompareChart').getContext('2d'), { type: 'bar', data: { labels: sortedBudgets.map(i => i.name), datasets: [ { label: 'งบอนุมัติ', data: sortedBudgets.map(i => i.app), backgroundColor: '#60a5fa', borderRadius: 4 }, { label: 'งบใช้จริง', data: sortedBudgets.map(i => i.used), backgroundColor: '#34d399', borderRadius: 4 } ] }, options: barOptions });
         }
 
-        // 🌟 สคริปต์แผนที่ GeoJSON 
+        // 🌟 สคริปต์แผนที่ GeoJSON 🌟
         const thProvinceMap = {
             "กรุงเทพ": "bangkok", "กทม": "bangkok", "เชียงใหม่": "chiangmai", "เชียงราย": "chiangrai",
             "ภูเก็ต": "phuket", "ชลบุรี": "chonburi", "พัทยา": "chonburi", "ระยอง": "rayong",
@@ -1180,9 +1180,10 @@
             if (mapInstance) return; 
             mapInstance = L.map('map-container').setView([13.736717, 100.523186], 6);
             
-            L.tileLayer('https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://openfreemap.org">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 18
+            // 🌟 แก้ไข: ใช้แผนที่ฐานของ Esri (ฟรี, เสถียรสุดๆ, สีสวยสะอาด ไม่รก และไม่ติด API Key)
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+                maxZoom: 16
             }).addTo(mapInstance);
 
             try {
@@ -1255,11 +1256,9 @@
 
             geoJsonLayer = L.geoJson(thailandGeoJson, {
                 style: function (feature) {
-                    // 🌟 แก้ไข: ดักจับชื่อตัวแปรของ GeoJSON ให้ครอบคลุมทุกแบบ (NAME_1, name, pro_en) และตัดคำว่า Province ทิ้ง
+                    // 🌟 แก้ไข: สกัดชื่อจังหวัดอย่างแม่นยำ ไม่ว่าไฟล์ GeoJSON จะใช้ตัวแปรชื่ออะไร
                     let geoName = feature.properties.NAME_1 || feature.properties.name || feature.properties.pro_en || feature.properties.NAME_ENG || '';
                     let enName = String(geoName).replace(/province|metropolis/gi, '').replace(/\s/g, '').toLowerCase();
-                    
-                    // ป้องกันความผิดพลาดของคำว่ากรุงเทพในไฟล์ GeoJSON
                     if(enName.includes('krungthep') || enName.includes('bangkok')) enName = 'bangkok';
 
                     let stat = currentMapData[enName];
