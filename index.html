@@ -1320,7 +1320,7 @@
             }).addTo(mapInstance);
 
             updateMapLegend();
-            renderTop5Provinces(); // 🌟 อัปเดตข้อมูลกล่องจัดอันดับ Top 5 ทุกครั้งที่กด Dropdown
+            renderTop5Provinces(); 
         }
 
         function updateMapLegend() {
@@ -1343,12 +1343,10 @@
             legendDiv.innerHTML = html;
         }
 
-        // 🌟 ฟังก์ชันใหม่: สร้างการ์ดจัดอันดับ 5 อันดับสูงสุด (Top 5 Leaderboard)
         function renderTop5Provinces() {
             const listContainer = document.getElementById('top5-list');
             const titleContainer = document.getElementById('top5-title');
             
-            // แปลงข้อมูลจาก Object เป็น Array เพื่อเอาไปเรียงลำดับ (Sort)
             let arr = [];
             for (let key in currentMapData) {
                 arr.push({ id: key, ...currentMapData[key] });
@@ -1359,12 +1357,10 @@
                 return;
             }
 
-            // เรียงลำดับจากมากไปน้อย ตามโหมดที่เลือก (count หรือ budget)
             arr.sort((a, b) => b[mapDisplayMode] - a[mapDisplayMode]);
-            let top5 = arr.slice(0, 5); // ตัดเอาแค่ 5 อันดับแรก
-            let maxVal = top5[0][mapDisplayMode]; // เอาค่าที่สูงที่สุดมาทำเป็นเกณฑ์ 100% ของหลอดสี
+            let top5 = arr.slice(0, 5); 
+            let maxVal = top5[0][mapDisplayMode]; 
 
-            // อัปเดตหัวข้อตารางตามโหมด
             let titleIcon = mapDisplayMode === 'count' ? '📊' : '💰';
             let titleText = mapDisplayMode === 'count' ? '5 อันดับจัดโครงการสูงสุด' : '5 อันดับใช้งบสูงสุด';
             titleContainer.innerHTML = `<span>${titleIcon}</span> ${titleText}`;
@@ -1398,13 +1394,11 @@
             listContainer.innerHTML = html;
         }
 
-        // 🌟 ฟังก์ชันใหม่: ให้แผนที่ซูมหาพิกัดจังหวัดเมื่อคลิกที่รายชื่อ
         function zoomToProvince(enNameTarget) {
             if (!mapInstance || !geoJsonLayer) return;
             
             let targetLayer = null;
             
-            // วนหาว่า Layer ไหนคือจังหวัดที่ตรงกับ ID ที่กดมา
             geoJsonLayer.eachLayer(function(layer) {
                 let geoName = layer.feature.properties.NAME_1 || layer.feature.properties.name || layer.feature.properties.pro_en || layer.feature.properties.NAME_ENG || '';
                 let enName = String(geoName).replace(/province|metropolis/gi, '').replace(/\s/g, '').toLowerCase();
@@ -1416,20 +1410,15 @@
             });
 
             if (targetLayer) {
-                // สั่งซูมแบบสมูท (FlyTo) ไปหาจังหวัดนั้น พร้อมเว้นขอบ Padding ให้ดูสวยงาม
                 mapInstance.flyToBounds(targetLayer.getBounds(), { padding: [30, 30], maxZoom: 8, duration: 1.5 });
                 
-                // ไฮไลต์สีให้จังหวัดนั้นเด่นขึ้นมา 3 วินาที (ชี้เป้าให้ผู้ใช้งานเห็นชัดๆ)
                 targetLayer.setStyle({ weight: 4, color: '#facc15', fillOpacity: 0.9 });
                 setTimeout(() => {
-                    geoJsonLayer.resetStyle(targetLayer); // คืนค่าสีเดิมหลังผ่านไป 3 วิ
+                    geoJsonLayer.resetStyle(targetLayer); 
                 }, 3000);
             }
         }
 
-        // ==========================================
-        // ฟังก์ชันระบบบันทึกฟอร์มและอื่นๆ คงเดิมทั้งหมด
-        // ==========================================
         document.getElementById('submitBtn').addEventListener('click', function(e) {
             const form = document.getElementById('projectForm');
             const requiredFields = form.querySelectorAll('[required]');
