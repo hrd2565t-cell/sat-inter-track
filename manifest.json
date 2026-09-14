@@ -1,5 +1,5 @@
 {
-  "name": "ระบบติดตามโครงการ กกท.",
+  "name": "Smart Real-Time Dashboard (SRTD)",
   "short_name": "SAT Tracking",
   "description": "ระบบติดตามและวิเคราะห์งบประมาณโครงการพัฒนาบุคลากรกีฬา",
   "start_url": "./index.html",
