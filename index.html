@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบติดตามการทำงานโครงการพัฒนาบุคลากรโดย กกท.</title>
+    <title>Smart Real-Time Dashboard (SRTD)</title>
     
     <!-- 🌟 PWA Setup 🌟 -->
     <meta name="theme-color" content="#1e3a8a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SAT Tracking">
+    <meta name="apple-mobile-web-app-title" content="SRTD">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
     
@@ -76,7 +76,8 @@
 
     <nav class="bg-blue-900 text-white shadow-md no-print border-b-4 border-yellow-500 relative z-50">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col xl:flex-row justify-between items-center">
-            <h1 class="text-xl font-bold mb-3 xl:mb-0 tracking-wide text-center">ระบบติดตามโครงการพัฒนาบุคลากรโดย กกท.</h1>
+            <!-- 🌟 แก้ไขจุดที่ 1: เปลี่ยนชื่อบนแถบ Navbar สีน้ำเงิน -->
+            <h1 class="text-xl font-bold mb-3 xl:mb-0 tracking-wide text-center">Smart Real-Time Dashboard (SRTD)</h1>
             <div class="flex items-center space-x-2 flex-wrap justify-center gap-y-2">
                 <div class="flex space-x-1 sm:space-x-2 bg-blue-800 p-1 rounded-lg border border-blue-700">
                     <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-3 sm:px-4 py-2 rounded-md font-bold text-xs sm:text-sm bg-yellow-500 text-blue-900 shadow transition">Dashboard ภาพรวม</button>
@@ -120,8 +121,9 @@
 
         <!-- แท็บแสดงผลการกรองข้อมูลรวม -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <!-- 🌟 แก้ไขจุดที่ 2: เปลี่ยนชื่อหัวข้อสรุปภาพรวม -->
             <h2 id="dashboard-title" class="text-lg font-bold text-blue-900 flex items-center gap-2">
-                📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569
+                📊 สรุปภาพรวม SRTD ประจำปีงบประมาณ พ.ศ. 2569
             </h2>
             <div class="flex items-center gap-3 w-full sm:w-auto no-print">
                 <label class="text-sm font-medium text-gray-600 hidden sm:block">ดูข้อมูลเฉพาะ:</label>
@@ -425,7 +427,7 @@
                         </div>
                     </div>
                     
-                    <!-- 🌟 ส่วนใหม่: กล่อง 5 อันดับสูงสุด (Leaderboard) 🌟 -->
+                    <!-- กล่อง 5 อันดับสูงสุด (Leaderboard) -->
                     <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm mt-4">
                         <h3 id="top5-title" class="font-bold text-gray-800 mb-3 border-b border-gray-300 pb-2 flex items-center gap-1">
                             <span>🏆</span> 5 อันดับสูงสุด
@@ -946,9 +948,9 @@
         function applyGlobalFilter() {
             const categoryFilter = document.getElementById('globalFilterCategory').value;
             clearChartFilter(false);
-            if (categoryFilter === '') { currentFilteredData = [...globalData]; document.getElementById('dashboard-title').innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรกีฬา ประจำปีงบประมาณ พ.ศ. 2569'; }
-            else if (categoryFilter === 'กกท.') { currentFilteredData = globalData.filter(i => (i.Main_Category || '').includes('การกีฬา')); document.getElementById('dashboard-title').innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรโดยการกีฬาแห่งประเทศไทย ประจำปีงบประมาณ พ.ศ. 2569'; }
-            else { currentFilteredData = globalData.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา')); document.getElementById('dashboard-title').innerHTML = '📊 สรุปภาพรวมโครงการพัฒนาบุคลากรโดยสมาคมกีฬาแห่งประเทศไทย ประจำปีงบประมาณ พ.ศ. 2569'; }
+            if (categoryFilter === '') { currentFilteredData = [...globalData]; document.getElementById('dashboard-title').innerHTML = '📊 สรุปภาพรวม SRTD ประจำปีงบประมาณ พ.ศ. 2569'; }
+            else if (categoryFilter === 'กกท.') { currentFilteredData = globalData.filter(i => (i.Main_Category || '').includes('การกีฬา')); document.getElementById('dashboard-title').innerHTML = '📊 สรุปภาพรวม SRTD (กกท.) ประจำปีงบประมาณ พ.ศ. 2569'; }
+            else { currentFilteredData = globalData.filter(i => (i.Main_Category || '').includes('สมาคมกีฬา')); document.getElementById('dashboard-title').innerHTML = '📊 สรุปภาพรวม SRTD (สมาคมกีฬาฯ) ประจำปีงบประมาณ พ.ศ. 2569'; }
             updateDashboardCardsAndCharts(currentFilteredData); applyTableSearch(); processMapData();
         }
 
