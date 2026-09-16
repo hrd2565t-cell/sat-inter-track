@@ -25,7 +25,7 @@
     <!-- PDF.js สำหรับอ่านไฟล์ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
-    <!-- MapLibre & OpenFreeMap -->
+    <!-- MapLibre & Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
@@ -73,6 +73,27 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen relative">
+
+    <!-- 🌟 ส่วนใหม่: หน้าจอ Loading & Error Overlay 🌟 -->
+    <div id="data-loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-[1000] flex items-center justify-center print:hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm text-center mx-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mb-4"></div>
+            <h3 class="text-xl font-bold text-blue-900" id="loading-title">กำลังดึงข้อมูล...</h3>
+            <p class="text-sm text-gray-500 mt-2 font-medium" id="loading-desc">กำลังเชื่อมต่อฐานข้อมูล กกท. กรุณารอสักครู่</p>
+        </div>
+    </div>
+
+    <div id="data-error-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-[1000] flex items-center justify-center hidden print:hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm text-center mx-4 border-t-8 border-red-500">
+            <div class="text-5xl mb-3">📡</div>
+            <h3 class="text-xl font-bold text-red-600">การเชื่อมต่อขัดข้อง</h3>
+            <p class="text-sm text-gray-600 mt-2 mb-6 leading-relaxed">เซิร์ฟเวอร์ตอบสนองช้า หรืออินเทอร์เน็ตของคุณไม่เสถียร ทำให้ไม่สามารถดึงข้อมูลได้ในขณะนี้</p>
+            <button onclick="loadData(3)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                <span>🔄</span> ลองใหม่อีกครั้ง
+            </button>
+        </div>
+    </div>
+    <!-- 🌟 สิ้นสุดส่วน Loading 🌟 -->
 
     <nav class="bg-blue-900 text-white shadow-md no-print border-b-4 border-yellow-500 relative z-50">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col xl:flex-row justify-between items-center">
@@ -396,16 +417,16 @@
                 </div>
             </div>
 
-            <!-- 🌟 แก้ไข: จัดเรียงลำดับ Grid (Responsive Order) เพื่อให้กล่อง Top 5 เด้งขึ้นมาอยู่บนสุดเวลามองผ่านจอมือถือ -->
+            <!-- จัดเรียงลำดับ Grid (Responsive Order) เพื่อให้กล่อง Top 5 เด้งขึ้นมาอยู่บนสุดเวลามองผ่านจอมือถือ -->
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <!-- คอนเทนเนอร์แสดงแผนที่ (ถูกย้ายลำดับไปเป็นที่ 2 บนมือถือ และที่ 1 บนจอคอม) -->
+                <!-- คอนเทนเนอร์แสดงแผนที่ -->
                 <div class="order-2 lg:order-1 lg:col-span-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
                     <div id="map-container" class="w-full h-[500px] sm:h-[600px] rounded-lg z-0 relative">
                         <div id="map-legend" class="info-legend absolute bottom-5 right-5 z-[400] pointer-events-none"></div>
                     </div>
                 </div>
                 
-                <!-- กล่องข้อความด้านข้าง Summary & Top5 (ถูกดึงขึ้นเป็นลำดับที่ 1 บนมือถือ) -->
+                <!-- กล่องข้อความด้านข้าง Summary & Top5 -->
                 <div class="order-1 lg:order-2 space-y-4">
                     <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 shadow-sm">
                         <h3 class="font-bold text-indigo-900 mb-3 border-b border-indigo-200 pb-2">📍 สรุปพิกัดบนแผนที่</h3>
@@ -927,9 +948,33 @@
             }, 300);
         }
 
-        async function loadData() {
+        // 🌟 ฟังก์ชันโหลดข้อมูลแบบชาญฉลาด (Auto-Retry + Loading UI) 🌟
+        async function loadData(retries = 3) {
+            const loadingOverlay = document.getElementById('data-loading-overlay');
+            const errorOverlay = document.getElementById('data-error-overlay');
+            const loadingDesc = document.getElementById('loading-desc');
+            
+            // แสดงหน้าจอ Loading
+            loadingOverlay.classList.remove('hidden');
+            errorOverlay.classList.add('hidden');
+            
+            // เปลี่ยนข้อความตามจำนวนรอบที่พยายามดึงข้อมูล
+            if (retries < 3) {
+                loadingDesc.innerText = `การเชื่อมต่อล่าช้า กำลังพยายามใหม่ (ครั้งที่ ${4 - retries}/3)...`;
+            } else {
+                loadingDesc.innerText = 'กำลังเชื่อมต่อฐานข้อมูล กกท. กรุณารอสักครู่';
+            }
+
             try {
-                const response = await fetch(SCRIPT_URL); const result = await response.json();
+                // สร้างตัวจับเวลา 10 วินาที ถ้า Google ไม่ตอบกลับ ให้ถือว่าเน็ตหลุด
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); 
+                
+                const response = await fetch(SCRIPT_URL, { signal: controller.signal });
+                clearTimeout(timeoutId); // ดึงข้อมูลสำเร็จ ยกเลิกตัวจับเวลา
+                
+                const result = await response.json();
+                
                 if(result.status === 'success') {
                     globalData = result.data.map(item => {
                         item.ID = String(item.ID || '').trim(); item.Main_Category = sanitizeGeneralWord(String(item.Main_Category || '')).trim();
@@ -937,10 +982,27 @@
                         item.Project_Name = sanitizeGeneralWord(String(item.Project_Name || '')).trim(); item.Location = sanitizeGeneralWord(String(item.Location || '')).trim();
                         return item;
                     });
+                    
                     applyGlobalFilter(); renderAnalytics(globalData); 
                     if(!thailandGeoJson) initMap(); else processMapData();
+                    
+                    // ปิดหน้าจอ Loading เมื่อทำงานเสร็จสมบูรณ์
+                    loadingOverlay.classList.add('hidden'); 
+                } else {
+                    throw new Error("เซิร์ฟเวอร์ตอบสนองผิดพลาด");
                 }
-            } catch (error) { console.error('Error loading data:', error); }
+            } catch (error) { 
+                console.error('พบข้อผิดพลาดในการโหลดข้อมูล:', error);
+                
+                if (retries > 0) {
+                    // ถ้ายังเหลือโควต้าให้ลองใหม่ ให้รอ 2 วินาทีแล้วลองเรียกตัวเองซ้ำ
+                    setTimeout(() => loadData(retries - 1), 2000); 
+                } else {
+                    // ถ้าลองครบ 3 รอบแล้วยังไม่ได้ ให้โชว์หน้าต่าง Error พร้อมปุ่มกด
+                    loadingOverlay.classList.add('hidden');
+                    errorOverlay.classList.remove('hidden'); 
+                }
+            }
         }
 
         function applyGlobalFilter() {
