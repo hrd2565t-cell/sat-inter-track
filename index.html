@@ -71,16 +71,22 @@
         .info-legend i { width: 14px; height: 14px; float: left; margin-right: 8px; opacity: 0.85; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
         .map-tooltip { font-family: 'Prompt', sans-serif; font-size: 13px; font-weight: 500; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
 
-        /* ปรับแต่ง Select Dropdown ในตาราง */
+        /* 🌟 ปรับแต่ง Select Dropdown ในตารางใหม่ให้ดูเหมือนป้าย Badge */
         select.admin-inline-select {
             appearance: none;
-            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22currentColor%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E');
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%234b5563%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E');
             background-repeat: no-repeat;
-            background-position: right 0.2rem center;
-            background-size: 12px;
-            padding-right: 1.25rem !important;
-            cursor: pointer;
+            background-position: right 8px center;
+            background-size: 10px;
+            padding-right: 24px !important;
+            padding-left: 12px !important;
             text-align: center;
+            text-align-last: center;
+        }
+        select.admin-inline-select:focus {
+            outline: none;
         }
     </style>
 </head>
@@ -699,14 +705,13 @@
             }, 200);
         }
 
-        // 🌟 แก้ไข: เมื่อ Login แล้ว ให้รีโหลดตารางเพื่อโชว์ Dropdown
         function verifyPin() {
             if (document.getElementById('adminPinInput').value === ADMIN_PIN) {
                 isAdminActive = true; closePinModal();
                 document.getElementById('btn-admin-login').classList.add('hidden');
                 document.getElementById('btn-admin-logout').classList.remove('hidden');
                 document.getElementById('btn-form').classList.remove('hidden');
-                renderPaginatedView(); // รีเฟรชตาราง
+                renderPaginatedView();
             } else {
                 document.getElementById('pinErrorMsg').classList.remove('hidden');
                 document.getElementById('adminPinInput').value = '';
@@ -714,13 +719,12 @@
             }
         }
 
-        // 🌟 แก้ไข: เมื่อ Logout แล้ว ให้รีโหลดตารางเพื่อซ่อน Dropdown
         function logoutAdmin() {
             isAdminActive = false;
             document.getElementById('btn-admin-logout').classList.add('hidden');
             document.getElementById('btn-admin-login').classList.remove('hidden');
             document.getElementById('btn-form').classList.add('hidden');
-            renderPaginatedView(); // รีเฟรชตาราง
+            renderPaginatedView();
             if (!document.getElementById('tab-form').classList.contains('hidden')) switchTab('dashboard');
         }
 
@@ -790,7 +794,6 @@
         const opStatusSelect = document.getElementById('operationStatus');
         const payStatusSelect = document.getElementById('paymentStatus');
         
-        // 🌟 แก้ไข: เพิ่ม "โอนเงินแล้ว" เข้าไปในตัวเลือก Dropdown ของฟอร์มบันทึกข้อมูล
         const defaultOpOptions = `<option value="อยู่ระหว่างการดำเนินงาน" selected class="text-orange-600">อยู่ระหว่างการดำเนินงาน</option><option value="ดำเนินการเสร็จสิ้นแล้ว" class="text-green-600">ดำเนินการเสร็จสิ้นแล้ว</option>`;
         const assocOpOptions = defaultOpOptions + `<option value="ยกเลิกรายการ" class="text-red-600 font-bold">ยกเลิกรายการ</option>`;
         
@@ -998,7 +1001,6 @@
             btnRetry.classList.remove('hidden');
         }
 
-        // 🌟 เพิ่มฟังก์ชันใหม่: Auto-Save สถานะการเบิกจ่ายจากตารางโดยตรง 🌟
         async function updatePaymentStatus(projectId, newStatus) {
             const item = globalData.find(d => d.ID === projectId);
             if(!item) return;
@@ -1024,7 +1026,7 @@
                 approvedBudget: Number(item.Approved_Budget) || 0,
                 usedBudget: Number(item.Used_Budget) || 0,
                 operationStatus: item.Operation_Status, 
-                paymentStatus: newStatus, // ส่งค่าสถานะใหม่ไปอัปเดต
+                paymentStatus: newStatus,
                 pdfBase64: null, pdfFileName: null
             };
 
@@ -1037,7 +1039,6 @@
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    // อัปเดตข้อมูลในหน่วยความจำและรีเฟรชหน้าจอ
                     item.Payment_Status = newStatus;
                     applyGlobalFilter(); 
                     renderAnalytics(globalData);
@@ -1045,12 +1046,12 @@
                 } else {
                     alert('เกิดข้อผิดพลาดในการบันทึก: ' + result.message);
                     overlay.classList.add('hidden');
-                    renderPaginatedView(); // คืนค่า Dropdown กลับเป็นค่าเดิม
+                    renderPaginatedView(); 
                 }
             } catch (error) {
                 alert('ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบสัญญาณอินเทอร์เน็ตแล้วลองใหม่');
                 overlay.classList.add('hidden');
-                renderPaginatedView(); // คืนค่า Dropdown กลับเป็นค่าเดิม
+                renderPaginatedView(); 
             }
         }
 
@@ -1177,14 +1178,12 @@
                 let app = Number(item.Approved_Budget || 0); let used = Number(item.Used_Budget || 0); let remaining = app - used;
                 let opClass = item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว' ? 'bg-green-100 text-green-700' : item.Operation_Status === 'ยกเลิกรายการ' ? 'bg-red-100 text-red-700 font-bold' : 'bg-yellow-100 text-yellow-700';
                 
-                // 🌟 แก้ไข: กำหนดสีป้ายสถานะเบิกจ่าย
                 let payClass = '';
                 if (item.Payment_Status === 'เบิกจ่ายเรียบร้อย') payClass = 'bg-green-100 text-green-700';
                 else if (item.Payment_Status === 'ส่งเงินคืนกองทุนฯ') payClass = 'bg-purple-100 text-purple-700 font-bold';
-                else if (item.Payment_Status === 'โอนเงินแล้ว') payClass = 'bg-blue-100 text-blue-700 font-bold'; // ป้ายสีฟ้า
+                else if (item.Payment_Status === 'โอนเงินแล้ว') payClass = 'bg-blue-100 text-blue-700 font-bold'; 
                 else payClass = 'bg-yellow-100 text-yellow-700';
 
-                // 🌟 แก้ไข: ถ้า Admin เข้าระบบ ให้เปลี่ยนช่อง "สถานะเบิกจ่าย" เป็น Dropdown Select
                 let paymentCellHtml = '';
                 if (isAdminActive) {
                     let isAssoc = (item.Main_Category || '').includes('สมาคมกีฬา');
@@ -1196,9 +1195,9 @@
                     if (isAssoc) {
                         dropOpts += `<option value="ส่งเงินคืนกองทุนฯ" ${item.Payment_Status==='ส่งเงินคืนกองทุนฯ'?'selected':''}>ส่งเงินคืนกองทุนฯ</option>`;
                     }
-                    paymentCellHtml = `<select onchange="updatePaymentStatus('${item.ID}', this.value)" class="admin-inline-select font-bold rounded-full transition-all focus:ring-2 focus:ring-blue-500 w-full ${payClass}">${dropOpts}</select>`;
+                    // 🌟 แก้ไข: จัดการ CSS และ Tailwind Class ใหม่ให้เหมือนป้ายฝั่งซ้าย และตั้งค่า min-width กันข้อความโดนตัด
+                    paymentCellHtml = `<select onchange="updatePaymentStatus('${item.ID}', this.value)" class="admin-inline-select text-xs font-medium rounded-full cursor-pointer border-0 outline-none shadow-sm hover:shadow transition-all focus:ring-2 focus:ring-blue-400 ${payClass}" style="min-width: 145px; padding-top: 4px; padding-bottom: 4px;">${dropOpts}</select>`;
                 } else {
-                    // มุมมองผู้ใช้ทั่วไป โชว์แค่ป้ายข้อความปกติ
                     paymentCellHtml = `<span class="px-2 py-1 text-xs rounded-full ${payClass}">${item.Payment_Status || '-'}</span>`;
                 }
 
@@ -1210,7 +1209,7 @@
                     <td class="p-3 border-b text-gray-600 text-xs text-center"><div>${item.Start_Date || '-'}</div><div class="text-gray-400">ถึง</div><div>${item.End_Date || '-'}</div></td>
                     <td class="p-3 border-b text-center"><div class="text-gray-500 text-xs">เป้าหมาย: ${item.Target_People || 0}</div><div class="text-green-600 font-bold text-sm mt-0.5">ผ่าน: ${item.Passed_People || 0}</div></td>
                     <td class="p-3 border-b text-right"><div class="text-green-600 font-bold text-sm mb-1">อนุมัติ: ${app.toLocaleString()}</div><div class="text-orange-500 font-semibold text-sm border-t border-gray-200 pt-1">ใช้ไป: ${used.toLocaleString()}</div><div class="${remaining < 0 ? 'text-red-600' : 'text-blue-600'} font-bold text-sm border-t border-gray-200 pt-1 mt-1">คงเหลือ: ${remaining.toLocaleString()}</div></td>
-                    <td class="p-3 border-b text-center"><span class="px-2 py-1 text-xs rounded-full ${opClass}">${item.Operation_Status || '-'}</span></td>
+                    <td class="p-3 border-b text-center align-middle"><span class="px-2 py-1 text-xs rounded-full ${opClass}">${item.Operation_Status || '-'}</span></td>
                     <td class="p-3 border-b text-center align-middle">${paymentCellHtml}</td>
                 </tr>`;
             }).join('');
@@ -1221,7 +1220,6 @@
             let opCancel = data.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length; 
             let opProg = data.length - opDone - opCancel; 
             
-            // 🌟 แก้ไข: เพิ่ม "โอนเงินแล้ว" เข้าไปคำนวณในกราฟโดนัทด้วย
             let payDone = data.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length; 
             let payReturn = data.filter(i => i.Payment_Status === 'ส่งเงินคืนกองทุนฯ').length; 
             let payTransfer = data.filter(i => i.Payment_Status === 'โอนเงินแล้ว').length;
@@ -1239,7 +1237,7 @@
                     labels: ['อยู่ระหว่างเบิกจ่าย', 'เบิกจ่ายเรียบร้อย', 'โอนเงินแล้ว', 'ส่งเงินคืนกองทุนฯ'], 
                     datasets: [{ 
                         data: [payProg, payDone, payTransfer, payReturn], 
-                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'], // แทรกสีฟ้าของโอนเงินแล้ว
+                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'], 
                         borderWidth: 2 
                     }] 
                 }, 
@@ -1303,7 +1301,6 @@
                 let targPeople = dataset.reduce((sum, i) => sum + Number(i.Target_People || 0), 0); let passPeople = dataset.reduce((sum, i) => sum + Number(i.Passed_People || 0), 0);
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length; let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length; let inProgressCount = dataset.length - completedCount - cancelledCount;
                 
-                // 🌟 แก้ไข: สรุปข้อมูลสถานะเบิกจ่าย
                 let payReturnCount = dataset.filter(i => i.Payment_Status === 'ส่งเงินคืนกองทุนฯ').length; 
                 let payDoneCount = dataset.filter(i => i.Payment_Status === 'เบิกจ่ายเรียบร้อย').length; 
                 let payTransferCount = dataset.filter(i => i.Payment_Status === 'โอนเงินแล้ว').length; 
