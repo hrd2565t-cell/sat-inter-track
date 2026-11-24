@@ -25,7 +25,7 @@
     <!-- PDF.js สำหรับอ่านไฟล์ PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
-    <!-- MapLibre & OpenFreeMap -->
+    <!-- Leaflet Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
@@ -45,8 +45,8 @@
             .print\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; gap: 1rem !important; }
             .print\:break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
             .print\:break-before-page { break-before: page; page-break-before: always; display: block; }
-            #dashboard-cards-container .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px !important; }
-            #dashboard-cards-container .p-5 { padding: 12px !important; }
+            #dashboard-cards-container .grid, #personnel-role-summary .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 10px !important; }
+            #dashboard-cards-container .p-5, #personnel-role-summary .p-5 { padding: 12px !important; }
             canvas { max-width: 100% !important; height: auto !important; max-height: 250px !important; }
             .gantt-cell { min-width: 25px !important; }
         }
@@ -71,7 +71,7 @@
         .info-legend i { width: 14px; height: 14px; float: left; margin-right: 8px; opacity: 0.85; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
         .map-tooltip { font-family: 'Prompt', sans-serif; font-size: 13px; font-weight: 500; border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; }
 
-        /* 🌟 ปรับแต่ง Select Dropdown ในตารางใหม่ให้ดูเหมือนป้าย Badge */
+        /* ปรับแต่ง Select Dropdown ในตารางให้ดูเหมือนป้าย Badge */
         select.admin-inline-select {
             appearance: none;
             -webkit-appearance: none;
@@ -213,6 +213,44 @@
                 </div>
             </div>
 
+            <!-- 🌟 ส่วนใหม่: สรุปจำนวนบุคลากรจำแนกตามประเภท (Keyword Matching แบบไม่นับซ้ำ) 🌟 -->
+            <div id="personnel-role-summary" class="space-y-3 print:break-inside-avoid">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <h3 class="font-bold text-blue-800 flex items-center gap-2">👥 สรุปจำนวนบุคลากรจำแนกตามประเภท (ผ่านจริง / เป้าหมาย)</h3>
+                    <span class="text-xs text-gray-500 no-print">💡 คลิกที่การ์ดเพื่อกรองดูรายการ • ตัดโครงการยกเลิกออก (นับไม่ซ้ำ: ต่างประเทศ &gt; ผู้ตัดสิน &gt; ผู้ฝึกสอน)</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div onclick="handleRoleCardClick('referee', 'ผู้ตัดสิน')" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-indigo-500 cursor-pointer hover:shadow-md hover:bg-indigo-50/30 transition">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600 font-medium">⚖️ ผู้ตัดสิน</p>
+                            <span id="card-role-referee-count" class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full">0 โครงการ</span>
+                        </div>
+                        <h3 id="card-role-referee" class="text-2xl font-bold text-indigo-700 mt-2">0 <span class="text-base text-gray-400 font-medium">/ 0 คน</span></h3>
+                    </div>
+                    <div onclick="handleRoleCardClick('coach', 'ผู้ฝึกสอน')" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-emerald-500 cursor-pointer hover:shadow-md hover:bg-emerald-50/30 transition">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600 font-medium">📣 ผู้ฝึกสอน</p>
+                            <span id="card-role-coach-count" class="text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">0 โครงการ</span>
+                        </div>
+                        <h3 id="card-role-coach" class="text-2xl font-bold text-emerald-700 mt-2">0 <span class="text-base text-gray-400 font-medium">/ 0 คน</span></h3>
+                    </div>
+                    <div onclick="handleRoleCardClick('abroad', 'ส่งไปต่างประเทศ')" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-sky-500 cursor-pointer hover:shadow-md hover:bg-sky-50/30 transition">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600 font-medium">✈️ ส่งไปต่างประเทศ</p>
+                            <span id="card-role-abroad-count" class="text-xs font-semibold bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full">0 โครงการ</span>
+                        </div>
+                        <h3 id="card-role-abroad" class="text-2xl font-bold text-sky-700 mt-2">0 <span class="text-base text-gray-400 font-medium">/ 0 คน</span></h3>
+                    </div>
+                    <div onclick="handleRoleCardClick('other', 'อื่นๆ / ไม่ระบุ')" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-gray-400 cursor-pointer hover:shadow-md hover:bg-gray-50 transition">
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600 font-medium">📌 อื่นๆ / ไม่ระบุ</p>
+                            <span id="card-role-other-count" class="text-xs font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">0 โครงการ</span>
+                        </div>
+                        <h3 id="card-role-other" class="text-2xl font-bold text-gray-700 mt-2">0 <span class="text-base text-gray-400 font-medium">/ 0 คน</span></h3>
+                    </div>
+                </div>
+            </div>
+
             <!-- แผนผังระยะเวลา (Timeline) -->
             <div id="timeline-section" class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col print:break-inside-avoid">
                 <div class="p-4 border-b border-gray-100 flex justify-between items-center">
@@ -274,10 +312,10 @@
             <!-- โซนตาราง / Kanban Board -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col print:break-inside-avoid relative">
                 <div class="p-4 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <h3 class="font-bold text-blue-900 text-lg">รายการโครงการ</h3>
                         <button id="btnClearChartFilter" onclick="clearChartFilter()" class="hidden px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold rounded-full transition no-print items-center gap-1 shadow-sm border border-red-200">
-                            ❌ ยกเลิกตัวกรองกราฟ
+                            ❌ ยกเลิกตัวกรอง
                         </button>
                     </div>
 
@@ -664,6 +702,82 @@
             return val;
         }
 
+        function parseSafeNumber(val) {
+            return Number(String(val || 0).replace(/,/g, '')) || 0;
+        }
+
+        // 🌟 ฟังก์ชันใหม่: จำแนกประเภทบุคลากรด้วย Keyword (แบบ A: จัดลำดับความสำคัญ ไม่นับซ้ำ) 🌟
+        function classifyPersonnelCategory(item) {
+            const textToCheck = (
+                String(item.Project_Activity || '') + ' ' +
+                String(item.Project_Name || '') + ' ' +
+                String(item.Sub_Category || '')
+            ).toLowerCase();
+
+            // 1. ส่งไปต่างประเทศ (ไม่นับคำว่า "นานาชาติ")
+            if (
+                textToCheck.includes('ต่างประเทศ') ||
+                textToCheck.includes('ส่งไป') ||
+                textToCheck.includes('overseas') ||
+                textToCheck.includes('abroad')
+            ) {
+                return 'abroad';
+            }
+
+            // 2. ผู้ตัดสิน
+            if (
+                textToCheck.includes('ผู้ตัดสิน') ||
+                textToCheck.includes('กรรมการ') ||
+                textToCheck.includes('referee') ||
+                textToCheck.includes('official') ||
+                textToCheck.includes('umpire') ||
+                textToCheck.includes('judge')
+            ) {
+                return 'referee';
+            }
+
+            // 3. ผู้ฝึกสอน
+            if (
+                textToCheck.includes('ผู้ฝึกสอน') ||
+                textToCheck.includes('โค้ช') ||
+                textToCheck.includes('coach')
+            ) {
+                return 'coach';
+            }
+
+            // 4. อื่นๆ / ไม่ระบุ
+            return 'other';
+        }
+
+        // 🌟 ฟังก์ชันใหม่: อัปเดตการ์ดสรุปบุคลากร 4 หมวด (ตัดรายการยกเลิกออก) 🌟
+        function updatePersonnelRoleSummary(data) {
+            const stats = {
+                referee: { passed: 0, target: 0, count: 0 },
+                coach: { passed: 0, target: 0, count: 0 },
+                abroad: { passed: 0, target: 0, count: 0 },
+                other: { passed: 0, target: 0, count: 0 }
+            };
+
+            data.forEach(item => {
+                if (item.Operation_Status === 'ยกเลิกรายการ') return;
+                const role = classifyPersonnelCategory(item);
+                stats[role].passed += parseSafeNumber(item.Passed_People);
+                stats[role].target += parseSafeNumber(item.Target_People);
+                stats[role].count += 1;
+            });
+
+            ['referee', 'coach', 'abroad', 'other'].forEach(role => {
+                const elVal = document.getElementById(`card-role-${role}`);
+                const elCount = document.getElementById(`card-role-${role}-count`);
+                if (elVal) {
+                    elVal.innerHTML = `${stats[role].passed.toLocaleString()} <span class="text-base text-gray-400 font-medium">/ ${stats[role].target.toLocaleString()} คน</span>`;
+                }
+                if (elCount) {
+                    elCount.innerText = `${stats[role].count.toLocaleString()} โครงการ`;
+                }
+            });
+        }
+
         const centerTextPlugin = {
             id: 'centerText',
             beforeDraw(chart) {
@@ -1021,10 +1135,10 @@
                 projectName: isAssociation ? item.Project_Name : "-",
                 location: item.Location,
                 startDate: item.Start_Date, endDate: item.End_Date,
-                targetPeople: Number(item.Target_People) || 0,
-                passedPeople: Number(item.Passed_People) || 0,
-                approvedBudget: Number(item.Approved_Budget) || 0,
-                usedBudget: Number(item.Used_Budget) || 0,
+                targetPeople: parseSafeNumber(item.Target_People),
+                passedPeople: parseSafeNumber(item.Passed_People),
+                approvedBudget: parseSafeNumber(item.Approved_Budget),
+                usedBudget: parseSafeNumber(item.Used_Budget),
                 operationStatus: item.Operation_Status, 
                 paymentStatus: newStatus,
                 pdfBase64: null, pdfFileName: null
@@ -1066,13 +1180,25 @@
 
         function handleChartClick(chartType, label) {
             activeChartFilter = { type: chartType, label: label };
-            document.getElementById('btnClearChartFilter').classList.remove('hidden'); document.getElementById('btnClearChartFilter').classList.add('flex');
+            const btnClear = document.getElementById('btnClearChartFilter');
+            btnClear.innerHTML = `❌ ยกเลิกตัวกรอง (${label})`;
+            btnClear.classList.remove('hidden'); btnClear.classList.add('flex');
+            applyTableSearch(); document.getElementById('view-section-table').parentElement.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleRoleCardClick(roleKey, roleTitle) {
+            activeChartFilter = { type: 'role', label: roleKey };
+            const btnClear = document.getElementById('btnClearChartFilter');
+            btnClear.innerHTML = `❌ ยกเลิกตัวกรอง (${roleTitle})`;
+            btnClear.classList.remove('hidden'); btnClear.classList.add('flex');
             applyTableSearch(); document.getElementById('view-section-table').parentElement.scrollIntoView({ behavior: 'smooth' });
         }
 
         function clearChartFilter(applySearch = true) {
             activeChartFilter = { type: null, label: null };
-            document.getElementById('btnClearChartFilter').classList.remove('flex'); document.getElementById('btnClearChartFilter').classList.add('hidden');
+            const btnClear = document.getElementById('btnClearChartFilter');
+            btnClear.classList.remove('flex'); btnClear.classList.add('hidden');
+            btnClear.innerHTML = '❌ ยกเลิกตัวกรอง';
             if (applySearch) applyTableSearch();
         }
 
@@ -1086,13 +1212,15 @@
             categoryFilter === 'กกท.' ? assocSection.classList.add('hidden') : assocSection.classList.remove('hidden');
 
             function updateCardSet(prefix, dataset) {
-                let app = dataset.reduce((sum, i) => sum + Number(i.Approved_Budget || 0), 0); let used = dataset.reduce((sum, i) => sum + Number(i.Used_Budget || 0), 0);
-                let target = dataset.reduce((sum, i) => sum + Number(i.Target_People || 0), 0); let passed = dataset.reduce((sum, i) => sum + Number(i.Passed_People || 0), 0);
+                let app = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Approved_Budget), 0); let used = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Used_Budget), 0);
+                let target = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Target_People), 0); let passed = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Passed_People), 0);
                 document.getElementById(`card-${prefix}-approved`).innerText = app.toLocaleString() + ' บาท'; document.getElementById(`card-${prefix}-used`).innerText = used.toLocaleString() + ' บาท';
                 document.getElementById(`card-${prefix}-remaining`).innerText = (app - used).toLocaleString() + ' บาท'; document.getElementById(`card-${prefix}-remaining`).className = (app - used) < 0 ? "text-2xl font-bold text-red-600 mt-1" : "text-2xl font-bold text-blue-600 mt-1";
                 document.getElementById(`card-${prefix}-participants`).innerHTML = `${passed.toLocaleString()} <span class="text-lg text-gray-400 font-medium">/ ${target.toLocaleString()} คน</span>`;
             }
-            updateCardSet('sat', satData); updateCardSet('assoc', assocData); renderCharts(data);
+            updateCardSet('sat', satData); updateCardSet('assoc', assocData);
+            updatePersonnelRoleSummary(data); // อัปเดตการ์ดจำแนกประเภทบุคลากร
+            renderCharts(data);
         }
 
         function applyTableSearch() {
@@ -1100,8 +1228,13 @@
             finalDataForTable = currentFilteredData.filter(item => {
                 const matchKeyword = [item.ID, item.Main_Category, item.Sub_Category, item.Project_Activity, item.Project_Name, item.Location].some(val => String(val || '').toLowerCase().includes(keyword));
                 let matchChart = true;
-                if (activeChartFilter.type === 'operation') matchChart = (item.Operation_Status === (activeChartFilter.label === 'เสร็จสิ้นแล้ว' ? 'ดำเนินการเสร็จสิ้นแล้ว' : activeChartFilter.label === 'อยู่ระหว่างดำเนินการ' ? 'อยู่ระหว่างการดำเนินงาน' : activeChartFilter.label));
-                else if (activeChartFilter.type === 'payment') matchChart = (item.Payment_Status === (activeChartFilter.label === 'อยู่ระหว่างเบิกจ่าย' ? 'อยู่ระหว่างการเบิกจ่าย' : activeChartFilter.label));
+                if (activeChartFilter.type === 'operation') {
+                    matchChart = (item.Operation_Status === (activeChartFilter.label === 'เสร็จสิ้นแล้ว' ? 'ดำเนินการเสร็จสิ้นแล้ว' : activeChartFilter.label === 'อยู่ระหว่างดำเนินการ' ? 'อยู่ระหว่างการดำเนินงาน' : activeChartFilter.label));
+                } else if (activeChartFilter.type === 'payment') {
+                    matchChart = (item.Payment_Status === (activeChartFilter.label === 'อยู่ระหว่างเบิกจ่าย' ? 'อยู่ระหว่างการเบิกจ่าย' : activeChartFilter.label));
+                } else if (activeChartFilter.type === 'role') {
+                    matchChart = (item.Operation_Status !== 'ยกเลิกรายการ') && (classifyPersonnelCategory(item) === activeChartFilter.label);
+                }
                 return matchKeyword && matchChart;
             });
             currentPage = 1; renderPaginatedView();
@@ -1120,7 +1253,7 @@
             cols.prog.innerHTML = ''; cols.done.innerHTML = ''; cols.cancel.innerHTML = ''; let counts = { prog: 0, done: 0, cancel: 0 };
             if(data.length === 0) { const msg = `<div class="text-center text-sm text-gray-400 p-4">ไม่มีโครงการในหมวดหมู่นี้</div>`; cols.prog.innerHTML = msg; cols.done.innerHTML = msg; cols.cancel.innerHTML = msg; document.getElementById('kanban-count-prog').innerText = 0; document.getElementById('kanban-count-done').innerText = 0; document.getElementById('kanban-count-cancel').innerText = 0; return; }
             data.forEach(item => {
-                let status = item.Operation_Status || ''; let amt = Number(item.Approved_Budget || 0); let title = (item.Main_Category || '').includes('การกีฬา') ? item.Sub_Category || 'ไม่ระบุ' : item.Sub_Category || 'ไม่ระบุ';
+                let status = item.Operation_Status || ''; let amt = parseSafeNumber(item.Approved_Budget); let title = (item.Main_Category || '').includes('การกีฬา') ? item.Sub_Category || 'ไม่ระบุ' : item.Sub_Category || 'ไม่ระบุ';
                 let activityName = (item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : '') + (item.Project_Name && item.Project_Name !== '-' ? ` (${item.Project_Name})` : ''); activityName = activityName || '-';
                 let cardHtml = `<div class="kanban-card bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex flex-col gap-2"><div class="flex justify-between items-start"><span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">${item.ID || ''}</span><span class="text-[10px] text-gray-400">${item.Start_Date && item.Start_Date !== '-' ? item.Start_Date : 'ไม่ระบุวัน'}</span></div><div><div class="font-bold text-sm text-gray-800 line-clamp-2" title="${title}">${title}</div><div class="text-xs text-gray-500 line-clamp-1" title="${activityName}">${activityName}</div></div><div class="mt-1 flex justify-between items-center border-t border-gray-50 pt-2"><div class="text-xs text-gray-500">งบอนุมัติ:</div><div class="font-bold text-sm text-gray-800">${amt.toLocaleString()} ฿</div></div></div>`;
                 if (status === 'ดำเนินการเสร็จสิ้นแล้ว') { cols.done.innerHTML += cardHtml; counts.done++; } else if (status === 'ยกเลิกรายการ') { cols.cancel.innerHTML += cardHtml; counts.cancel++; } else { cols.prog.innerHTML += cardHtml; counts.prog++; }
@@ -1175,7 +1308,7 @@
             }
             
             tbody.innerHTML = data.map(item => {
-                let app = Number(item.Approved_Budget || 0); let used = Number(item.Used_Budget || 0); let remaining = app - used;
+                let app = parseSafeNumber(item.Approved_Budget); let used = parseSafeNumber(item.Used_Budget); let remaining = app - used;
                 let opClass = item.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว' ? 'bg-green-100 text-green-700' : item.Operation_Status === 'ยกเลิกรายการ' ? 'bg-red-100 text-red-700 font-bold' : 'bg-yellow-100 text-yellow-700';
                 
                 let payClass = '';
@@ -1195,7 +1328,6 @@
                     if (isAssoc) {
                         dropOpts += `<option value="ส่งเงินคืนกองทุนฯ" ${item.Payment_Status==='ส่งเงินคืนกองทุนฯ'?'selected':''}>ส่งเงินคืนกองทุนฯ</option>`;
                     }
-                    // 🌟 แก้ไข: จัดการ CSS และ Tailwind Class ใหม่ให้เหมือนป้ายฝั่งซ้าย และตั้งค่า min-width กันข้อความโดนตัด
                     paymentCellHtml = `<select onchange="updatePaymentStatus('${item.ID}', this.value)" class="admin-inline-select text-xs font-medium rounded-full cursor-pointer border-0 outline-none shadow-sm hover:shadow transition-all focus:ring-2 focus:ring-blue-400 ${payClass}" style="min-width: 145px; padding-top: 4px; padding-bottom: 4px;">${dropOpts}</select>`;
                 } else {
                     paymentCellHtml = `<span class="px-2 py-1 text-xs rounded-full ${payClass}">${item.Payment_Status || '-'}</span>`;
@@ -1258,7 +1390,7 @@
             
             let listHtml = `<div class="overflow-x-auto max-h-[400px]"><table class="w-full text-left text-sm border-collapse relative"><thead class="bg-gray-100 text-gray-700 border-b border-gray-200 sticky top-0 shadow-sm"><tr><th class="p-3">รหัส ID</th><th class="p-3">สมาคมกีฬา</th><th class="p-3">กิจกรรม / หลักสูตร</th><th class="p-3 text-right">${valueLabel}</th></tr></thead><tbody class="divide-y divide-gray-100">`;
             filteredList.forEach(item => {
-                let amt = Number(item.Approved_Budget || 0); totalBudget += amt; uniqueAssoc.add(item.Sub_Category || '-');
+                let amt = parseSafeNumber(item.Approved_Budget); totalBudget += amt; uniqueAssoc.add(item.Sub_Category || '-');
                 let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : ''; let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : ''; let activityName = (act + (subAct ? (act ? ` (${subAct})` : subAct) : '')) || '-';
                 listHtml += `<tr class="hover:bg-blue-50/50 transition"><td class="p-3 font-mono text-xs text-gray-600">${item.ID}</td><td class="p-3 font-medium">${item.Sub_Category || '-'}</td><td class="p-3 text-gray-600">${activityName}</td><td class="p-3 text-right font-bold ${amountColor}">${amt.toLocaleString()}</td></tr>`;
             });
@@ -1278,7 +1410,7 @@
             if (filteredList.length === 0) { alert("หมวดหมู่นี้ไม่มีข้อมูลให้ Export"); return; }
             let exportData = [["รหัส ID", "สมาคมกีฬา", "กิจกรรม / หลักสูตร", filterType === 'cancel' ? "ยอดเงินต้องส่งคืน (บาท)" : "งบประมาณอนุมัติ (บาท)"]];
             let uniqueAssoc = new Set(); let totalBudget = 0;
-            filteredList.forEach(item => { let amt = Number(item.Approved_Budget || 0); totalBudget += amt; uniqueAssoc.add(item.Sub_Category || '-'); let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : ''; let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : ''; let activityName = (act + (subAct ? (act ? ` (${subAct})` : subAct) : '')) || '-'; exportData.push([item.ID || '-', item.Sub_Category || '-', activityName, amt]); });
+            filteredList.forEach(item => { let amt = parseSafeNumber(item.Approved_Budget); totalBudget += amt; uniqueAssoc.add(item.Sub_Category || '-'); let act = item.Project_Activity && item.Project_Activity !== '-' ? item.Project_Activity : ''; let subAct = item.Project_Name && item.Project_Name !== '-' ? item.Project_Name : ''; let activityName = (act + (subAct ? (act ? ` (${subAct})` : subAct) : '')) || '-'; exportData.push([item.ID || '-', item.Sub_Category || '-', activityName, amt]); });
             exportData.push([]); exportData.push(["สรุป", `รวม ${uniqueAssoc.size} สมาคม`, `รวม ${filteredList.length} โครงการ`, totalBudget]);
             const wb = XLSX.utils.book_new(); const ws = XLSX.utils.aoa_to_sheet(exportData); ws['!cols'] = [{wch: 20}, {wch: 40}, {wch: 30}, {wch: 25}];
             XLSX.utils.book_append_sheet(wb, ws, "รายงานเจาะลึกสมาคม"); XLSX.writeFile(wb, `${filterText}.xlsx`);
@@ -1286,8 +1418,8 @@
 
         function renderAnalytics(data) {
             if (!data || data.length === 0) return;
-            let totalAppBudget = data.reduce((sum, item) => sum + Number(item.Approved_Budget || 0), 0); let totalUsedBudget = data.reduce((sum, item) => sum + Number(item.Used_Budget || 0), 0);
-            let totalTarget = data.reduce((sum, item) => sum + Number(item.Target_People || 0), 0); let totalPassed = data.reduce((sum, item) => sum + Number(item.Passed_People || 0), 0);
+            let totalAppBudget = data.reduce((sum, item) => sum + parseSafeNumber(item.Approved_Budget), 0); let totalUsedBudget = data.reduce((sum, item) => sum + parseSafeNumber(item.Used_Budget), 0);
+            let totalTarget = data.reduce((sum, item) => sum + parseSafeNumber(item.Target_People), 0); let totalPassed = data.reduce((sum, item) => sum + parseSafeNumber(item.Passed_People), 0);
             document.getElementById('analytics-budget-percent').innerText = (totalAppBudget > 0 ? ((totalUsedBudget / totalAppBudget) * 100).toFixed(2) : 0) + '%';
             document.getElementById('analytics-people-percent').innerText = (totalTarget > 0 ? ((totalPassed / totalTarget) * 100).toFixed(2) : 0) + '%';
 
@@ -1297,8 +1429,8 @@
 
             function generateInsightBlock(title, dataset, isAssoc) {
                 if (!dataset || dataset.length === 0) return `<div class="mb-4"><h4 class="font-bold text-blue-900 text-lg border-b-2 border-gray-200 pb-2 mb-3">${title}</h4><p class="text-gray-500">ยังไม่มีข้อมูลโครงการ</p></div>`;
-                let appBudget = dataset.reduce((sum, i) => sum + Number(i.Approved_Budget || 0), 0); let useBudget = dataset.reduce((sum, i) => sum + Number(i.Used_Budget || 0), 0);
-                let targPeople = dataset.reduce((sum, i) => sum + Number(i.Target_People || 0), 0); let passPeople = dataset.reduce((sum, i) => sum + Number(i.Passed_People || 0), 0);
+                let appBudget = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Approved_Budget), 0); let useBudget = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Used_Budget), 0);
+                let targPeople = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Target_People), 0); let passPeople = dataset.reduce((sum, i) => sum + parseSafeNumber(i.Passed_People), 0);
                 let completedCount = dataset.filter(i => i.Operation_Status === 'ดำเนินการเสร็จสิ้นแล้ว').length; let cancelledCount = dataset.filter(i => i.Operation_Status === 'ยกเลิกรายการ').length; let inProgressCount = dataset.length - completedCount - cancelledCount;
                 
                 let payReturnCount = dataset.filter(i => i.Payment_Status === 'ส่งเงินคืนกองทุนฯ').length; 
@@ -1308,7 +1440,7 @@
                 
                 let overB = []; let highB = []; let lowB = []; let surpTotal = 0; let retTotal = 0;
                 dataset.forEach(item => {
-                    let approved = Number(item.Approved_Budget || 0); let used = Number(item.Used_Budget || 0); let remaining = approved - used; let percentUsed = approved > 0 ? (used / approved) * 100 : 0; let status = item.Operation_Status; let idName = `<b>${item.ID}</b>`;
+                    let approved = parseSafeNumber(item.Approved_Budget); let used = parseSafeNumber(item.Used_Budget); let remaining = approved - used; let percentUsed = approved > 0 ? (used / approved) * 100 : 0; let status = item.Operation_Status; let idName = `<b>${item.ID}</b>`;
                     if (status === 'ยกเลิกรายการ') retTotal += approved;
                     else { if (used > approved) overB.push(`${idName} (เกิน ${Math.abs(remaining).toLocaleString()} ฿)`); else if (percentUsed >= 90 && status === 'อยู่ระหว่างการดำเนินงาน') highB.push(`${idName} (${percentUsed.toFixed(1)}%)`); else if (percentUsed > 0 && percentUsed < 30 && status === 'อยู่ระหว่างการดำเนินงาน') lowB.push(idName); if (status === 'ดำเนินการเสร็จสิ้นแล้ว' && remaining > 0) surpTotal += remaining; }
                 });
@@ -1323,7 +1455,7 @@
                 html += `<p class="text-gray-700 mb-3">${projectText}<br>เบิกจ่ายแล้ว <b>${appBudget > 0 ? ((useBudget / appBudget) * 100).toFixed(2) : 0}%</b> | ผ่านการอบรม <b>${targPeople > 0 ? ((passPeople / targPeople) * 100).toFixed(2) : 0}%</b> ของเป้าหมาย</p>`;
                 if (isAssoc) {
                     let interCount = 0, nationalCount = 0, noneCount = 0, interBudget = 0, nationalBudget = 0, noneBudget = 0;
-                    dataset.forEach(item => { let nameToCheck = String(item.Project_Name || '') + " " + String(item.Project_Activity || ''); let approved = Number(item.Approved_Budget || 0); if (nameToCheck.includes('นานาชาติ')) { interCount++; interBudget += approved; } else if (nameToCheck.includes('ระดับชาติ')) { nationalCount++; nationalBudget += approved; } else { noneCount++; noneBudget += approved; } });
+                    dataset.forEach(item => { let nameToCheck = String(item.Project_Name || '') + " " + String(item.Project_Activity || ''); let approved = parseSafeNumber(item.Approved_Budget); if (nameToCheck.includes('นานาชาติ')) { interCount++; interBudget += approved; } else if (nameToCheck.includes('ระดับชาติ')) { nationalCount++; nationalBudget += approved; } else { noneCount++; noneBudget += approved; } });
                     html += `<div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4 text-sm text-gray-800 print:break-inside-avoid"><div class="font-bold text-indigo-900 mb-2">🎯 สัดส่วนโครงการจำแนกตามระดับ (วิเคราะห์จากชื่อรายการ)</div><div class="grid grid-cols-1 sm:grid-cols-3 gap-3"><div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-blue-500"><div class="text-lg">🌍 นานาชาติ</div><div class="font-bold text-xl text-blue-700">${interCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div><div class="text-xs text-gray-500 mt-1">งบรวม: ${interBudget.toLocaleString()} ฿</div></div><div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-red-500"><div class="text-lg">🇹🇭 ระดับชาติ</div><div class="font-bold text-xl text-red-700">${nationalCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div><div class="text-xs text-gray-500 mt-1">งบรวม: ${nationalBudget.toLocaleString()} ฿</div></div><div class="bg-white p-3 rounded-md shadow-sm border-l-4 border-gray-400"><div class="text-lg">📌 ไม่ระบุ</div><div class="font-bold text-xl text-gray-700">${noneCount} <span class="text-sm font-normal text-gray-500">รายการ</span></div><div class="text-xs text-gray-500 mt-1">งบรวม: ${noneBudget.toLocaleString()} ฿</div></div></div></div>`;
                 }
                 html += `<ul class="space-y-2 text-sm text-gray-700 bg-white p-4 rounded-lg border border-blue-50 shadow-sm print:break-inside-avoid">`; let hasAdvice = false;
@@ -1343,10 +1475,10 @@
 
             const barOptions = { responsive: true, maintainAspectRatio: false, plugins: { datalabels: { display: false } } };
             if(agencyChartInstance) agencyChartInstance.destroy();
-            agencyChartInstance = new Chart(document.getElementById('agencyCompareChart').getContext('2d'), { type: 'bar', data: { labels: ['การกีฬาแห่งประเทศไทย', 'สมาคมกีฬาแห่งประเทศไทย'], datasets: [ { label: 'งบอนุมัติ', data: [satData.reduce((s, i) => s + Number(i.Approved_Budget||0), 0), assocData.reduce((s, i) => s + Number(i.Approved_Budget||0), 0)], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'งบใช้จริง', data: [satData.reduce((s, i) => s + Number(i.Used_Budget||0), 0), assocData.reduce((s, i) => s + Number(i.Used_Budget||0), 0)], backgroundColor: '#10b981', borderRadius: 4 } ] }, options: barOptions });
+            agencyChartInstance = new Chart(document.getElementById('agencyCompareChart').getContext('2d'), { type: 'bar', data: { labels: ['การกีฬาแห่งประเทศไทย', 'สมาคมกีฬาแห่งประเทศไทย'], datasets: [ { label: 'งบอนุมัติ', data: [satData.reduce((s, i) => s + parseSafeNumber(i.Approved_Budget), 0), assocData.reduce((s, i) => s + parseSafeNumber(i.Approved_Budget), 0)], backgroundColor: '#3b82f6', borderRadius: 4 }, { label: 'งบใช้จริง', data: [satData.reduce((s, i) => s + parseSafeNumber(i.Used_Budget), 0), assocData.reduce((s, i) => s + parseSafeNumber(i.Used_Budget), 0)], backgroundColor: '#10b981', borderRadius: 4 } ] }, options: barOptions });
 
             let aggregatedBudget = {};
-            data.forEach(item => { let name = item.Sub_Category || 'ไม่ระบุ'; if(!aggregatedBudget[name]) aggregatedBudget[name] = { app: 0, used: 0 }; aggregatedBudget[name].app += Number(item.Approved_Budget || 0); aggregatedBudget[name].used += Number(item.Used_Budget || 0); });
+            data.forEach(item => { let name = item.Sub_Category || 'ไม่ระบุ'; if(!aggregatedBudget[name]) aggregatedBudget[name] = { app: 0, used: 0 }; aggregatedBudget[name].app += parseSafeNumber(item.Approved_Budget); aggregatedBudget[name].used += parseSafeNumber(item.Used_Budget); });
             let sortedBudgets = Object.keys(aggregatedBudget).map(key => ({ name: String(key).length > 20 ? String(key).substring(0, 20) + '...' : String(key), app: aggregatedBudget[key].app, used: aggregatedBudget[key].used })).sort((a, b) => b.app - a.app).slice(0, 15);
             if(budgetChartInstance) budgetChartInstance.destroy();
             budgetChartInstance = new Chart(document.getElementById('budgetCompareChart').getContext('2d'), { type: 'bar', data: { labels: sortedBudgets.map(i => i.name), datasets: [ { label: 'งบอนุมัติ', data: sortedBudgets.map(i => i.app), backgroundColor: '#60a5fa', borderRadius: 4 }, { label: 'งบใช้จริง', data: sortedBudgets.map(i => i.used), backgroundColor: '#34d399', borderRadius: 4 } ] }, options: barOptions });
@@ -1418,7 +1550,7 @@
                 if(item.Operation_Status === 'ยกเลิกรายการ') return;
 
                 let locText = String(item.Location || '').replace(/\s/g, '').toLowerCase();
-                let budget = Number(item.Approved_Budget || 0);
+                let budget = parseSafeNumber(item.Approved_Budget);
                 
                 let matchedProvinceEN = null;
                 for (let thKey in thProvinceMap) {
@@ -1641,10 +1773,10 @@
                 projectName: isAssociation ? sanitizeGeneralWord(document.getElementById('projectName').value || "-").trim() : "-",
                 location: sanitizeGeneralWord(document.getElementById('location').value || "-").trim(),
                 startDate: document.getElementById('startDate').value, endDate: document.getElementById('endDate').value,
-                targetPeople: Number(document.getElementById('targetPeople').value.replace(/,/g, '')) || 0,
-                passedPeople: Number(document.getElementById('passedPeople').value.replace(/,/g, '')) || 0,
-                approvedBudget: Number(document.getElementById('approvedBudget').value.replace(/,/g, '')) || 0,
-                usedBudget: Number(document.getElementById('usedBudget').value.replace(/,/g, '')) || 0,
+                targetPeople: parseSafeNumber(document.getElementById('targetPeople').value),
+                passedPeople: parseSafeNumber(document.getElementById('passedPeople').value),
+                approvedBudget: parseSafeNumber(document.getElementById('approvedBudget').value),
+                usedBudget: parseSafeNumber(document.getElementById('usedBudget').value),
                 operationStatus: document.getElementById('operationStatus').value, paymentStatus: document.getElementById('paymentStatus').value,
                 pdfBase64: uploadedPdfBase64 || null, pdfFileName: uploadedPdfName || null
             };
@@ -1678,8 +1810,8 @@
                     return {
                         projectId: String(row["รหัส ID โครงการ"]).trim(), mainCategory: sanitizeGeneralWord(String(row["หมวดหมู่หลัก"] || "")).trim(), subCategory: sanitizeGeneralWord(String(row["หลักสูตร/สมาคม"] || "")).trim(),
                         projectActivity: sanitizeGeneralWord(String(row["กิจกรรม"] || "-")).trim(), projectName: sanitizeGeneralWord(String(row["ชื่อรายการย่อย"] || "-")).trim(), location: sanitizeGeneralWord(String(row["สถานที่"] || "-")).trim(),
-                        startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-", endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-", targetPeople: Number(String(row["เป้าหมาย(คน)"] || "0").replace(/,/g, '')) || 0, passedPeople: Number(String(row["ผ่านการอบรม(คน)"] || "0").replace(/,/g, '')) || 0,
-                        approvedBudget: Number(String(row["งบอนุมัติ(บาท)"] || "0").replace(/,/g, '')) || 0, usedBudget: Number(String(row["งบใช้จริง(บาท)"] || "0").replace(/,/g, '')) || 0, operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน", paymentStatus: row["สถานะการเบิกจ่าย"] || "อยู่ระหว่างการเบิกจ่าย"
+                        startDate: row["วันที่เริ่มต้น (YYYY-MM-DD)"] || "-", endDate: row["วันที่สิ้นสุด (YYYY-MM-DD)"] || "-", targetPeople: parseSafeNumber(row["เป้าหมาย(คน)"]), passedPeople: parseSafeNumber(row["ผ่านการอบรม(คน)"]),
+                        approvedBudget: parseSafeNumber(row["งบอนุมัติ(บาท)"]), usedBudget: parseSafeNumber(row["งบใช้จริง(บาท)"]), operationStatus: row["สถานะการดำเนินงาน"] || "อยู่ระหว่างการดำเนินงาน", paymentStatus: row["สถานะการเบิกจ่าย"] || "อยู่ระหว่างการเบิกจ่าย"
                     };
                 }).filter(item => item.projectId);
                 if (parsedBatchPayloads.length === 0) { alert("รูปแบบไฟล์ไม่ถูกต้อง หรือไม่พบข้อมูลในคอลัมน์ 'รหัส ID โครงการ'"); return; }
